@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { Block, Task } from "@/types";
 import { useEditorStore } from "@/store/useEditorStore";
-import { AppInput } from "@/components/ui";
+import { AppInput, AppLabel } from "@/components/ui";
 import { TaskPicker } from "./task-picker";
 
 interface BlockSeqInputsProps {
@@ -30,10 +30,8 @@ export function BlockSeqInputs({ block, unit, tasks = [] }: BlockSeqInputsProps)
 
   return (
     <div className="px-6 flex items-center gap-3 flex-wrap">
-      <div className="flex flex-col gap-1 min-w-[140px]">
-        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-          {t("task")}
-        </label>
+      <div className="flex flex-col min-w-[140px]">
+        <AppLabel variant="uppercase">{t("task")}</AppLabel>
         <TaskPicker
           tasks={tasks}
           selectedTaskId={block.taskId}
@@ -42,31 +40,30 @@ export function BlockSeqInputs({ block, unit, tasks = [] }: BlockSeqInputsProps)
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-          {t("time")}
-        </label>
-        {selectedTask ? (
-          <AppInput
-            type="number"
-            readOnly
-            className="w-24 font-mono bg-muted/50 cursor-not-allowed"
-            value={displayTime}
-            suffix={unit}
-            title={t("timeSheetHint")}
-          />
-        ) : (
-          <AppInput
-            type="number"
-            step="any"
-            min="0"
-            className="w-24 font-mono"
-            value={block.time ?? 0}
-            onChange={(e) => updateBlock(block.id, { time: parseFloat(e.target.value) || 0 })}
-            suffix={unit}
-          />
-        )}
-      </div>
+      {selectedTask ? (
+        <AppInput
+          label={t("time")}
+          labelVariant="uppercase"
+          type="number"
+          readOnly
+          className="w-24 font-mono bg-muted/50 cursor-not-allowed"
+          value={displayTime}
+          suffix={unit}
+          title={t("timeSheetHint")}
+        />
+      ) : (
+        <AppInput
+          label={t("time")}
+          labelVariant="uppercase"
+          type="number"
+          step="any"
+          min="0"
+          className="w-24 font-mono"
+          value={block.time ?? 0}
+          onChange={(e) => updateBlock(block.id, { time: parseFloat(e.target.value) || 0 })}
+          suffix={unit}
+        />
+      )}
     </div>
   );
 }

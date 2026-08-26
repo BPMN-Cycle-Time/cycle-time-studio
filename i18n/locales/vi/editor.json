@@ -18,6 +18,7 @@
   "timeSheet": "Bảng thời gian công việc (Timesheet)",
   "timeSheetHint": "Các bước chỉ định công việc sẽ lấy thời gian từ bảng này — chỉnh sửa một lần sẽ tự động cập nhật toàn bộ mô hình.",
   "addTask": "Thêm công việc",
+  "searchTasks": "Tìm kiếm công việc...",
   "task": "Công việc",
   "used": "Sử dụng",
   "unused": "chưa dùng",

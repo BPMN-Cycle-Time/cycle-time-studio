@@ -33,6 +33,29 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
   const graph = useMemo(() => buildProcessGraph(blocks, tasks), [blocks, tasks]);
   const layout = useMemo(() => layoutProcessGraph(graph), [graph]);
 
+  // Adjacency lines
+  const adjacencyLines = useMemo(() => {
+    const bySource: Record<string, { t: string; label: string }[]> = {};
+    graph.edges.forEach((e) => {
+      bySource[e.s] = bySource[e.s] ?? [];
+      bySource[e.s]!.push({ t: e.t, label: e.label });
+    });
+
+    return graph.nodes
+      .filter((n) => bySource[n.id]?.length)
+      .map((n) => {
+        const targets = bySource[n.id]!.map((e) => `${e.t}${e.label ? ` [${e.label}]` : ""}`).join(
+          ", ",
+        );
+        return { id: n.id, targets };
+      });
+  }, [graph]);
+
+  const loopsCount = useMemo(
+    () => graph.nodes.filter((n) => n.type === "XOR gateway (loop)").length,
+    [graph.nodes],
+  );
+
   if (blocks.length === 0 || !layout) {
     return (
       <div className="flex-1 flex flex-col min-h-0">
@@ -43,24 +66,6 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
       </div>
     );
   }
-
-  // Adjacency lines
-  const bySource: Record<string, { t: string; label: string }[]> = {};
-  graph.edges.forEach((e) => {
-    bySource[e.s] = bySource[e.s] ?? [];
-    bySource[e.s]!.push({ t: e.t, label: e.label });
-  });
-
-  const adjacencyLines = graph.nodes
-    .filter((n) => bySource[n.id]?.length)
-    .map((n) => {
-      const targets = bySource[n.id]!.map((e) => `${e.t}${e.label ? ` [${e.label}]` : ""}`).join(
-        ", ",
-      );
-      return { id: n.id, targets };
-    });
-
-  const loopsCount = graph.nodes.filter((n) => n.type === "XOR gateway (loop)").length;
 
   const svgElements: ReactNode[] = [];
 

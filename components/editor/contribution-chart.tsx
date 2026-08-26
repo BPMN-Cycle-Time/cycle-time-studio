@@ -1,13 +1,17 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { ContributionRow } from "@/types";
 import { Badge } from "@/components/ui";
 
 export function ContributionChart({ rows, unit }: { rows: ContributionRow[]; unit: string }) {
   const t = useTranslations("editor");
-  const visible = rows.filter((r) => !r.excluded);
-  const maxVal = Math.max(1e-9, ...visible.map((r) => r.expected));
+  const { visible, maxVal } = useMemo(() => {
+    const v = rows.filter((r) => !r.excluded);
+    const max = Math.max(1e-9, ...v.map((r) => r.expected));
+    return { visible: v, maxVal: max };
+  }, [rows]);
 
   if (visible.length === 0) {
     return <p className="text-sm text-muted-foreground">{t("addStepNotice")}</p>;

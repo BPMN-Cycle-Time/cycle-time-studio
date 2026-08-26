@@ -13,6 +13,8 @@ export * from "./tooltip";
 export * from "./app-tooltip";
 export * from "./app-card";
 export * from "./app-input";
+export * from "./app-select";
+export * from "./app-label";
 export * from "./sheet";
 export * from "./table";
 export * from "./data-table";

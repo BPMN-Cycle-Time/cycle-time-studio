@@ -1,23 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2, Check, ArrowUp, ArrowDown, GitBranch, Layers } from "lucide-react";
 
 import { BlockType, BlockMode } from "@/types";
 import { useEditorStore, SelectionKind } from "@/store/useEditorStore";
 import { findBlockInTree, findBranchInTree } from "@/services/graph";
-import {
-  Button,
-  Input,
-  Badge,
-  Card,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui";
+import { Button, AppInput, Badge, Card, AppSelect, type SelectOption } from "@/components/ui";
 import { BLOCK_TYPES } from "@/constants";
 
 const CUSTOM_VALUE = "__custom__";
@@ -44,10 +34,33 @@ export function DiagramInspector() {
   const [insertBeforeType, setInsertBeforeType] = useState<BlockType>(BlockType.SEQ);
   const [insertAfterType, setInsertAfterType] = useState<BlockType>(BlockType.SEQ);
 
+  const blockTypeOptions: SelectOption<BlockType>[] = useMemo(
+    () =>
+      BLOCK_TYPES.map((t) => ({
+        value: t.value,
+        label: tTypes(t.value),
+        icon: t.icon,
+      })),
+    [tTypes],
+  );
+
+  const tasks = useMemo(() => project?.tasks ?? [], [project?.tasks]);
+  const unit = project?.unit ?? "";
+
+  const taskOptions: SelectOption<string>[] = useMemo(
+    () => [
+      { value: CUSTOM_VALUE, label: tDia("inspector.customTimeOption") },
+      ...tasks.map((t) => ({
+        value: t.id,
+        label: `${t.name} (${t.time} ${unit})`,
+      })),
+    ],
+    [tasks, unit, tDia],
+  );
+
   if (!project) return null;
 
   const blocks = project.blocks;
-  const tasks = project.tasks;
 
   if (!selectedId || !selectedKind) {
     return (
@@ -89,89 +102,66 @@ export function DiagramInspector() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-3">
           {/* Branch Label */}
-          <div>
-            <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-              {tDia("inspector.branchName")}
-            </label>
-            <Input
-              className="h-8 text-xs font-medium"
-              value={branch.label}
-              onChange={(e) => updateBranch(parentBlock.id, branch.id, { label: e.target.value })}
-            />
-          </div>
+          <AppInput
+            label={tDia("inspector.branchName")}
+            labelVariant="uppercase"
+            inputClassName="font-medium"
+            value={branch.label}
+            onChange={(e) => updateBranch(parentBlock.id, branch.id, { label: e.target.value })}
+          />
 
           {/* Probability (XOR only) */}
           {isXor && (
-            <div>
-              <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-                {tDia("inspector.probability")}
-              </label>
-              <Input
-                type="number"
-                step="any"
-                min={0}
-                max={100}
-                className="h-8 text-xs font-mono"
-                value={branch.p ?? 0}
-                onChange={(e) =>
-                  updateBranch(parentBlock.id, branch.id, { p: parseFloat(e.target.value) || 0 })
-                }
-              />
-            </div>
+            <AppInput
+              label={tDia("inspector.probability")}
+              labelVariant="uppercase"
+              type="number"
+              step="any"
+              min={0}
+              max={100}
+              inputClassName="font-mono"
+              value={branch.p ?? 0}
+              onChange={(e) =>
+                updateBranch(parentBlock.id, branch.id, { p: parseFloat(e.target.value) || 0 })
+              }
+            />
           )}
 
           {/* Task / Duration */}
           {!isComposite && (
             <>
-              <div>
-                <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-                  {tDia("inspector.taskFromTimesheet")}
-                </label>
-                <Select
-                  value={branch.taskId || CUSTOM_VALUE}
-                  onValueChange={(val) => {
-                    const taskId = val === CUSTOM_VALUE ? null : val;
-                    const foundTask = tasks.find((t) => t.id === taskId);
-                    updateBranch(parentBlock.id, branch.id, {
-                      taskId,
-                      label: foundTask ? foundTask.name : branch.label,
-                    });
-                  }}
-                >
-                  <SelectTrigger size="sm" className="h-8 text-xs w-full">
-                    <SelectValue placeholder={tDia("inspector.customTimeOption")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={CUSTOM_VALUE} className="text-xs">
-                      {tDia("inspector.customTimeOption")}
-                    </SelectItem>
-                    {tasks.map((t) => (
-                      <SelectItem key={t.id} value={t.id} className="text-xs">
-                        {t.name} ({t.time} {project.unit})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <AppSelect
+                label={tDia("inspector.taskFromTimesheet")}
+                labelVariant="uppercase"
+                value={branch.taskId || CUSTOM_VALUE}
+                onValueChange={(val) => {
+                  const taskId = val === CUSTOM_VALUE ? null : val;
+                  const foundTask = tasks.find((t) => t.id === taskId);
+                  updateBranch(parentBlock.id, branch.id, {
+                    taskId,
+                    label: foundTask ? foundTask.name : branch.label,
+                  });
+                }}
+                options={taskOptions}
+                placeholder={tDia("inspector.customTimeOption")}
+                triggerClassName="w-full"
+              />
 
               {!branch.taskId && (
-                <div>
-                  <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-                    {tDia("inspector.duration", { unit: project.unit })}
-                  </label>
-                  <Input
-                    type="number"
-                    step="any"
-                    min={0}
-                    className="h-8 text-xs font-mono"
-                    value={branch.t ?? 1}
-                    onChange={(e) =>
-                      updateBranch(parentBlock.id, branch.id, {
-                        t: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                  />
-                </div>
+                <AppInput
+                  label={tDia("inspector.duration", { unit: project.unit })}
+                  labelVariant="uppercase"
+                  type="number"
+                  step="any"
+                  min={0}
+                  inputClassName="font-mono"
+                  value={branch.t ?? 1}
+                  onChange={(e) =>
+                    updateBranch(parentBlock.id, branch.id, {
+                      t: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                />
               )}
             </>
           )}
@@ -245,87 +235,55 @@ export function DiagramInspector() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-3">
         {/* Name / Label */}
-        <div>
-          <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-            {tDia("inspector.stepName")}
-          </label>
-          <Input
-            className="h-8 text-xs font-semibold"
-            value={b.label}
-            onChange={(e) => updateBlock(b.id, { label: e.target.value })}
-          />
-        </div>
+        <AppInput
+          label={tDia("inspector.stepName")}
+          labelVariant="uppercase"
+          inputClassName="font-semibold"
+          value={b.label}
+          onChange={(e) => updateBlock(b.id, { label: e.target.value })}
+        />
 
         {/* Type */}
-        <div>
-          <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-            {tDia("inspector.stepType")}
-          </label>
-          <Select
-            value={b.type}
-            onValueChange={(val) => updateBlock(b.id, { type: val as BlockType })}
-          >
-            <SelectTrigger size="sm" className="h-8 text-xs font-medium w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {BLOCK_TYPES.map((t) => (
-                <SelectItem key={t.value} value={t.value} className="text-xs">
-                  {tTypes(t.value)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <AppSelect
+          label={tDia("inspector.stepType")}
+          labelVariant="uppercase"
+          value={b.type}
+          onValueChange={(val) => updateBlock(b.id, { type: val as BlockType })}
+          options={blockTypeOptions}
+          triggerClassName="w-full"
+        />
 
         {/* Sequence Block details */}
         {b.type === BlockType.SEQ && !isComposite && (
           <>
-            <div>
-              <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-                {tDia("inspector.taskFromTimesheet")}
-              </label>
-              <Select
-                value={b.taskId || CUSTOM_VALUE}
-                onValueChange={(val) => {
-                  const taskId = val === CUSTOM_VALUE ? null : val;
-                  const foundTask = tasks.find((t) => t.id === taskId);
-                  updateBlock(b.id, {
-                    taskId,
-                    label: foundTask ? foundTask.name : b.label,
-                  });
-                }}
-              >
-                <SelectTrigger size="sm" className="h-8 text-xs w-full">
-                  <SelectValue placeholder={tDia("inspector.customTimeOption")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={CUSTOM_VALUE} className="text-xs">
-                    {tDia("inspector.customTimeOption")}
-                  </SelectItem>
-                  {tasks.map((t) => (
-                    <SelectItem key={t.id} value={t.id} className="text-xs">
-                      {t.name} ({t.time} {project.unit})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <AppSelect
+              label={tDia("inspector.taskFromTimesheet")}
+              labelVariant="uppercase"
+              value={b.taskId || CUSTOM_VALUE}
+              onValueChange={(val) => {
+                const taskId = val === CUSTOM_VALUE ? null : val;
+                const foundTask = tasks.find((t) => t.id === taskId);
+                updateBlock(b.id, {
+                  taskId,
+                  label: foundTask ? foundTask.name : b.label,
+                });
+              }}
+              options={taskOptions}
+              placeholder={tDia("inspector.customTimeOption")}
+              triggerClassName="w-full"
+            />
 
             {!b.taskId && (
-              <div>
-                <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-                  {tDia("inspector.duration", { unit: project.unit })}
-                </label>
-                <Input
-                  type="number"
-                  step="any"
-                  min={0}
-                  className="h-8 text-xs font-mono"
-                  value={b.time ?? 1}
-                  onChange={(e) => updateBlock(b.id, { time: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
+              <AppInput
+                label={tDia("inspector.duration", { unit: project.unit })}
+                labelVariant="uppercase"
+                type="number"
+                step="any"
+                min={0}
+                inputClassName="font-mono"
+                value={b.time ?? 1}
+                onChange={(e) => updateBlock(b.id, { time: parseFloat(e.target.value) || 0 })}
+              />
             )}
           </>
         )}
@@ -333,70 +291,50 @@ export function DiagramInspector() {
         {/* Rework Loop details */}
         {b.type === BlockType.LOOP && (
           <>
-            <div>
-              <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-                {tDia("inspector.reworkProbability")}
-              </label>
-              <Input
-                type="number"
-                step="any"
-                min={0}
-                max={99.9}
-                className="h-8 text-xs font-mono"
-                value={b.loopP ?? 20}
-                onChange={(e) => updateBlock(b.id, { loopP: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
+            <AppInput
+              label={tDia("inspector.reworkProbability")}
+              labelVariant="uppercase"
+              type="number"
+              step="any"
+              min={0}
+              max={99.9}
+              inputClassName="font-mono"
+              value={b.loopP ?? 20}
+              onChange={(e) => updateBlock(b.id, { loopP: parseFloat(e.target.value) || 0 })}
+            />
 
             {!isComposite && (
               <>
-                <div>
-                  <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-                    {tDia("inspector.taskInLoop")}
-                  </label>
-                  <Select
-                    value={b.taskId || CUSTOM_VALUE}
-                    onValueChange={(val) => {
-                      const taskId = val === CUSTOM_VALUE ? null : val;
-                      const foundTask = tasks.find((t) => t.id === taskId);
-                      updateBlock(b.id, {
-                        taskId,
-                        label: foundTask ? foundTask.name : b.label,
-                      });
-                    }}
-                  >
-                    <SelectTrigger size="sm" className="h-8 text-xs w-full">
-                      <SelectValue placeholder={tDia("inspector.customTimeOption")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={CUSTOM_VALUE} className="text-xs">
-                        {tDia("inspector.customTimeOption")}
-                      </SelectItem>
-                      {tasks.map((t) => (
-                        <SelectItem key={t.id} value={t.id} className="text-xs">
-                          {t.name} ({t.time} {project.unit})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <AppSelect
+                  label={tDia("inspector.taskInLoop")}
+                  labelVariant="uppercase"
+                  value={b.taskId || CUSTOM_VALUE}
+                  onValueChange={(val) => {
+                    const taskId = val === CUSTOM_VALUE ? null : val;
+                    const foundTask = tasks.find((t) => t.id === taskId);
+                    updateBlock(b.id, {
+                      taskId,
+                      label: foundTask ? foundTask.name : b.label,
+                    });
+                  }}
+                  options={taskOptions}
+                  placeholder={tDia("inspector.customTimeOption")}
+                  triggerClassName="w-full"
+                />
 
                 {!b.taskId && (
-                  <div>
-                    <label className="text-[10px] font-medium uppercase text-muted-foreground mb-1 block">
-                      {tDia("inspector.loopDuration", { unit: project.unit })}
-                    </label>
-                    <Input
-                      type="number"
-                      step="any"
-                      min={0}
-                      className="h-8 text-xs font-mono"
-                      value={b.loopTime ?? 1}
-                      onChange={(e) =>
-                        updateBlock(b.id, { loopTime: parseFloat(e.target.value) || 0 })
-                      }
-                    />
-                  </div>
+                  <AppInput
+                    label={tDia("inspector.loopDuration", { unit: project.unit })}
+                    labelVariant="uppercase"
+                    type="number"
+                    step="any"
+                    min={0}
+                    inputClassName="font-mono"
+                    value={b.loopTime ?? 1}
+                    onChange={(e) =>
+                      updateBlock(b.id, { loopTime: parseFloat(e.target.value) || 0 })
+                    }
+                  />
                 )}
               </>
             )}
@@ -408,17 +346,11 @@ export function DiagramInspector() {
       <div className="flex flex-wrap items-center gap-2 pt-2 border-t text-xs">
         {/* Insert Before */}
         <div className="flex items-center gap-1">
-          <select
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs font-sans"
+          <AppSelect
             value={insertBeforeType}
-            onChange={(e) => setInsertBeforeType(e.target.value as BlockType)}
-          >
-            {BLOCK_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {tTypes(t.value)}
-              </option>
-            ))}
-          </select>
+            onValueChange={setInsertBeforeType}
+            options={blockTypeOptions}
+          />
           <Button
             variant="outline"
             size="sm"
@@ -431,17 +363,11 @@ export function DiagramInspector() {
 
         {/* Insert After */}
         <div className="flex items-center gap-1">
-          <select
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs font-sans"
+          <AppSelect
             value={insertAfterType}
-            onChange={(e) => setInsertAfterType(e.target.value as BlockType)}
-          >
-            {BLOCK_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {tTypes(t.value)}
-              </option>
-            ))}
-          </select>
+            onValueChange={setInsertAfterType}
+            options={blockTypeOptions}
+          />
           <Button
             variant="outline"
             size="sm"

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { Dices } from "lucide-react";
@@ -13,12 +14,15 @@ export function MonteCarloPanel({ blocks, unit }: { blocks: Block[]; unit: strin
   const tBtn = useTranslations("common.buttons");
   const { result, running, execute } = useSimulation(blocks, 5000);
 
-  const chartData =
-    result?.histogram.map((b) => ({
-      x: (b.x0 + b.x1) / 2,
-      label: b.x0.toFixed(1),
-      count: b.count,
-    })) ?? [];
+  const chartData = useMemo(
+    () =>
+      result?.histogram.map((b) => ({
+        x: (b.x0 + b.x1) / 2,
+        label: b.x0.toFixed(1),
+        count: b.count,
+      })) ?? [],
+    [result],
+  );
 
   return (
     <div>

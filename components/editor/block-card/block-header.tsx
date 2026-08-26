@@ -1,19 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { BlockType, BlockMode, type Block } from "@/types";
 import { useEditorStore } from "@/store/useEditorStore";
-import {
-  Input,
-  Button,
-  Badge,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui";
+import { Input, Button, Badge, AppSelect, type SelectOption } from "@/components/ui";
 import { BLOCK_TYPES } from "@/constants";
 
 interface BlockHeaderProps {
@@ -24,7 +16,18 @@ interface BlockHeaderProps {
 export function BlockHeader({ block, index }: BlockHeaderProps) {
   const tTypes = useTranslations("common.blockTypes");
   const tEd = useTranslations("editor");
-  const { updateBlock, removeBlock } = useEditorStore();
+  const updateBlock = useEditorStore((s) => s.updateBlock);
+  const removeBlock = useEditorStore((s) => s.removeBlock);
+
+  const blockTypeOptions: SelectOption<BlockType>[] = useMemo(
+    () =>
+      BLOCK_TYPES.map((bt) => ({
+        value: bt.value,
+        label: tTypes(bt.value),
+        icon: bt.icon,
+      })),
+    [tTypes],
+  );
 
   const handleTypeChange = (newType: BlockType) => {
     if (newType === block.type) return;
@@ -73,18 +76,12 @@ export function BlockHeader({ block, index }: BlockHeaderProps) {
         placeholder={tEd("blockNamePlaceholder")}
       />
 
-      <Select value={block.type} onValueChange={(val) => handleTypeChange(val as BlockType)}>
-        <SelectTrigger size="sm" className="h-8 text-xs font-medium shrink-0">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {BLOCK_TYPES.map((bt) => (
-            <SelectItem key={bt.value} value={bt.value} className="text-xs">
-              {tTypes(bt.value)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <AppSelect
+        value={block.type}
+        onValueChange={handleTypeChange}
+        options={blockTypeOptions}
+        triggerClassName="font-medium shrink-0"
+      />
 
       <Button
         variant="ghost"

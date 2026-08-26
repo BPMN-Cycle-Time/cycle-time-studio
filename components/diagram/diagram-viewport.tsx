@@ -49,20 +49,20 @@ export function DiagramViewport({
     [minZoom, maxZoom],
   );
 
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     setScale((s) => clampZoom(s + 0.2));
-  };
+  }, [clampZoom]);
 
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     setScale((s) => clampZoom(s - 0.2));
-  };
+  }, [clampZoom]);
 
-  const handleResetZoom = () => {
+  const handleResetZoom = useCallback(() => {
     setScale(1);
     setPosition({ x: 0, y: 0 });
-  };
+  }, []);
 
-  const handleFitView = () => {
+  const handleFitView = useCallback(() => {
     if (!containerRef.current || !contentWidth || !contentHeight) {
       handleResetZoom();
       return;
@@ -76,19 +76,22 @@ export function DiagramViewport({
     const fitScale = clampZoom(Math.min(scaleX, scaleY, 1.2));
     setScale(fitScale);
     setPosition({ x: 0, y: 0 });
-  };
+  }, [contentWidth, contentHeight, clampZoom, handleResetZoom]);
 
   // Wheel zoom handling
-  const handleWheel = (e: ReactWheelEvent<HTMLDivElement>) => {
-    if (e.ctrlKey || e.metaKey || e.altKey) {
-      e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-      setScale((prevScale) => clampZoom(prevScale * zoomFactor));
-    }
-  };
+  const handleWheel = useCallback(
+    (e: ReactWheelEvent<HTMLDivElement>) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        e.preventDefault();
+        const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
+        setScale((prevScale) => clampZoom(prevScale * zoomFactor));
+      }
+    },
+    [clampZoom],
+  );
 
   // Pointer/Mouse panning
-  const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
     // Only pan on primary button and if target is not interactive button/input/select
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
@@ -107,7 +110,7 @@ export function DiagramViewport({
       x: e.clientX - positionRef.current.x,
       y: e.clientY - positionRef.current.y,
     };
-  };
+  }, []);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {

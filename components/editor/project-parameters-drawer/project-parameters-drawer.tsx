@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useTranslations } from "next-intl";
 import { PanelRightClose } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
 
-import { Project, FlowResult } from "@/types";
-import { Button, AppTooltip, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
+import { AppTooltip, Button, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+import { FlowResult, Project } from "@/types";
 import { cn } from "@/utils";
-import { ParametersTab } from "./project-parameters-drawer/parameters-tab";
-import { GraphDataTab } from "./project-parameters-drawer/graph-data-tab";
+import { GraphDataTab } from "./graph-data-tab";
+import { ParametersTab } from "./parameters-tab";
 
 const MIN_WIDTH = 320;
 const MAX_WIDTH = 768;
@@ -103,12 +103,8 @@ export function ProjectParametersDrawer({
       <div className="px-5 py-6 flex flex-col gap-6 flex-1 overflow-y-auto">
         <Tabs defaultValue="params" className="w-full flex flex-col gap-6">
           <TabsList className="shrink-0 self-start">
-            <TabsTrigger value="params" className="cursor-pointer">
-              {tEd("parametersTab")}
-            </TabsTrigger>
-            <TabsTrigger value="graph" className="cursor-pointer">
-              {tEd("graphDataTab")}
-            </TabsTrigger>
+            <TabsTrigger value="params">{tEd("parametersTab")}</TabsTrigger>
+            <TabsTrigger value="graph">{tEd("graphDataTab")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="params" className="outline-none p-0 mt-2">

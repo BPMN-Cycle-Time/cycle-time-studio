@@ -153,7 +153,7 @@ export function BpmnPanel({
     return () => ro.disconnect();
   }, [fitAndCenterDiagram]);
 
-  const handleGenerateFromFlow = async () => {
+  const handleGenerateFromFlow = useCallback(async () => {
     if (!modelerRef.current || blocks.length === 0) return;
     setBusy(true);
     setStatus("");
@@ -168,26 +168,29 @@ export function BpmnPanel({
     } finally {
       setBusy(false);
     }
-  };
+  }, [blocks, tasks, fitAndCenterDiagram, t]);
 
-  const handleImportFile = async (file: File) => {
-    if (!modelerRef.current) return;
-    setBusy(true);
-    setStatus("");
-    try {
-      const xml = await file.text();
-      lastXmlRef.current = xml;
-      await modelerRef.current.importXML(xml);
-      fitAndCenterDiagram(modelerRef.current);
-      setStatus(t("status.loadedFile", { name: file.name }));
-    } catch {
-      setStatus(t("status.loadFileFailed"));
-    } finally {
-      setBusy(false);
-    }
-  };
+  const handleImportFile = useCallback(
+    async (file: File) => {
+      if (!modelerRef.current) return;
+      setBusy(true);
+      setStatus("");
+      try {
+        const xml = await file.text();
+        lastXmlRef.current = xml;
+        await modelerRef.current.importXML(xml);
+        fitAndCenterDiagram(modelerRef.current);
+        setStatus(t("status.loadedFile", { name: file.name }));
+      } catch {
+        setStatus(t("status.loadFileFailed"));
+      } finally {
+        setBusy(false);
+      }
+    },
+    [fitAndCenterDiagram, t],
+  );
 
-  const handleExportFile = async () => {
+  const handleExportFile = useCallback(async () => {
     if (!modelerRef.current) return;
     setBusy(true);
     try {
@@ -206,9 +209,9 @@ export function BpmnPanel({
     } finally {
       setBusy(false);
     }
-  };
+  }, [t]);
 
-  const handlePreviewSync = async () => {
+  const handlePreviewSync = useCallback(async () => {
     if (!modelerRef.current) return;
     setBusy(true);
     setStatus("");
@@ -228,39 +231,42 @@ export function BpmnPanel({
     } finally {
       setBusy(false);
     }
-  };
+  }, [tasks, t]);
 
-  const handleApplyPreview = (appliedBlocks: Block[]) => {
-    onApplyBlocks(appliedBlocks);
-    setPreview(null);
-    setStatus(t("status.appliedToCalc", { count: appliedBlocks.length }));
-  };
+  const handleApplyPreview = useCallback(
+    (appliedBlocks: Block[]) => {
+      onApplyBlocks(appliedBlocks);
+      setPreview(null);
+      setStatus(t("status.appliedToCalc", { count: appliedBlocks.length }));
+    },
+    [onApplyBlocks, t],
+  );
 
   // Zoom controls
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     if (!modelerRef.current) return;
     const canvas = modelerRef.current.get("canvas") as CanvasService;
     const current = canvas.zoom();
     canvas.zoom(Math.min(3.0, current + 0.2), "auto");
-  };
+  }, []);
 
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     if (!modelerRef.current) return;
     const canvas = modelerRef.current.get("canvas") as CanvasService;
     const current = canvas.zoom();
     canvas.zoom(Math.max(0.2, current - 0.2), "auto");
-  };
+  }, []);
 
-  const handleResetZoom = () => {
+  const handleResetZoom = useCallback(() => {
     if (!modelerRef.current) return;
     const canvas = modelerRef.current.get("canvas") as CanvasService;
     canvas.zoom(1.0, "auto");
-  };
+  }, []);
 
-  const handleFitView = () => {
+  const handleFitView = useCallback(() => {
     if (!modelerRef.current) return;
     fitAndCenterDiagram(modelerRef.current);
-  };
+  }, [fitAndCenterDiagram]);
 
   return (
     <div className="flex-1 flex flex-col min-h-0">

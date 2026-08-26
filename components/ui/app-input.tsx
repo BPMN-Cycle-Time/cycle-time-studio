@@ -2,12 +2,14 @@
 
 import type { ComponentProps, ReactNode } from "react";
 import { Input } from "./input";
-import { Label } from "./label";
+import { AppLabel } from "./app-label";
 import { cn } from "@/utils";
 
 export interface AppInputProps extends Omit<ComponentProps<"input">, "prefix"> {
   label?: ReactNode;
+  labelVariant?: "default" | "field" | "caption" | "uppercase";
   required?: boolean;
+  optional?: boolean;
   error?: string;
   hint?: ReactNode;
   prefix?: ReactNode;
@@ -20,7 +22,9 @@ export interface AppInputProps extends Omit<ComponentProps<"input">, "prefix"> {
 
 export function AppInput({
   label,
+  labelVariant = "field",
   required,
+  optional,
   error,
   hint,
   prefix,
@@ -67,22 +71,20 @@ export function AppInput({
     <div
       className={cn(
         "w-full flex",
-        isHorizontal ? "flex-row items-center gap-2" : "flex-col gap-1.5",
+        isHorizontal ? "flex-row items-center gap-2" : "flex-col gap-1",
         wrapperClassName,
       )}
     >
       {label && (
-        <Label
+        <AppLabel
           htmlFor={id}
-          className={cn(
-            "text-muted-foreground font-normal text-xs shrink-0",
-            error && "text-destructive",
-            labelClassName,
-          )}
+          variant={labelVariant}
+          required={required}
+          optional={optional}
+          className={cn(error && "text-destructive", labelClassName)}
         >
           {label}
-          {required && <span className="text-destructive ml-0.5">*</span>}
-        </Label>
+        </AppLabel>
       )}
 
       {inputElement}

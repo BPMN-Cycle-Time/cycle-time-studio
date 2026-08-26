@@ -1,15 +1,16 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { BlockType, type Block } from "@/types";
 import { Card } from "@/components/ui";
 import { cn } from "@/utils";
 import { useEditorStore, SelectionKind } from "@/store/useEditorStore";
 import { computeBlockDetails } from "@/services/engine";
 import { TYPE_META } from "@/constants";
-import { BlockHeader } from "./block-card/block-header";
-import { BlockSeqInputs } from "./block-card/block-seq-inputs";
-import { BlockLoopInputs } from "./block-card/block-loop-inputs";
-import { BlockBranches } from "./block-card/block-branches";
+import { BlockHeader } from "./block-header";
+import { BlockSeqInputs } from "./block-seq-inputs";
+import { BlockLoopInputs } from "./block-loop-inputs";
+import { BlockBranches } from "./block-branches";
 
 interface BlockCardProps {
   block: Block;
@@ -17,12 +18,13 @@ interface BlockCardProps {
   unit: string;
 }
 
-export function BlockCard({ block, index, unit }: BlockCardProps) {
+export const BlockCard = memo(function BlockCard({ block, index, unit }: BlockCardProps) {
   const meta = TYPE_META[block.type as BlockType];
-  const { project, selectedId, select } = useEditorStore();
-  const tasks = project?.tasks ?? [];
+  const selectedId = useEditorStore((s) => s.selectedId);
+  const select = useEditorStore((s) => s.select);
+  const tasks = useEditorStore((s) => s.project?.tasks ?? []);
 
-  const details = computeBlockDetails(block, tasks);
+  const details = useMemo(() => computeBlockDetails(block, tasks), [block, tasks]);
   const isSelected = selectedId === block.id;
 
   return (
@@ -79,4 +81,4 @@ export function BlockCard({ block, index, unit }: BlockCardProps) {
       )}
     </Card>
   );
-}
+});

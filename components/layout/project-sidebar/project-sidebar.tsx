@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { DeleteProjectDialog } from "@/components/layout/project-sidebar/delete-project-dialog";
-import { NewProjectDialog } from "@/components/layout/project-sidebar/new-project-dialog";
-import { SidebarFooter } from "@/components/layout/project-sidebar/sidebar-footer";
-import { SidebarHeader } from "@/components/layout/project-sidebar/sidebar-header";
-import { SidebarProjectList } from "@/components/layout/project-sidebar/sidebar-project-list";
+import { DeleteProjectDialog } from "./delete-project-dialog";
+import { NewProjectDialog } from "./new-project-dialog";
+import { SidebarFooter } from "./sidebar-footer";
+import { SidebarHeader } from "./sidebar-header";
+import { SidebarProjectList } from "./sidebar-project-list";
 import { useLocalStorageState, useHydration } from "@/hooks";
 import { useProjectsIndex } from "@/store/useProjectsIndex";
 import { cn } from "@/utils";

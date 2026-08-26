@@ -54,4 +54,5 @@ Thumbs.db
 # Temporary / Agent caches
 .gemini/
 .claude/
+.agents/
 scratch/

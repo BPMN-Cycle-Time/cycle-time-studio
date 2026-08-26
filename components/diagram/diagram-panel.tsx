@@ -20,22 +20,44 @@ export function DiagramPanel({
   const t = useTranslations("diagram");
   const tasks = useEditorStore((s) => s.project?.tasks);
 
+  const tabs = [
+    {
+      value: "model",
+      label: t("processModelTab"),
+      content: <ProcessModelPanel blocks={blocks} tasks={tasks} unit={unit} />,
+    },
+    {
+      value: "graph",
+      label: t("graphTab"),
+      content: <GraphPanel blocks={blocks} tasks={tasks} />,
+    },
+    {
+      value: "bpmn",
+      label: t("bpmnTab"),
+      content: (
+        <BpmnPanel blocks={blocks} tasks={tasks} unit={unit} onApplyBlocks={onApplyBlocks} />
+      ),
+    },
+  ];
+
   return (
     <Tabs defaultValue="model" className="flex-1 flex flex-col min-h-0">
       <TabsList className="shrink-0 self-start">
-        <TabsTrigger value="model">{t("processModelTab")}</TabsTrigger>
-        <TabsTrigger value="graph">{t("graphTab")}</TabsTrigger>
-        <TabsTrigger value="bpmn">{t("bpmnTab")}</TabsTrigger>
+        {tabs.map((tab) => (
+          <TabsTrigger key={tab.value} value={tab.value}>
+            {tab.label}
+          </TabsTrigger>
+        ))}
       </TabsList>
-      <TabsContent value="model" className="flex-1 flex flex-col min-h-0 mt-2">
-        <ProcessModelPanel blocks={blocks} tasks={tasks} unit={unit} />
-      </TabsContent>
-      <TabsContent value="graph" className="flex-1 flex flex-col min-h-0 mt-2">
-        <GraphPanel blocks={blocks} tasks={tasks} />
-      </TabsContent>
-      <TabsContent value="bpmn" className="flex-1 flex flex-col min-h-0 mt-2">
-        <BpmnPanel blocks={blocks} tasks={tasks} unit={unit} onApplyBlocks={onApplyBlocks} />
-      </TabsContent>
+      {tabs.map((tab) => (
+        <TabsContent
+          key={tab.value}
+          value={tab.value}
+          className="flex-1 flex flex-col min-h-0 mt-2"
+        >
+          {tab.content}
+        </TabsContent>
+      ))}
     </Tabs>
   );
 }

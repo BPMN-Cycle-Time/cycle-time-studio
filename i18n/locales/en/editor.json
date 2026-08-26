@@ -18,6 +18,7 @@
   "timeSheet": "Time sheet",
   "timeSheetHint": "Blocks that point at a task read its time from here — change it once and the whole model recalculates.",
   "addTask": "Add task",
+  "searchTasks": "Search tasks...",
   "task": "Task",
   "used": "Used",
   "unused": "unused",

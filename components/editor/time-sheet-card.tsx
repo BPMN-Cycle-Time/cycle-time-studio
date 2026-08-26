@@ -1,10 +1,11 @@
 "use client";
 
+import { useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, X } from "lucide-react";
 import type { Block, Task } from "@/types";
 import { useEditorStore } from "@/store/useEditorStore";
-import { AppCard, Button, AppInput, Badge } from "@/components/ui";
+import { AppCard, Button, AppInput, Badge, DataTable, type TableColumn } from "@/components/ui";
 
 interface TimeSheetCardProps {
   tasks: Task[];
@@ -12,15 +13,21 @@ interface TimeSheetCardProps {
   unit: string;
 }
 
-/** Recursively count how many times a task ID is used across top-level & nested blocks/branches. */
-function countTaskUsage(blocks: Block[], taskId: string): number {
-  let count = 0;
+interface TaskRow extends Task {
+  usage: number;
+}
+
+/** Recursively count task usage into a single lookup map. */
+function buildTaskUsageMap(blocks: Block[]): Record<string, number> {
+  const map: Record<string, number> = {};
   function walk(items: Block[]) {
     for (const b of items) {
-      if (b.taskId === taskId) count++;
+      if (b.taskId) map[b.taskId] = (map[b.taskId] || 0) + 1;
       if (b.branches) {
         for (const br of b.branches) {
-          if (br.taskId === taskId && br.mode !== "composite") count++;
+          if (br.taskId && br.mode !== "composite") {
+            map[br.taskId] = (map[br.taskId] || 0) + 1;
+          }
           if (br.subBlocks) walk(br.subBlocks);
         }
       }
@@ -28,17 +35,92 @@ function countTaskUsage(blocks: Block[], taskId: string): number {
     }
   }
   walk(blocks);
-  return count;
+  return map;
 }
 
 export function TimeSheetCard({ tasks, blocks, unit }: TimeSheetCardProps) {
   const tEd = useTranslations("editor");
-  const { addTask, updateTask, removeTask } = useEditorStore();
+  const addTask = useEditorStore((s) => s.addTask);
+  const updateTask = useEditorStore((s) => s.updateTask);
+  const removeTask = useEditorStore((s) => s.removeTask);
 
-  const handleAddTask = () => {
+  const usageMap = useMemo(() => buildTaskUsageMap(blocks), [blocks]);
+
+  const taskRows: TaskRow[] = useMemo(
+    () => tasks.map((t) => ({ ...t, usage: usageMap[t.id] ?? 0 })),
+    [tasks, usageMap],
+  );
+
+  const columns: TableColumn<TaskRow>[] = useMemo(
+    () => [
+      {
+        key: "name",
+        header: tEd("task"),
+        render: (row) => (
+          <AppInput
+            wrapperClassName="w-full"
+            inputClassName="h-8 border-transparent bg-transparent shadow-none font-medium hover:border-input focus-visible:border-input"
+            value={row.name}
+            onChange={(e) => updateTask(row.id, { name: e.target.value })}
+          />
+        ),
+      },
+      {
+        key: "time",
+        header: `${tEd("time")} (${unit})`,
+        render: (row) => (
+          <AppInput
+            type="number"
+            step="any"
+            min="0"
+            wrapperClassName="w-full max-w-[120px]"
+            inputClassName="h-8 font-mono text-xs"
+            value={row.time ?? 0}
+            onChange={(e) => updateTask(row.id, { time: parseFloat(e.target.value) || 0 })}
+          />
+        ),
+      },
+      {
+        key: "usage",
+        header: tEd("used"),
+        render: (row) => (
+          <div className="text-right">
+            {row.usage > 0 ? (
+              <Badge variant="secondary" className="font-mono text-[10px] px-1.5 py-0.5">
+                {row.usage}×
+              </Badge>
+            ) : (
+              <span className="text-[11px] text-destructive/80 font-mono">{tEd("unused")}</span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: "actions",
+        header: "",
+        sortable: false,
+        render: (row) => (
+          <div className="text-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:text-destructive"
+              onClick={() => removeTask(row.id)}
+              aria-label={tEd("removeStep")}
+            >
+              <X className="size-3.5" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [tEd, unit, updateTask, removeTask],
+  );
+
+  const handleAddTask = useCallback(() => {
     const letter = String.fromCharCode(65 + (tasks.length % 26));
     addTask(`Task ${letter}`, 1);
-  };
+  }, [tasks.length, addTask]);
 
   return (
     <AppCard title={tEd("timeSheet")}>
@@ -48,75 +130,12 @@ export function TimeSheetCard({ tasks, blocks, unit }: TimeSheetCardProps) {
             {tEd("noTasksYet")}
           </div>
         ) : (
-          <div className="overflow-x-auto border rounded-lg">
-            <table className="w-full text-xs text-left border-collapse">
-              <thead>
-                <tr className="border-b bg-muted/40 uppercase tracking-wider font-semibold text-muted-foreground">
-                  <th className="py-2 px-3">{tEd("task")}</th>
-                  <th className="py-2 px-3 w-32">
-                    {tEd("time")} ({unit})
-                  </th>
-                  <th className="py-2 px-3 w-20 text-right">{tEd("used")}</th>
-                  <th className="py-2 px-3 w-10 text-center"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {tasks.map((task) => {
-                  const usage = countTaskUsage(blocks, task.id);
-                  return (
-                    <tr key={task.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="py-1.5 px-3">
-                        <AppInput
-                          wrapperClassName="w-full"
-                          inputClassName="h-8 border-transparent bg-transparent shadow-none font-medium hover:border-input focus-visible:border-input"
-                          value={task.name}
-                          onChange={(e) => updateTask(task.id, { name: e.target.value })}
-                        />
-                      </td>
-                      <td className="py-1.5 px-3">
-                        <AppInput
-                          type="number"
-                          step="any"
-                          min="0"
-                          wrapperClassName="w-full"
-                          inputClassName="h-8 font-mono text-xs"
-                          value={task.time ?? 0}
-                          onChange={(e) =>
-                            updateTask(task.id, { time: parseFloat(e.target.value) || 0 })
-                          }
-                        />
-                      </td>
-                      <td className="py-1.5 px-3 text-right">
-                        {usage > 0 ? (
-                          <Badge
-                            variant="secondary"
-                            className="font-mono text-[10px] px-1.5 py-0.5"
-                          >
-                            {usage}×
-                          </Badge>
-                        ) : (
-                          <span className="text-[11px] text-destructive/80 font-mono">
-                            {tEd("unused")}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-1.5 px-3 text-center">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-7 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeTask(task.id)}
-                          aria-label={tEd("removeStep")}
-                        >
-                          <X className="size-3.5" />
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            data={taskRows}
+            columns={columns}
+            searchPlaceholder={tEd("searchTasks")}
+            searchKeys={["name"]}
+          />
         )}
 
         <div className="flex items-center justify-between gap-3 pt-1 flex-wrap">

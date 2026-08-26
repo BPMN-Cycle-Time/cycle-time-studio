@@ -1,19 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { BlockType, type Block } from "@/types";
 import { useEditorStore, SelectionKind } from "@/store/useEditorStore";
 import { BlockCard } from "./block-card";
-import {
-  Button,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui";
+import { Button, AppSelect, type SelectOption } from "@/components/ui";
 import { BLOCK_TYPES } from "@/constants";
 
 interface ProcessFlowSectionProps {
@@ -33,16 +26,30 @@ export function ProcessFlowSection({
 }: ProcessFlowSectionProps) {
   const tEd = useTranslations("editor");
   const tTypes = useTranslations("common.blockTypes");
-  const { addBlock, addNestedBlock } = useEditorStore();
+  const addBlock = useEditorStore((s) => s.addBlock);
+  const addNestedBlock = useEditorStore((s) => s.addNestedBlock);
   const [nestedNewType, setNestedNewType] = useState<BlockType>(BlockType.SEQ);
 
-  const handleAddBlock = (type: BlockType) => {
-    if (nested && parentId && parentKind) {
-      addNestedBlock(parentId, parentKind, type);
-    } else {
-      addBlock(type);
-    }
-  };
+  const blockTypeOptions: SelectOption<BlockType>[] = useMemo(
+    () =>
+      BLOCK_TYPES.map((t) => ({
+        value: t.value,
+        label: tTypes(t.value),
+        icon: t.icon,
+      })),
+    [tTypes],
+  );
+
+  const handleAddBlock = useCallback(
+    (type: BlockType) => {
+      if (nested && parentId && parentKind) {
+        addNestedBlock(parentId, parentKind, type);
+      } else {
+        addBlock(type);
+      }
+    },
+    [nested, parentId, parentKind, addNestedBlock, addBlock],
+  );
 
   return (
     <section className={nested ? "w-full" : ""}>
@@ -73,18 +80,11 @@ export function ProcessFlowSection({
 
       {nested ? (
         <div className="flex items-center gap-2 mt-3 flex-wrap">
-          <Select value={nestedNewType} onValueChange={(val) => setNestedNewType(val as BlockType)}>
-            <SelectTrigger size="sm" className="h-8 text-xs font-medium shrink-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {BLOCK_TYPES.map((t) => (
-                <SelectItem key={t.value} value={t.value} className="text-xs">
-                  {tTypes(t.value)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <AppSelect
+            value={nestedNewType}
+            onValueChange={setNestedNewType}
+            options={blockTypeOptions}
+          />
 
           <Button
             variant="secondary"

@@ -10,7 +10,7 @@ import { DiagramInspector } from "../diagram-inspector";
 import { ImportGraphDialog } from "../import-graph-dialog";
 import { DiagramViewport } from "../diagram-viewport";
 import { renderFlowRecursive } from "./process-model-svg-renderer";
-import { Checkbox } from "@/components/ui";
+import { Checkbox, AppLabel } from "@/components/ui";
 import "./process-model-panel.css";
 
 interface ProcessModelPanelProps {
@@ -245,10 +245,10 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center justify-between gap-4 mb-2 shrink-0">
-        <label className="inline-flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none font-medium">
+        <AppLabel className="inline-flex items-center gap-2 cursor-pointer font-medium">
           <Checkbox checked={showIds} onCheckedChange={(checked) => setShowIds(checked === true)} />
           <span>{t("stampNodeIds")}</span>
-        </label>
+        </AppLabel>
         <div className="shrink-0">
           <ImportGraphDialog />
         </div>

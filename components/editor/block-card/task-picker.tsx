@@ -1,8 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { Task } from "@/types";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui";
+import { AppSelect, type SelectOption } from "@/components/ui";
 import { cn } from "@/utils";
 
 const CUSTOM_VALUE = "__custom__";
@@ -18,25 +19,25 @@ export function TaskPicker({ tasks, selectedTaskId, onChange, className = "" }: 
   const tEd = useTranslations("editor");
   const value = selectedTaskId || CUSTOM_VALUE;
 
+  const options: SelectOption<string>[] = useMemo(
+    () => [
+      { value: CUSTOM_VALUE, label: tEd("customTime") },
+      ...tasks.map((t) => ({ value: t.id, label: t.name })),
+    ],
+    [tasks, tEd],
+  );
+
   const handleValueChange = (val: string) => {
     onChange(val === CUSTOM_VALUE ? null : val);
   };
 
   return (
-    <Select value={value} onValueChange={handleValueChange}>
-      <SelectTrigger size="sm" className={cn("h-8 text-xs font-medium min-w-[120px]", className)}>
-        <SelectValue placeholder={tEd("customTime")} />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value={CUSTOM_VALUE} className="text-xs">
-          {tEd("customTime")}
-        </SelectItem>
-        {tasks.map((t) => (
-          <SelectItem key={t.id} value={t.id} className="text-xs">
-            {t.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <AppSelect
+      value={value}
+      onValueChange={handleValueChange}
+      options={options}
+      placeholder={tEd("customTime")}
+      triggerClassName={cn("min-w-[120px]", className)}
+    />
   );
 }

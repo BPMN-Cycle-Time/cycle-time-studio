@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
 
 import { useEditorStore } from "@/store/useEditorStore";
@@ -35,10 +35,13 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.name, project?.blocks]);
 
-  const flow = useMemo(
-    () => (project ? computeFlow(project.blocks, project.tasks) : null),
-    [project],
-  );
+  const blocks = project?.blocks;
+  const tasks = project?.tasks;
+  const flow = useMemo(() => (blocks ? computeFlow(blocks, tasks) : null), [blocks, tasks]);
+
+  const handleExpandRightPanel = useCallback(() => {
+    setRightCollapsed(false);
+  }, [setRightCollapsed]);
 
   return (
     <div className="flex h-svh overflow-hidden">
@@ -55,7 +58,7 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
             <div className="w-full px-6 py-6 flex-1 flex flex-col min-h-0 overflow-y-auto">
               <ProjectHeader
                 rightCollapsed={rightCollapsed}
-                onExpandRightPanel={() => setRightCollapsed(false)}
+                onExpandRightPanel={handleExpandRightPanel}
               />
 
               <DiagramPanel blocks={project.blocks} unit={project.unit} onApplyBlocks={setBlocks} />
