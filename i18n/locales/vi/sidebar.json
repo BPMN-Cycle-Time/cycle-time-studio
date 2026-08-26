@@ -1,0 +1,15 @@
+{
+  "newProject": "Dự án mới",
+  "newProjectDescription": "Đặt tên cho quy trình để bắt đầu.",
+  "projectName": "Tên dự án",
+  "projectNamePlaceholder": "Ví dụ: Phân loại yêu cầu hỗ trợ",
+  "untitledProcess": "Quy trình chưa đặt tên",
+  "create": "Tạo",
+  "cancel": "Hủy",
+  "delete": "Xóa",
+  "deleteProject": "Xóa “{name}”?",
+  "deleteWarning": "Thao tác này không thể hoàn tác.",
+  "noProjects": "Chưa có dự án.",
+  "expandSidebar": "Mở rộng thanh bên",
+  "collapseSidebar": "Thu gọn thanh bên"
+}

@@ -1,0 +1,144 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource/mona-sans/400.css";
+@import "@fontsource/mona-sans/500.css";
+@import "@fontsource/mona-sans/600.css";
+
+/*
+  Design tokens sourced from sign-in-_-diaflow-DESIGN.md (frequency-extracted, no invented
+  values). Evidence found: Mona Sans typography scale, a 4-step radius scale (control/card/
+  surface), a 10-value spacing scale, and a single validated accent — white (#ffffff) used
+  as a border/focus-ring color with limited footprint, present in both light and dark themes.
+  Because that accent only reads on a dark surface, dark is treated as the primary theme; the
+  neutral background/foreground scale itself is not asserted by the evidence, so it follows
+  shadcn's standard unbranded neutral palette per the "don't invent" guardrail.
+*/
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 10px; /* radius-3 — control corner */
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --diagram-dot: rgba(0, 0, 0, 0.18);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  /* Local-accent (#ffffff) — evidenced border/focus accent, frequency rank #1 */
+  --ring: oklch(1 0 0);
+  --diagram-dot: rgba(255, 255, 255, 0.18);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Flow-diagram semantic colors (unbranded — not part of the extracted evidence, used only
+     to distinguish block types: seq/xor/and/loop — kept desaturated so they don't compete
+     with the single validated accent). */
+  --color-flow-seq: oklch(0.6 0.09 255);
+  --color-flow-xor: oklch(0.66 0.1 70);
+  --color-flow-and: oklch(0.63 0.1 155);
+  --color-flow-loop: oklch(0.62 0.09 340);
+
+  --font-sans: "Mona Sans", "Mona Sans Fallback", ui-sans-serif, sans-serif, system-ui;
+
+  /* Radius scale — radius-1..4 from the token evidence, exposed as rounded-control /
+     rounded-card / rounded-surface / rounded-surface-lg utilities. */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-control: 10px; /* radius-3 */
+  --radius-card: 20px; /* radius-4 */
+  --radius-surface: 22px; /* radius-2 */
+  --radius-surface-lg: 24px; /* radius-1 */
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* Remove default spinner arrows from number inputs for clean compact layout */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+/* Spacing tokens (space-1..space-10) — kept as reference CSS variables rather than a Tailwind
+   spacing scale override, since they are a fixed named set rather than a uniform multiplier
+   and would otherwise collide with Tailwind's default p-1/p-2/... utilities. Use them as
+   `p-[var(--space-4)]` where the exact extracted value matters. */
+:root {
+  --space-10: 4px;
+  --space-6: 5px;
+  --space-3: 8px;
+  --space-1: 10px;
+  --space-9: 12px;
+  --space-2: 16px;
+  --space-5: 20px;
+  --space-8: 24px;
+  --space-4: 32px;
+  --space-7: 48px;
+}

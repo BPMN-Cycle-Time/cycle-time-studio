@@ -1,0 +1,8 @@
+{
+  "title": "Model a process, see where the time goes",
+  "description": "Build a flow out of sequential, decision, parallel, and rework steps, view it as a BPMN or node/edge diagram, and simulate the distribution. Pick a project from the sidebar, or start a new one.",
+  "empty": "No projects yet — use “New project” in the sidebar to get started.",
+  "recentProjects": "Recent projects",
+  "updated": "Updated {date}",
+  "duplicate": "Duplicate"
+}

@@ -1,0 +1,45 @@
+{
+  "buttons": {
+    "create": "Create",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "duplicate": "Duplicate",
+    "undo": "Undo",
+    "redo": "Redo",
+    "apply": "Apply to calculator",
+    "discard": "Discard",
+    "runSimulation": "Run simulation",
+    "reRunSimulation": "Re-run simulation",
+    "running": "Running…",
+    "addStep": "Add step",
+    "addBranch": "Add branch",
+    "done": "Done",
+    "copyCsv": "Copy CSV",
+    "copiedCsv": "Copied CSV",
+    "insertBefore": "Insert before",
+    "insertAfter": "Insert after",
+    "deleteStep": "Delete step",
+    "deleteBranch": "Delete branch",
+    "expandSubProcess": "Expand into sub-process",
+    "collapseSubProcess": "Collapse to single time",
+    "expandLoopBody": "Expand loop body",
+    "collapseLoopBody": "Collapse loop body"
+  },
+  "status": {
+    "loading": "Loading project…",
+    "running": "Running…",
+    "noRecords": "No records found."
+  },
+  "blockTypes": {
+    "seq": "Sequential step",
+    "xor": "Decision (XOR)",
+    "and": "Parallel (AND)",
+    "loop": "Rework loop",
+    "step": "Step",
+    "decision": "Decision",
+    "parallel": "Parallel",
+    "rework": "Rework loop",
+    "xorBranch": "XOR Branch",
+    "andBranch": "AND Branch"
+  }
+}

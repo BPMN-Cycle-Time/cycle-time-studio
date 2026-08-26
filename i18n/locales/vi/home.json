@@ -1,0 +1,8 @@
+{
+  "title": "Mô hình hóa quy trình, hiểu thời gian được sử dụng ở đâu",
+  "description": "Xây dựng luồng gồm các bước tuần tự, quyết định, song song và làm lại; xem dưới dạng BPMN hoặc sơ đồ nút/cạnh; đồng thời mô phỏng phân phối thời gian. Chọn một dự án từ thanh bên hoặc tạo dự án mới.",
+  "empty": "Chưa có dự án — hãy dùng “Dự án mới” trong thanh bên để bắt đầu.",
+  "recentProjects": "Dự án gần đây",
+  "updated": "Cập nhật {date}",
+  "duplicate": "Nhân bản"
+}

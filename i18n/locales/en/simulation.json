@@ -1,0 +1,12 @@
+{
+  "title": "Simulate the distribution",
+  "description": "Runs 5,000 random passes through the flow — each decision and rework loop resolved by chance instead of by its average — to show the spread of possible cycle times, not just the expected value.",
+  "run": "Run simulation",
+  "reRun": "Re-run simulation",
+  "running": "Running…",
+  "p50": "P50 (median)",
+  "p85": "P85",
+  "p95": "P95",
+  "stats": "Mean {mean} {unit} · Range {min}–{max} {unit}",
+  "runs": "{count} runs"
+}

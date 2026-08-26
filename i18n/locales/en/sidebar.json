@@ -1,0 +1,15 @@
+{
+  "newProject": "New project",
+  "newProjectDescription": "Give your process a name to get started.",
+  "projectName": "Project name",
+  "projectNamePlaceholder": "e.g. Support ticket triage",
+  "untitledProcess": "Untitled process",
+  "create": "Create",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "deleteProject": "Delete “{name}”?",
+  "deleteWarning": "This cannot be undone.",
+  "noProjects": "No projects yet.",
+  "expandSidebar": "Expand sidebar",
+  "collapseSidebar": "Collapse sidebar"
+}

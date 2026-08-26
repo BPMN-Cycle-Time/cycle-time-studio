@@ -1,0 +1,45 @@
+{
+  "buttons": {
+    "create": "Tạo mới",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "duplicate": "Nhân bản",
+    "undo": "Hoàn tác",
+    "redo": "Làm lại",
+    "apply": "Áp dụng vào máy tính",
+    "discard": "Hủy bỏ",
+    "runSimulation": "Chạy mô phỏng",
+    "reRunSimulation": "Chạy lại mô phỏng",
+    "running": "Đang chạy…",
+    "addStep": "Thêm bước",
+    "addBranch": "Thêm nhánh",
+    "done": "Xong",
+    "copyCsv": "Sao chép CSV",
+    "copiedCsv": "Đã sao chép CSV",
+    "insertBefore": "Chèn trước",
+    "insertAfter": "Chèn sau",
+    "deleteStep": "Xóa bước",
+    "deleteBranch": "Xóa nhánh",
+    "expandSubProcess": "Mở rộng thành luồng con",
+    "collapseSubProcess": "Thu gọn thành 1 thời gian",
+    "expandLoopBody": "Mở rộng thân lặp",
+    "collapseLoopBody": "Thu gọn thân lặp"
+  },
+  "status": {
+    "loading": "Đang tải dự án…",
+    "running": "Đang chạy…",
+    "noRecords": "Không tìm thấy dữ liệu."
+  },
+  "blockTypes": {
+    "seq": "Tuần tự (Sequence)",
+    "xor": "Rẽ nhánh (XOR)",
+    "and": "Song song (AND)",
+    "loop": "Vòng lặp (Loop)",
+    "step": "Bước tuần tự",
+    "decision": "Quyết định",
+    "parallel": "Song song",
+    "rework": "Vòng lặp",
+    "xorBranch": "Nhánh XOR",
+    "andBranch": "Nhánh AND"
+  }
+}

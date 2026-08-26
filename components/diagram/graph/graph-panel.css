@@ -1,0 +1,135 @@
+/* Directed Graph SVG Styles */
+
+:root {
+  --gn-task: #2a78d6;
+  --gn-task-soft: #dfeafa;
+  --gn-gw: #eb6834;
+  --gn-gw-soft: #fbe4d9;
+  --gn-back: #8b5a72;
+}
+
+.dark {
+  --gn-task: #3987e5;
+  --gn-task-soft: #23334a;
+  --gn-gw: #d95926;
+  --gn-gw-soft: #3d2a20;
+  --gn-back: #cf94b7;
+}
+
+.graph-canvas-container {
+  overflow-x: auto;
+  user-select: none;
+}
+
+.graph-canvas-container svg {
+  display: block;
+}
+
+.graph-canvas-container g.gnode {
+  cursor: pointer;
+}
+
+.graph-canvas-container g.gnode.static {
+  cursor: default;
+}
+
+.graph-canvas-container g.gnode > circle:not(.halo) {
+  transition: stroke-width 0.12s ease;
+}
+
+.graph-canvas-container g.gnode:not(.static):hover > circle:not(.halo) {
+  stroke-width: 3px;
+}
+
+.graph-canvas-container g.gnode .halo {
+  display: none;
+}
+
+.graph-canvas-container g.gnode.sel .halo {
+  display: block;
+}
+
+.graph-canvas-container g.gnode.sel > circle:not(.halo) {
+  stroke-width: 3.2px;
+}
+
+.gn-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+
+.gn-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gn-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.gn-dot.ev {
+  background: var(--card, #ffffff);
+  border: 1.6px solid var(--foreground, #23261f);
+}
+
+.gn-dot.task {
+  background: var(--gn-task-soft);
+  border: 1.6px solid var(--gn-task);
+}
+
+.gn-dot.gw {
+  background: var(--gn-gw-soft);
+  border: 1.6px solid var(--gn-gw);
+}
+
+.gn-dash {
+  width: 18px;
+  height: 0;
+  border-top: 1.6px dashed var(--gn-back);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.gn-chip {
+  font-family: ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--gn-gw);
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 3px;
+}
+
+.adjacency-block {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+  line-height: 1.75;
+  background: var(--muted) / 30;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: 12px 14px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.adjacency-block .aid {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.adjacency-block .alab {
+  color: var(--muted-foreground);
+}

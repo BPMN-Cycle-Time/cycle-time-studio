@@ -1,0 +1,41 @@
+/*
+  bpmn-js renders raw SVG inside .bjs-container and .djs-container.
+  Apply the dot-grid background with high priority to avoid library resets.
+*/
+.bpmn-canvas,
+.bpmn-canvas .bjs-container,
+.bpmn-canvas .djs-container {
+  background-color: var(--card, #ffffff) !important;
+  background-image: radial-gradient(
+    var(--diagram-dot, rgba(0, 0, 0, 0.22)) 1.25px,
+    transparent 1.25px
+  ) !important;
+  background-size: 18px 18px !important;
+  overflow: hidden !important;
+  outline: none !important;
+}
+
+.bpmn-canvas:focus,
+.bpmn-canvas:focus-visible,
+.bpmn-canvas:focus-within,
+.bpmn-canvas *:focus,
+.bpmn-canvas *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.bpmn-canvas svg {
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.bpmn-canvas .djs-palette {
+  border-radius: var(--radius-control);
+}
+
+/* Hide default bottom-right watermark overlapping with zoom toolbar */
+.bpmn-canvas .bjs-powered-by,
+.bpmn-canvas .djs-powered-by {
+  display: none !important;
+}

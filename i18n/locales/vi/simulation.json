@@ -1,0 +1,12 @@
+{
+  "title": "Mô phỏng phân phối",
+  "description": "Chạy 5.000 lượt ngẫu nhiên qua luồng quy trình — mỗi quyết định và vòng lặp làm lại được giải quyết ngẫu nhiên theo xác suất thay vì giá trị trung bình — để hiển thị dải thời gian chu kỳ có thể xảy ra.",
+  "run": "Chạy mô phỏng",
+  "reRun": "Chạy lại mô phỏng",
+  "running": "Đang chạy…",
+  "p50": "P50 (Trung vị)",
+  "p85": "P85",
+  "p95": "P95",
+  "stats": "Trung bình {mean} {unit} · Dải {min}–{max} {unit}",
+  "runs": "{count} lượt"
+}
