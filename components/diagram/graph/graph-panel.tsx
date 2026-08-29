@@ -1,14 +1,14 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { Card } from "@/components/ui";
+import { GN_R, buildProcessGraph, layoutProcessGraph, wrapLabel } from "@/services/graph";
+import { SelectionKind, useEditorStore } from "@/store/useEditorStore";
+import type { Block, ProcessNodeShape, Task } from "@/types";
 import { useTranslations } from "next-intl";
-import type { Block, Task, ProcessNodeShape } from "@/types";
-import { useEditorStore, SelectionKind } from "@/store/useEditorStore";
-import { buildProcessGraph, layoutProcessGraph, wrapLabel, GN_R } from "@/services/graph";
+import { useMemo, type ReactNode } from "react";
 import { DiagramInspector } from "../diagram-inspector";
-import { ImportGraphDialog } from "../import-graph-dialog";
 import { DiagramViewport } from "../diagram-viewport";
-import { GraphCsvTables } from "./graph-csv-tables";
+import { ImportGraphDialog } from "../import-graph-dialog";
 import "./graph-panel.css";
 
 interface GraphPanelProps {
@@ -253,20 +253,20 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
   });
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex items-center justify-between gap-4 mb-2 shrink-0">
+    <div className="w-full h-full flex-1 flex flex-col min-h-0 gap-4">
+      <div className="flex items-center justify-between gap-4 shrink-0">
         <div className="text-xs text-muted-foreground font-medium">{t("directedGraphTitle")}</div>
         <div className="shrink-0">
           <ImportGraphDialog />
         </div>
       </div>
 
-      <div className="border rounded-lg bg-card p-4 shadow-sm flex-1 flex flex-col min-h-[420px] overflow-hidden">
+      <Card className="p-4 gap-4 w-full h-full flex-1 flex flex-col min-h-[480px] overflow-hidden">
         {/* SVG Diagram Canvas */}
         <DiagramViewport
           contentWidth={layout.width}
           contentHeight={layout.height}
-          className="flex-1 w-full mb-4"
+          className="flex-1 w-full h-full min-h-0 mb-4"
         >
           <svg
             viewBox={`0 0 ${layout.width} ${layout.height}`}
@@ -304,7 +304,7 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
         </DiagramViewport>
 
         {/* Legend */}
-        <div className="gn-legend mb-4">
+        <div className="gn-legend">
           <span className="gn-key">
             <span className="gn-dot ev" />
             {t("legend.startEnd")}
@@ -326,7 +326,7 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
         </div>
 
         {/* Adjacency List */}
-        <div className="adjacency-block mb-4">
+        <div className="adjacency-block">
           {adjacencyLines.map((line) => (
             <div key={line.id}>
               <span className="aid">{line.id}</span>
@@ -336,11 +336,8 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
           ))}
         </div>
 
-        {/* CSV Tables Grid */}
-        <GraphCsvTables graph={graph} />
-
         {/* Footer Statistics */}
-        <p className="text-xs text-muted-foreground mt-4 shrink-0 font-sans">
+        <p className="text-xs text-muted-foreground shrink-0 font-sans">
           {t("graphStats", {
             nodes: graph.nodes.length,
             edges: graph.edges.length,
@@ -348,7 +345,7 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
             hasLoops: loopsCount > 0 ? "true" : "false",
           })}
         </p>
-      </div>
+      </Card>
 
       <DiagramInspector />
     </div>

@@ -55,7 +55,7 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
         <>
           {/* Middle column — diagram */}
           <div className="flex-1 min-w-0 flex flex-col h-svh overflow-hidden">
-            <div className="w-full px-6 py-6 flex-1 flex flex-col min-h-0 overflow-y-auto">
+            <div className="w-full h-full px-6 py-6 flex-1 flex flex-col min-h-0 overflow-y-auto">
               <ProjectHeader
                 rightCollapsed={rightCollapsed}
                 onExpandRightPanel={handleExpandRightPanel}

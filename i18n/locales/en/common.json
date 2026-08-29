@@ -41,5 +41,12 @@
     "rework": "Rework loop",
     "xorBranch": "XOR Branch",
     "andBranch": "AND Branch"
+  },
+  "units": {
+    "seconds": "Seconds",
+    "minutes": "Minutes",
+    "hours": "Hours",
+    "days": "Days",
+    "weeks": "Weeks"
   }
 }

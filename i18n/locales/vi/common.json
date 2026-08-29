@@ -41,5 +41,12 @@
     "rework": "Vòng lặp",
     "xorBranch": "Nhánh XOR",
     "andBranch": "Nhánh AND"
+  },
+  "units": {
+    "seconds": "Giây",
+    "minutes": "Phút",
+    "hours": "Giờ",
+    "days": "Ngày",
+    "weeks": "Tuần"
   }
 }

@@ -41,7 +41,7 @@ export function DiagramPanel({
   ];
 
   return (
-    <Tabs defaultValue="model" className="flex-1 flex flex-col min-h-0">
+    <Tabs defaultValue="model" className="w-full h-full flex-1 flex flex-col min-h-0">
       <TabsList className="shrink-0 self-start">
         {tabs.map((tab) => (
           <TabsTrigger key={tab.value} value={tab.value}>
@@ -53,7 +53,7 @@ export function DiagramPanel({
         <TabsContent
           key={tab.value}
           value={tab.value}
-          className="flex-1 flex flex-col min-h-0 mt-2"
+          className="w-full h-full flex-1 flex flex-col min-h-0 mt-4 outline-none data-[state=inactive]:hidden"
         >
           {tab.content}
         </TabsContent>

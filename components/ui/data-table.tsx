@@ -4,6 +4,8 @@ import React, { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowUpDown, Copy, Check, Search } from "lucide-react";
 import { cn } from "@/utils";
+import { Button } from "./button";
+import { AppInput } from "./app-input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./table";
 
 export interface TableColumn<T> {
@@ -106,20 +108,20 @@ export function DataTable<T extends object>({
     <div className="flex flex-col gap-3 w-full">
       {/* Controls: Search & Copy CSV */}
       <div className="flex items-center gap-2 justify-between">
-        <div className="relative flex-1 max-w-[240px]">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder={searchPlaceholder || "Search..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 h-8 w-full text-xs bg-muted/50 border rounded-md focus:outline-hidden focus:ring-1 focus:ring-primary focus:bg-background transition-all"
-          />
-        </div>
-        <button
+        <AppInput
+          prefix={<Search className="h-3.5 w-3.5" />}
+          placeholder={searchPlaceholder || "Search..."}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          wrapperClassName="flex-1"
+          inputClassName="bg-muted/50 focus:bg-background"
+        />
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleCopy}
           className={cn(
-            "h-8 px-3 text-xs font-medium rounded-md border flex items-center gap-1.5 transition-all cursor-pointer hover:bg-muted/50",
+            "h-8 px-3 text-xs font-medium gap-1.5 transition-all",
             copied &&
               "text-emerald-600 dark:text-emerald-500 border-emerald-200 dark:border-emerald-950 bg-emerald-50/50 dark:bg-emerald-950/20",
           )}
@@ -135,7 +137,7 @@ export function DataTable<T extends object>({
               {tBtn("copyCsv")}
             </>
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Table Container */}

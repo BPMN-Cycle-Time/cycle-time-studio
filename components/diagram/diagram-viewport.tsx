@@ -12,6 +12,7 @@ import {
 import { useTranslations } from "next-intl";
 import { ZoomIn, ZoomOut, RotateCcw, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui";
+import { cn } from "@/utils";
 
 interface DiagramViewportProps {
   children: ReactNode;
@@ -145,9 +146,11 @@ export function DiagramViewport({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-full min-h-[420px] overflow-hidden select-none bg-card ${
-        isDragging ? "cursor-grabbing" : "cursor-grab"
-      } ${className}`}
+      className={cn(
+        `relative w-full h-full min-h-[420px] overflow-hidden select-none bg-card `,
+        isDragging ? "cursor-grabbing" : "cursor-grab",
+        className,
+      )}
       style={{
         backgroundImage:
           "radial-gradient(var(--diagram-dot, rgba(0, 0, 0, 0.18)) 1.25px, transparent 1.25px)",
@@ -160,16 +163,14 @@ export function DiagramViewport({
       {/* Zoomable Canvas Transform Layer */}
       <div
         className="w-full h-full flex items-center justify-center transition-transform duration-75 ease-out origin-center"
-        style={{
-          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-        }}
+        style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}
       >
         {children}
       </div>
 
       {/* Floating Zoom Controls Bar */}
       <div
-        className="absolute bottom-4 right-4 z-20 flex items-center gap-1 bg-card/90 backdrop-blur-md border border-border/80 shadow-md rounded-lg p-1 transition-all"
+        className="absolute bottom-1.5 right-1.5 z-20 flex items-center gap-1 bg-card/90 backdrop-blur-md border border-border/80 shadow-md rounded-lg p-1 transition-all"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <Button
@@ -204,7 +205,7 @@ export function DiagramViewport({
           <ZoomIn className="size-3.5" />
         </Button>
 
-        <div className="w-[1px] h-4 bg-border mx-0.5" />
+        <div className="w-px h-4 bg-border mx-0.5" />
 
         <Button
           variant="ghost"

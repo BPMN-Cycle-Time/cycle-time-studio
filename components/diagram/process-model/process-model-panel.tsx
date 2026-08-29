@@ -10,7 +10,7 @@ import { DiagramInspector } from "../diagram-inspector";
 import { ImportGraphDialog } from "../import-graph-dialog";
 import { DiagramViewport } from "../diagram-viewport";
 import { renderFlowRecursive } from "./process-model-svg-renderer";
-import { Checkbox, AppLabel } from "@/components/ui";
+import { Checkbox, AppLabel, Card } from "@/components/ui";
 import "./process-model-panel.css";
 
 interface ProcessModelPanelProps {
@@ -243,8 +243,8 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
   const svgW = Math.max(currentX, 600);
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex items-center justify-between gap-4 mb-2 shrink-0">
+    <div className="w-full h-full flex-1 flex flex-col min-h-0 gap-4">
+      <div className="flex items-center justify-between gap-4 shrink-0">
         <AppLabel className="inline-flex items-center gap-2 cursor-pointer font-medium">
           <Checkbox checked={showIds} onCheckedChange={(checked) => setShowIds(checked === true)} />
           <span>{t("stampNodeIds")}</span>
@@ -254,8 +254,12 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
         </div>
       </div>
 
-      <div className="border rounded-lg bg-card p-4 shadow-sm flex-1 flex flex-col min-h-[420px] overflow-hidden">
-        <DiagramViewport contentWidth={svgW} contentHeight={svgH} className="flex-1 w-full">
+      <Card className="p-4 gap-3 w-full h-full flex-1 flex flex-col min-h-[480px] overflow-hidden">
+        <DiagramViewport
+          contentWidth={svgW}
+          contentHeight={svgH}
+          className="flex-1 w-full h-full min-h-0 mb-3"
+        >
           <svg
             viewBox={`0 0 ${svgW} ${svgH}`}
             width={svgW}
@@ -291,12 +295,12 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
           </svg>
         </DiagramViewport>
 
-        <DiagramInspector />
-
-        <p className="text-xs text-muted-foreground mt-3 shrink-0 font-sans">
+        <p className="text-xs text-muted-foreground shrink-0 font-sans">
           {t("processModelNotice")}
         </p>
-      </div>
+      </Card>
+
+      <DiagramInspector />
     </div>
   );
 }

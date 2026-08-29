@@ -58,6 +58,19 @@ export function ProjectParametersDrawer({
     [width],
   );
 
+  const tabs = [
+    {
+      value: "params",
+      label: tEd("parametersTab"),
+      content: <ParametersTab project={project} flow={flow} />,
+    },
+    {
+      value: "graph",
+      label: tEd("graphDataTab"),
+      content: <GraphDataTab project={project} />,
+    },
+  ];
+
   return (
     <aside
       style={{
@@ -100,20 +113,21 @@ export function ProjectParametersDrawer({
         </AppTooltip>
       </div>
 
-      <div className="px-5 py-6 flex flex-col gap-6 flex-1 overflow-y-auto">
+      <div className="p-5 flex flex-col gap-5 flex-1 overflow-y-auto">
         <Tabs defaultValue="params" className="w-full flex flex-col gap-6">
-          <TabsList className="shrink-0 self-start">
-            <TabsTrigger value="params">{tEd("parametersTab")}</TabsTrigger>
-            <TabsTrigger value="graph">{tEd("graphDataTab")}</TabsTrigger>
+          <TabsList className="w-full">
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value="params" className="outline-none p-0 mt-2">
-            <ParametersTab project={project} flow={flow} />
-          </TabsContent>
-
-          <TabsContent value="graph" className="outline-none p-0 mt-2">
-            <GraphDataTab project={project} />
-          </TabsContent>
+          {tabs.map((tab) => (
+            <TabsContent key={tab.value} value={tab.value} className="outline-none p-0">
+              {tab.content}
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
     </aside>

@@ -30,8 +30,74 @@
   box-shadow: none !important;
 }
 
+/* Custom Vertical & Compact BPMN Palette */
 .bpmn-canvas .djs-palette {
-  border-radius: var(--radius-control);
+  top: 16px !important;
+  left: 16px !important;
+  width: auto !important;
+  height: auto !important;
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  background-color: var(--card, #ffffff) !important;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12)) !important;
+  border-radius: var(--radius-control, 8px) !important;
+  padding: 5px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  backdrop-filter: blur(8px) !important;
+  z-index: 20 !important;
+}
+
+.bpmn-canvas .djs-palette .djs-palette-entries {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+
+.bpmn-canvas .djs-palette .djs-palette-entries::after {
+  display: none !important;
+}
+
+.bpmn-canvas .djs-palette .entry {
+  width: 38px !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  font-size: 24px !important;
+  float: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: calc(var(--radius-control, 8px) - 2px) !important;
+  color: var(--muted-foreground, #64748b) !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.bpmn-canvas .djs-palette .entry:hover {
+  background-color: var(--accent, rgba(0, 0, 0, 0.06)) !important;
+  color: var(--foreground, #0f172a) !important;
+}
+
+.bpmn-canvas .djs-palette .entry.highlighted-entry {
+  color: var(--primary, #0f172a) !important;
+  background-color: var(--primary-foreground, rgba(0, 0, 0, 0.1)) !important;
+}
+
+.bpmn-canvas .djs-palette .separator {
+  width: 24px !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  margin: 4px 0 !important;
+  padding: 0 !important;
+  background-color: var(--border, rgba(0, 0, 0, 0.12)) !important;
+  border: none !important;
+  float: none !important;
+  display: block !important;
+}
+
+.bpmn-canvas .djs-palette .djs-palette-toggle {
+  display: none !important;
 }
 
 /* Hide default bottom-right watermark overlapping with zoom toolbar */
