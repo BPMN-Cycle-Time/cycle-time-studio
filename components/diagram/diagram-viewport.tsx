@@ -93,15 +93,21 @@ export function DiagramViewport({
 
   // Pointer/Mouse panning
   const handleMouseDown = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
-    // Only pan on primary button and if target is not interactive button/input/select
+    // Only pan on primary button and if target is not interactive button/input/select or draggable node/edge
     if (e.button !== 0) return;
-    const target = e.target as HTMLElement;
+    const target = e.target as HTMLElement | SVGElement;
     if (
       target.closest("button") ||
       target.closest("input") ||
       target.closest("select") ||
       target.closest(".ins") ||
-      target.closest("a")
+      target.closest("a") ||
+      target.closest(".gnode") ||
+      target.closest(".edge-handle") ||
+      target.closest(".pm-node") ||
+      target.closest(".pm-interactive") ||
+      target.closest(".pm-block") ||
+      target.closest("[data-no-pan]")
     ) {
       return;
     }
@@ -147,7 +153,7 @@ export function DiagramViewport({
     <div
       ref={containerRef}
       className={cn(
-        `relative w-full h-full min-h-[420px] overflow-hidden select-none bg-card `,
+        "relative w-full h-full min-h-[480px] overflow-hidden select-none bg-card rounded-md border border-border/50",
         isDragging ? "cursor-grabbing" : "cursor-grab",
         className,
       )}

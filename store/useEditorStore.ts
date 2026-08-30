@@ -1,17 +1,23 @@
-"use client";
-
 import { create } from "zustand";
 import { temporal } from "zundo";
-import { v4 as uuid } from "uuid";
-import { BlockType, BlockMode, type Block, type Branch, type Project, type Task } from "@/types";
-import { loadProject, saveProjectData } from "./useProjectsIndex";
+import type { Block, Branch, Project, Task } from "@/types";
+import { BlockMode, BlockType } from "@/types";
+import { loadProject } from "./useProjectsIndex";
+import {
+  persistNow,
+  mapBlocks,
+  filterBlocksTree,
+  insertRelativeInTree,
+  createNewBlock,
+} from "./editor-helpers";
 
 export enum SelectionKind {
   BLOCK = "block",
   BRANCH = "branch",
+  TASK = "task",
 }
 
-interface EditorState {
+export interface EditorState {
   project: Project | null;
   selectedId: string | null;
   selectedKind: SelectionKind | null;
@@ -21,6 +27,7 @@ interface EditorState {
   setUnit: (unit: string) => void;
 
   addBlock: (type: BlockType, afterIndex?: number) => void;
+  insertBlockRelative: (targetId: string, pos: "before" | "after", type?: BlockType) => void;
   addNestedBlock: (parentId: string, parentKind: SelectionKind, type: BlockType) => void;
   setBlocks: (blocks: Block[]) => void;
   importBlocksAndTasks: (blocks: Block[], tasks: Task[]) => void;
@@ -39,30 +46,6 @@ interface EditorState {
   removeTask: (id: string) => void;
 
   select: (kind: SelectionKind | null, id: string | null) => void;
-}
-
-function persistNow(project: Project | null) {
-  if (!project) return;
-  saveProjectData({ ...project, updatedAt: Date.now() });
-}
-
-/** Recursively find and update a block anywhere in the tree (top-level or nested under subBlocks). */
-function mapBlocks(blocks: Block[], fn: (b: Block) => Block): Block[] {
-  return blocks.map((b) => {
-    let next = fn(b);
-    if (next.branches) {
-      next = {
-        ...next,
-        branches: next.branches.map((br) =>
-          br.subBlocks ? { ...br, subBlocks: mapBlocks(br.subBlocks, fn) } : br,
-        ),
-      };
-    }
-    if (next.subBlocks) {
-      next = { ...next, subBlocks: mapBlocks(next.subBlocks, fn) };
-    }
-    return next;
-  });
 }
 
 export const useEditorStore = create<EditorState>()(
@@ -91,43 +74,20 @@ export const useEditorStore = create<EditorState>()(
         const s = get();
         if (!s.project) return;
         const blocks = [...s.project.blocks];
-        const nb: Block = {
-          id: uuid(),
-          type,
-          label:
-            type === BlockType.SEQ
-              ? "New step"
-              : type === BlockType.XOR
-                ? "Decision"
-                : type === BlockType.AND
-                  ? "Parallel work"
-                  : "Rework loop",
-          mode: BlockMode.SIMPLE,
-          time: type === BlockType.SEQ ? 1 : undefined,
-          loopP: type === BlockType.LOOP ? 20 : undefined,
-          loopTime: type === BlockType.LOOP ? 1 : undefined,
-          branches:
-            type === BlockType.XOR || type === BlockType.AND
-              ? [
-                  {
-                    id: uuid(),
-                    label: "Branch A",
-                    p: type === BlockType.XOR ? 50 : undefined,
-                    t: 1,
-                    mode: BlockMode.SIMPLE,
-                  },
-                  {
-                    id: uuid(),
-                    label: "Branch B",
-                    p: type === BlockType.XOR ? 50 : undefined,
-                    t: 1,
-                    mode: BlockMode.SIMPLE,
-                  },
-                ]
-              : undefined,
-        };
+        const nb = createNewBlock(type);
         const idx = afterIndex === undefined ? blocks.length : afterIndex + 1;
         blocks.splice(idx, 0, nb);
+        const project = { ...s.project, blocks };
+        set({ project, selectedId: nb.id, selectedKind: SelectionKind.BLOCK });
+        persistNow(project);
+      },
+
+      insertBlockRelative: (targetId, pos, type = BlockType.SEQ) => {
+        const s = get();
+        if (!s.project) return;
+        const nb = createNewBlock(type);
+        const res = insertRelativeInTree(s.project.blocks, targetId, pos, nb);
+        const blocks = res.found ? res.list : [...s.project.blocks, nb];
         const project = { ...s.project, blocks };
         set({ project, selectedId: nb.id, selectedKind: SelectionKind.BLOCK });
         persistNow(project);
@@ -136,41 +96,7 @@ export const useEditorStore = create<EditorState>()(
       addNestedBlock: (parentId, parentKind, type) => {
         const s = get();
         if (!s.project) return;
-        const nb: Block = {
-          id: uuid(),
-          type,
-          label:
-            type === BlockType.SEQ
-              ? "New step"
-              : type === BlockType.XOR
-                ? "Decision"
-                : type === BlockType.AND
-                  ? "Parallel work"
-                  : "Rework loop",
-          mode: BlockMode.SIMPLE,
-          time: type === BlockType.SEQ ? 1 : undefined,
-          loopP: type === BlockType.LOOP ? 20 : undefined,
-          loopTime: type === BlockType.LOOP ? 1 : undefined,
-          branches:
-            type === BlockType.XOR || type === BlockType.AND
-              ? [
-                  {
-                    id: uuid(),
-                    label: "Branch A",
-                    p: type === BlockType.XOR ? 50 : undefined,
-                    t: 1,
-                    mode: BlockMode.SIMPLE,
-                  },
-                  {
-                    id: uuid(),
-                    label: "Branch B",
-                    p: type === BlockType.XOR ? 50 : undefined,
-                    t: 1,
-                    mode: BlockMode.SIMPLE,
-                  },
-                ]
-              : undefined,
-        };
+        const nb = createNewBlock(type);
 
         const updateBlocksRecursive = (arr: Block[]): Block[] => {
           return arr.map((b) => {
@@ -235,23 +161,7 @@ export const useEditorStore = create<EditorState>()(
       removeBlock: (id) => {
         const s = get();
         if (!s.project) return;
-        function filterOut(arr: Block[]): Block[] {
-          return arr
-            .filter((b) => b.id !== id)
-            .map((b) => {
-              const nextB = { ...b };
-              if (nextB.branches) {
-                nextB.branches = nextB.branches.map((br) =>
-                  br.subBlocks ? { ...br, subBlocks: filterOut(br.subBlocks) } : br,
-                );
-              }
-              if (nextB.subBlocks) {
-                nextB.subBlocks = filterOut(nextB.subBlocks);
-              }
-              return nextB;
-            });
-        }
-        const project = { ...s.project, blocks: filterOut(s.project.blocks) };
+        const project = { ...s.project, blocks: filterBlocksTree(s.project.blocks, id) };
         set({ project, selectedId: null, selectedKind: null });
         persistNow(project);
       },
@@ -261,7 +171,9 @@ export const useEditorStore = create<EditorState>()(
         if (!s.project) return;
         const blocks = [...s.project.blocks];
         const [moved] = blocks.splice(fromIndex, 1);
-        blocks.splice(toIndex, 0, moved);
+        if (moved) {
+          blocks.splice(toIndex, 0, moved);
+        }
         const project = { ...s.project, blocks };
         set({ project });
         persistNow(project);
@@ -270,20 +182,22 @@ export const useEditorStore = create<EditorState>()(
       addBranch: (blockId) => {
         const s = get();
         if (!s.project) return;
+        const newBranch: Branch = {
+          id: createNewBlock(BlockType.SEQ).id,
+          label: "New Branch",
+          t: 1,
+          p: 0,
+          mode: BlockMode.SIMPLE,
+        };
         const blocks = mapBlocks(s.project.blocks, (b) => {
-          if (b.id !== blockId || !b.branches) return b;
-          const usedP = b.branches.reduce((sum, x) => sum + (x.p ?? 0), 0);
-          const nb: Branch = {
-            id: uuid(),
-            label: `Branch ${String.fromCharCode(65 + b.branches.length)}`,
-            p: b.type === BlockType.XOR ? Math.max(0, 100 - usedP) : undefined,
-            t: 1,
-            mode: BlockMode.SIMPLE,
+          if (b.id !== blockId) return b;
+          return {
+            ...b,
+            branches: [...(b.branches ?? []), newBranch],
           };
-          return { ...b, branches: [...b.branches, nb] };
         });
         const project = { ...s.project, blocks };
-        set({ project });
+        set({ project, selectedId: newBranch.id, selectedKind: SelectionKind.BRANCH });
         persistNow(project);
       },
 
@@ -291,7 +205,7 @@ export const useEditorStore = create<EditorState>()(
         const s = get();
         if (!s.project) return;
         const blocks = mapBlocks(s.project.blocks, (b) => {
-          if (!b.branches) return b;
+          if (b.id !== blockId || !b.branches) return b;
           return {
             ...b,
             branches: b.branches.map((br) => (br.id === branchId ? { ...br, ...patch } : br)),
@@ -306,51 +220,46 @@ export const useEditorStore = create<EditorState>()(
         const s = get();
         if (!s.project) return;
         const blocks = mapBlocks(s.project.blocks, (b) => {
-          if (!b.branches || b.branches.length <= 1) return b;
-          return { ...b, branches: b.branches.filter((br) => br.id !== branchId) };
+          if (b.id !== blockId || !b.branches) return b;
+          return {
+            ...b,
+            branches: b.branches.filter((br) => br.id !== branchId),
+          };
         });
         const project = { ...s.project, blocks };
-        set({ project });
+        set({ project, selectedId: null, selectedKind: null });
         persistNow(project);
       },
 
       toggleBranchMode: (blockId, branchId) => {
         const s = get();
         if (!s.project) return;
-        const mapRecursive = (arr: Block[]): Block[] => {
-          return arr.map((b) => {
-            let nextBranches = b.branches;
-            if (b.branches) {
-              nextBranches = b.branches.map((br) => {
-                if (br.id !== branchId) {
-                  return br.subBlocks ? { ...br, subBlocks: mapRecursive(br.subBlocks) } : br;
-                }
-                const nextMode =
-                  br.mode === BlockMode.COMPOSITE ? BlockMode.SIMPLE : BlockMode.COMPOSITE;
-                let nextSubBlocks = br.subBlocks;
-                if (
-                  nextMode === BlockMode.COMPOSITE &&
-                  (!nextSubBlocks || nextSubBlocks.length === 0)
-                ) {
-                  nextSubBlocks = [
-                    {
-                      id: uuid(),
-                      type: BlockType.SEQ,
-                      label: br.label || "Step 1",
-                      taskId: br.taskId ?? null,
-                      time: br.t ?? 1,
-                      mode: BlockMode.SIMPLE,
-                    },
-                  ];
-                }
-                return { ...br, mode: nextMode, subBlocks: nextSubBlocks };
-              });
-            }
-            const nextSubBlocks = b.subBlocks ? mapRecursive(b.subBlocks) : b.subBlocks;
-            return { ...b, branches: nextBranches, subBlocks: nextSubBlocks };
-          });
-        };
-        const blocks = mapRecursive(s.project.blocks);
+        const blocks = mapBlocks(s.project.blocks, (b) => {
+          if (b.id !== blockId || !b.branches) return b;
+          return {
+            ...b,
+            branches: b.branches.map((br) => {
+              if (br.id !== branchId) return br;
+              const nextMode =
+                br.mode === BlockMode.COMPOSITE ? BlockMode.SIMPLE : BlockMode.COMPOSITE;
+              const subBlocks =
+                nextMode === BlockMode.COMPOSITE
+                  ? br.subBlocks && br.subBlocks.length > 0
+                    ? br.subBlocks
+                    : [
+                        {
+                          id: createNewBlock(BlockType.SEQ).id,
+                          type: BlockType.SEQ,
+                          label: "Step 1",
+                          mode: BlockMode.SIMPLE,
+                          time: br.t ?? 1,
+                        },
+                      ]
+                  : br.subBlocks;
+              return { ...br, mode: nextMode, subBlocks };
+            }),
+          };
+        });
         const project = { ...s.project, blocks };
         set({ project });
         persistNow(project);
@@ -359,40 +268,25 @@ export const useEditorStore = create<EditorState>()(
       toggleLoopMode: (blockId) => {
         const s = get();
         if (!s.project) return;
-        const mapRecursive = (arr: Block[]): Block[] => {
-          return arr.map((b) => {
-            if (b.id === blockId) {
-              const nextMode =
-                b.mode === BlockMode.COMPOSITE ? BlockMode.SIMPLE : BlockMode.COMPOSITE;
-              let nextSubBlocks = b.subBlocks;
-              if (
-                nextMode === BlockMode.COMPOSITE &&
-                (!nextSubBlocks || nextSubBlocks.length === 0)
-              ) {
-                nextSubBlocks = [
-                  {
-                    id: uuid(),
-                    type: BlockType.SEQ,
-                    label: b.label || "Step 1",
-                    taskId: b.taskId ?? null,
-                    time: b.loopTime ?? 1,
-                    mode: BlockMode.SIMPLE,
-                  },
-                ];
-              }
-              return { ...b, mode: nextMode, subBlocks: nextSubBlocks };
-            }
-            let nextBranches = b.branches;
-            if (b.branches) {
-              nextBranches = b.branches.map((br) =>
-                br.subBlocks ? { ...br, subBlocks: mapRecursive(br.subBlocks) } : br,
-              );
-            }
-            const nextSubBlocks = b.subBlocks ? mapRecursive(b.subBlocks) : b.subBlocks;
-            return { ...b, branches: nextBranches, subBlocks: nextSubBlocks };
-          });
-        };
-        const blocks = mapRecursive(s.project.blocks);
+        const blocks = mapBlocks(s.project.blocks, (b) => {
+          if (b.id !== blockId) return b;
+          const nextMode = b.mode === BlockMode.COMPOSITE ? BlockMode.SIMPLE : BlockMode.COMPOSITE;
+          const subBlocks =
+            nextMode === BlockMode.COMPOSITE
+              ? b.subBlocks && b.subBlocks.length > 0
+                ? b.subBlocks
+                : [
+                    {
+                      id: createNewBlock(BlockType.SEQ).id,
+                      type: BlockType.SEQ,
+                      label: "Loop step 1",
+                      mode: BlockMode.SIMPLE,
+                      time: b.loopTime ?? 1,
+                    },
+                  ]
+              : b.subBlocks;
+          return { ...b, mode: nextMode, subBlocks };
+        });
         const project = { ...s.project, blocks };
         set({ project });
         persistNow(project);
@@ -401,58 +295,43 @@ export const useEditorStore = create<EditorState>()(
       addTask: (name, time = 1) => {
         const s = get();
         if (!s.project) return;
-        const task: Task = { id: uuid(), name, time, usedMinutes: 0 };
-        const project = { ...s.project, tasks: [...s.project.tasks, task] };
-        set({ project });
+        const nt: Task = {
+          id: createNewBlock(BlockType.SEQ).id,
+          name: name.trim() || "New Task",
+          time,
+        };
+        const tasks = [...(s.project.tasks ?? []), nt];
+        const project = { ...s.project, tasks };
+        set({ project, selectedId: nt.id, selectedKind: SelectionKind.TASK });
         persistNow(project);
       },
 
       updateTask: (id, patch) => {
         const s = get();
-        if (!s.project) return;
-        const project = {
-          ...s.project,
-          tasks: s.project.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)),
-        };
+        if (!s.project || !s.project.tasks) return;
+        const tasks = s.project.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t));
+        const project = { ...s.project, tasks };
         set({ project });
         persistNow(project);
       },
 
       removeTask: (id) => {
         const s = get();
-        if (!s.project) return;
-        const clearTaskRefs = (arr: Block[]): Block[] => {
-          return arr.map((b) => {
-            const nextB = { ...b, taskId: b.taskId === id ? null : b.taskId };
-            if (nextB.branches) {
-              nextB.branches = nextB.branches.map((br) => ({
-                ...br,
-                taskId: br.taskId === id ? null : br.taskId,
-                subBlocks: br.subBlocks ? clearTaskRefs(br.subBlocks) : br.subBlocks,
-              }));
-            }
-            if (nextB.subBlocks) {
-              nextB.subBlocks = clearTaskRefs(nextB.subBlocks);
-            }
-            return nextB;
-          });
-        };
-        const project = {
-          ...s.project,
-          tasks: s.project.tasks.filter((t) => t.id !== id),
-          blocks: clearTaskRefs(s.project.blocks),
-        };
-        set({ project });
+        if (!s.project || !s.project.tasks) return;
+        const tasks = s.project.tasks.filter((t) => t.id !== id);
+        const project = { ...s.project, tasks };
+        set({ project, selectedId: null, selectedKind: null });
         persistNow(project);
       },
 
-      select: (kind, id) => set({ selectedKind: kind, selectedId: id }),
+      select: (kind, id) => {
+        set({ selectedKind: kind, selectedId: id });
+      },
     }),
-    { limit: 100, partialize: (s) => ({ project: s.project }) },
+    {
+      limit: 50,
+      equality: (pastState, currentState) =>
+        JSON.stringify(pastState.project) === JSON.stringify(currentState.project),
+    },
   ),
 );
-
-/** Convenience hooks for undo/redo buttons. */
-export function useEditorTemporal() {
-  return useEditorStore.temporal.getState();
-}

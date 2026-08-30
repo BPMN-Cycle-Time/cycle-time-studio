@@ -14,7 +14,9 @@ export function renderTaskBox(
   gid: string,
   showIds: boolean,
   isSelected: boolean,
-  onClick: () => void,
+  isDragging?: boolean,
+  onPointerDown?: (e: React.PointerEvent) => void,
+  onPointerUp?: (e: React.PointerEvent) => void,
 ): ReactNode {
   const lines = wrapLabel(label, 16);
   const lineH = 15;
@@ -22,7 +24,13 @@ export function renderTaskBox(
   const startY = cy - ((lines.length - 1) * lineH) / 2 + 4;
 
   return (
-    <g key={key} className={`node ${isSelected ? "sel" : ""}`} onClick={onClick}>
+    <g
+      key={key}
+      className={`node ${isSelected ? "sel" : ""} ${isDragging ? "dragging" : ""}`}
+      onMouseDown={(e) => e.stopPropagation()}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    >
       <rect
         className="halo"
         x={x - 5}
@@ -107,13 +115,21 @@ export function renderGatewayDiamond(
   gid: string,
   showIds: boolean,
   isSelected: boolean,
-  onClick: () => void,
+  isDragging?: boolean,
+  onPointerDown?: (e: React.PointerEvent) => void,
+  onPointerUp?: (e: React.PointerEvent) => void,
 ): ReactNode {
   const h = GW / 2;
   const points = `${cx},${cy - h} ${cx + h},${cy} ${cx},${cy + h} ${cx - h},${cy}`;
 
   return (
-    <g key={key} className={`node ${isSelected ? "sel" : ""}`} onClick={onClick}>
+    <g
+      key={key}
+      className={`node ${isSelected ? "sel" : ""} ${isDragging ? "dragging" : ""}`}
+      onMouseDown={(e) => e.stopPropagation()}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    >
       <circle
         className="halo"
         cx={cx}

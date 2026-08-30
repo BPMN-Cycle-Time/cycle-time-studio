@@ -11,9 +11,16 @@ import { ZoomIn, ZoomOut, RotateCcw, Maximize2 } from "lucide-react";
 import type Modeler from "bpmn-js/lib/Modeler";
 
 import type { Block, Task } from "@/types";
-import { blocksToBpmnXml, bpmnXmlToBlocks } from "@/utils";
+import {
+  blocksToBpmnXml,
+  bpmnXmlToBlocks,
+  exportSvgToPng,
+  slugify,
+  type BpmnImportResult,
+} from "@/utils";
 import { EMPTY_DIAGRAM } from "@/constants";
 import { Button } from "@/components/ui";
+import { useEditorStore } from "@/store/useEditorStore";
 import { BpmnToolbar } from "./bpmn-toolbar";
 import { BpmnPreviewCard } from "./bpmn-preview-card";
 
@@ -35,21 +42,20 @@ export function BpmnPanel({
   blocks,
   tasks,
   unit,
-  onApplyBlocks,
 }: {
   blocks: Block[];
   tasks?: Task[];
   unit: string;
-  onApplyBlocks: (blocks: Block[]) => void;
 }) {
   const t = useTranslations("diagram");
+  const importBlocksAndTasks = useEditorStore((s) => s.importBlocksAndTasks);
   const containerRef = useRef<HTMLDivElement>(null);
   const modelerRef = useRef<Modeler | null>(null);
   const lastXmlRef = useRef<string>("");
 
   const [status, setStatus] = useState<string>("");
   const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState<{ blocks: Block[]; warnings: string[] } | null>(null);
+  const [preview, setPreview] = useState<BpmnImportResult | null>(null);
   const [zoomPercent, setZoomPercent] = useState(100);
 
   const fitAndCenterDiagram = useCallback((modeler: Modeler) => {
@@ -121,26 +127,6 @@ export function BpmnPanel({
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-update BPMN diagram whenever form data (blocks or tasks) changes
-  useEffect(() => {
-    if (!modelerRef.current) return;
-    const timer = setTimeout(async () => {
-      try {
-        if (!modelerRef.current) return;
-        const xml = blocks.length ? await blocksToBpmnXml(blocks, "Process", tasks) : EMPTY_DIAGRAM;
-        if (xml !== lastXmlRef.current) {
-          lastXmlRef.current = xml;
-          await modelerRef.current.importXML(xml);
-          fitAndCenterDiagram(modelerRef.current);
-        }
-      } catch {
-        // ignore update errors during mid-typing
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [blocks, tasks, fitAndCenterDiagram]);
-
   // ResizeObserver to re-center when tab becomes visible or container resizes
   useEffect(() => {
     if (!containerRef.current) return;
@@ -180,6 +166,11 @@ export function BpmnPanel({
         lastXmlRef.current = xml;
         await modelerRef.current.importXML(xml);
         fitAndCenterDiagram(modelerRef.current);
+
+        // Immediately sync blocks & generated timesheet tasks to global store
+        const parsed = await bpmnXmlToBlocks(xml, tasks);
+        importBlocksAndTasks(parsed.blocks, parsed.tasks);
+
         setStatus(t("status.loadedFile", { name: file.name }));
       } catch {
         setStatus(t("status.loadFileFailed"));
@@ -187,8 +178,10 @@ export function BpmnPanel({
         setBusy(false);
       }
     },
-    [fitAndCenterDiagram, t],
+    [fitAndCenterDiagram, importBlocksAndTasks, tasks, t],
   );
+
+  const projectName = useEditorStore((s) => s.project?.name);
 
   const handleExportFile = useCallback(async () => {
     if (!modelerRef.current) return;
@@ -200,7 +193,7 @@ export function BpmnPanel({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "process.bpmn";
+      a.download = `${slugify(projectName)}-process.bpmn`;
       a.click();
       URL.revokeObjectURL(url);
       setStatus(t("status.exported"));
@@ -209,7 +202,23 @@ export function BpmnPanel({
     } finally {
       setBusy(false);
     }
-  }, [t]);
+  }, [projectName, t]);
+
+  const handleExportPng = useCallback(async () => {
+    if (!modelerRef.current) return;
+    setBusy(true);
+    try {
+      const result = await modelerRef.current.saveSVG();
+      const svg = result.svg || "";
+      const fileName = `${slugify(projectName)}-bpmn.png`;
+      await exportSvgToPng(svg, fileName);
+      setStatus(t("status.exportedPng"));
+    } catch {
+      setStatus(t("status.exportPngFailed"));
+    } finally {
+      setBusy(false);
+    }
+  }, [projectName, t]);
 
   const handlePreviewSync = useCallback(async () => {
     if (!modelerRef.current) return;
@@ -234,12 +243,13 @@ export function BpmnPanel({
   }, [tasks, t]);
 
   const handleApplyPreview = useCallback(
-    (appliedBlocks: Block[]) => {
-      onApplyBlocks(appliedBlocks);
+    (appliedBlocks: Block[], appliedTasks?: Task[]) => {
+      const finalTasks = appliedTasks || preview?.tasks || tasks || [];
+      importBlocksAndTasks(appliedBlocks, finalTasks);
       setPreview(null);
       setStatus(t("status.appliedToCalc", { count: appliedBlocks.length }));
     },
-    [onApplyBlocks, t],
+    [importBlocksAndTasks, preview?.tasks, tasks, t],
   );
 
   // Zoom controls
@@ -269,18 +279,19 @@ export function BpmnPanel({
   }, [fitAndCenterDiagram]);
 
   return (
-    <div className="w-full h-full flex-1 flex flex-col min-h-0 gap-4">
+    <div className="w-full flex-1 flex flex-col gap-4">
       <BpmnToolbar
         busy={busy}
         blockCount={blocks.length}
         onGenerateFromFlow={handleGenerateFromFlow}
         onImportFile={handleImportFile}
         onExportFile={handleExportFile}
+        onExportPng={handleExportPng}
         onPreviewSync={handlePreviewSync}
       />
 
-      <div className="relative border rounded-lg bg-card shadow-sm w-full h-full flex-1 flex flex-col min-h-[480px] overflow-hidden">
-        <div ref={containerRef} className="bpmn-canvas flex-1 w-full h-full min-h-0" />
+      <div className="relative border rounded-lg bg-card shadow-sm w-full flex flex-col h-[560px] lg:h-[620px] shrink-0 overflow-hidden">
+        <div ref={containerRef} className="bpmn-canvas flex-1 w-full h-full" />
 
         {/* Floating Zoom Controls Bar */}
         <div

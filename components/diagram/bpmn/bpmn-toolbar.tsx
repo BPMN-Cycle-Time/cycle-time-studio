@@ -11,6 +11,7 @@ interface BpmnToolbarProps {
   onGenerateFromFlow: () => void;
   onImportFile: (file: File) => void;
   onExportFile: () => void;
+  onExportPng: () => void;
   onPreviewSync: () => void;
 }
 
@@ -20,6 +21,7 @@ export function BpmnToolbar({
   onGenerateFromFlow,
   onImportFile,
   onExportFile,
+  onExportPng,
   onPreviewSync,
 }: BpmnToolbarProps) {
   const t = useTranslations("diagram");
@@ -56,6 +58,9 @@ export function BpmnToolbar({
       />
       <Button variant="outline" size="sm" onClick={onExportFile} disabled={busy}>
         <Download /> {t("exportBpmn")}
+      </Button>
+      <Button variant="outline" size="sm" onClick={onExportPng} disabled={busy}>
+        <Download /> {t("exportPng")}
       </Button>
       <span className="flex-1" />
       <Button variant="secondary" size="sm" onClick={onPreviewSync} disabled={busy}>

@@ -17,3 +17,17 @@ export function formatDate(timestamp: number | Date): string {
     day: "numeric",
   });
 }
+
+export function slugify(text?: string, defaultFallback = "project"): string {
+  if (!text || !text.trim()) return defaultFallback;
+  const slug = text
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || defaultFallback;
+}

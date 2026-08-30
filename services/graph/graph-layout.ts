@@ -6,10 +6,10 @@ import type {
 } from "@/types";
 
 export const GN_R = 21;
-export const GN_COL = 122;
-export const GN_ROW = 96;
-export const GN_PAD = 34;
-export const GN_LABEL = 30;
+export const GN_COL = 132;
+export const GN_ROW = 104;
+export const GN_PAD = 46;
+export const GN_LABEL = 36;
 
 export function layoutProcessGraph(g: ProcessGraph): ProcessGraphLayout | null {
   if (!g.nodes.length) return null;

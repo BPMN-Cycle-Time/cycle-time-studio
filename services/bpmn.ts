@@ -162,7 +162,7 @@ function renderBlock(
     const branchTails: string[] = [];
     for (const br of b.branches ?? []) {
       const brTaskName = br.taskId ? tasks?.find((t) => t.id === br.taskId)?.name : null;
-      const flowName = isXor ? `${br.p ?? 0}%` : brTaskName || br.label;
+      const flowName = isXor ? br.label || `${br.p ?? 0}%` : brTaskName || br.label;
       const branchBlocks: Block[] =
         br.mode === BlockMode.COMPOSITE && br.subBlocks?.length
           ? br.subBlocks
@@ -192,31 +192,44 @@ function renderBlock(
   }
 
   if (b.type === BlockType.LOOP) {
-    // Loop / rework: Merge gateway -> Body -> Decision gateway -> (repeat to Merge / proceed)
+    const isSingleTask =
+      b.mode !== BlockMode.COMPOSITE || !b.subBlocks?.length || b.subBlocks.length === 1;
+
+    if (isSingleTask) {
+      // Compact Single-Task Loop (matches original BPMN standard):
+      // afterId -> Task -> Decision Gateway -> (Repeat flow back directly to Task)
+      const loopTaskName = b.taskId ? tasks?.find((t) => t.id === b.taskId)?.name : null;
+      const taskName = loopTaskName || b.label;
+      const taskId = builder.addNode("Task", "task", taskName);
+      if (afterId) builder.addFlow(afterId, taskId);
+
+      const decisionGwId = builder.addNode("LoopDecision", "exclusiveGateway");
+      builder.addFlow(taskId, decisionGwId);
+
+      const loopLabel =
+        b.label && b.label !== "Rework loop" && b.label !== "Loop"
+          ? b.label
+          : `Repeat (${b.loopP ?? 0}%)`;
+      builder.addFlow(decisionGwId, taskId, loopLabel);
+
+      return { startId: taskId, tailId: decisionGwId };
+    }
+
+    // Composite multi-block loop:
+    // afterId -> Merge Gateway -> Body Chain -> Decision Gateway -> (Repeat flow to Merge)
     const mergeGwId = builder.addNode("LoopMerge", "exclusiveGateway");
     if (afterId) builder.addFlow(afterId, mergeGwId);
 
-    const loopTaskName = b.taskId ? tasks?.find((t) => t.id === b.taskId)?.name : null;
-    const bodyBlocks: Block[] =
-      b.mode === BlockMode.COMPOSITE && b.subBlocks?.length
-        ? b.subBlocks
-        : [
-            {
-              id: b.id,
-              type: BlockType.SEQ,
-              label: loopTaskName || b.label,
-              taskId: b.taskId,
-              time: b.loopTime,
-              mode: BlockMode.SIMPLE,
-            } as Block,
-          ];
-    const { tailId } = renderChain(bodyBlocks, builder, mergeGwId, tasks);
+    const { tailId } = renderChain(b.subBlocks!, builder, mergeGwId, tasks);
 
     const decisionGwId = builder.addNode("LoopDecision", "exclusiveGateway");
     builder.addFlow(tailId ?? mergeGwId, decisionGwId);
 
-    // Repeat flow goes back to merge gateway
-    builder.addFlow(decisionGwId, mergeGwId, `Repeat (${b.loopP ?? 0}%)`);
+    const loopLabel =
+      b.label && b.label !== "Rework loop" && b.label !== "Loop"
+        ? b.label
+        : `Repeat (${b.loopP ?? 0}%)`;
+    builder.addFlow(decisionGwId, mergeGwId, loopLabel);
 
     return { startId: mergeGwId, tailId: decisionGwId };
   }
@@ -313,20 +326,89 @@ interface WalkContext {
   elementsById: Map<string, MoBpmnElement>;
   /** node id -> index in `out` at which it was first pushed; used to detect back-edges (loops). */
   pathIndex: Map<string, number>;
-  tasks?: Task[];
+  tasks: Task[];
 }
 
-function resolveTaskRef(rawName: string, tasks?: Task[]) {
-  const clean = rawName.trim();
-  const matched = tasks?.find(
+function resolveOrCreateTask(
+  rawName: string,
+  tasks: Task[],
+): { label: string; taskId: string; time: number } {
+  const clean = (rawName || "").trim();
+  const taskName = clean || "Step";
+  const matched = tasks.find(
     (t) =>
-      t.name.trim().toLowerCase() === clean.toLowerCase() ||
-      t.id.toLowerCase() === clean.toLowerCase(),
+      t.name.trim().toLowerCase() === taskName.toLowerCase() ||
+      t.id.toLowerCase() === taskName.toLowerCase(),
   );
   if (matched) {
-    return { label: matched.name, taskId: matched.id, time: matched.time };
+    return { label: matched.name, taskId: matched.id, time: matched.time ?? 1 };
   }
-  return { label: clean || "Step", taskId: null, time: 1 };
+  const newTask: Task = {
+    id: freshId("task"),
+    name: taskName,
+    time: 1,
+    usedMinutes: 0,
+  };
+  tasks.push(newTask);
+  return { label: newTask.name, taskId: newTask.id, time: newTask.time ?? 1 };
+}
+
+/**
+ * Intelligently extracts a probability / repeat percentage (0..100) from a label string.
+ * Handles formats:
+ * - "Yes - 0.7" -> 70
+ * - "No - 0.3" -> 30
+ * - "r1 - 0.5" -> 50
+ * - "r2 - 0.4" -> 40
+ * - "70%" or "Repeat (50%)" -> 70 / 50
+ * - "p = 0.65" -> 65
+ * - "Branch 1 - 25%" -> 25
+ * - "0.8" -> 80
+ */
+export function parseProbability(rawLabel?: string, defaultVal?: number): number | undefined {
+  if (!rawLabel || !rawLabel.trim()) return defaultVal;
+  const label = rawLabel.trim();
+
+  // 1. Explicit percentage: e.g. "70%", "50.5%", "Repeat (20%)", "r1 - 50%"
+  const percentMatch = label.match(/(\d+(?:\.\d+)?)\s*%/);
+  if (percentMatch && percentMatch[1]) {
+    const val = parseFloat(percentMatch[1]);
+    if (!isNaN(val)) return Math.min(100, Math.max(0, val));
+  }
+
+  // 2. Explicit decimal ratio in (0, 1] e.g. "0.7", "0.5", "r1 - 0.5", "Yes - 0.7", "p=0.4"
+  const decimalMatch = label.match(/(?:^|[-:=~,\s(])\s*(0(?:\.\d+)?|1(?:\.0+)?)(?:$|[-:=~,\s)%])/);
+  if (decimalMatch && decimalMatch[1]) {
+    const val = parseFloat(decimalMatch[1]);
+    if (!isNaN(val)) {
+      return Math.min(100, Math.max(0, Math.round(val * 100 * 100) / 100));
+    }
+  }
+
+  // 3. Number after delimiter: e.g. "Yes - 70", "r1: 50", "p = 40", "r1 - 50"
+  const delimMatch = label.match(/(?:[-:=~]|p(?:rob)?|repeat|rate)\s*[:=]?\s*(\d+(?:\.\d+)?)/i);
+  if (delimMatch && delimMatch[1]) {
+    const val = parseFloat(delimMatch[1]);
+    if (!isNaN(val)) {
+      return val <= 1 && val > 0
+        ? Math.round(val * 100 * 100) / 100
+        : Math.min(100, Math.max(0, val));
+    }
+  }
+
+  // 4. Fallback: take the last number in the string (ignores prefix IDs like 'r1' or 'flow2' if followed by actual number)
+  const allNumbers = Array.from(label.matchAll(/(\d+(?:\.\d+)?)/g));
+  if (allNumbers.length > 0) {
+    const lastNumStr = allNumbers[allNumbers.length - 1]![1]!;
+    const val = parseFloat(lastNumStr);
+    if (!isNaN(val)) {
+      return val <= 1 && val > 0
+        ? Math.round(val * 100 * 100) / 100
+        : Math.min(100, Math.max(0, val));
+    }
+  }
+
+  return defaultVal;
 }
 
 function walkChain(startId: string | null, stopId: string | null, ctx: WalkContext): Block[] {
@@ -357,7 +439,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
       if (backEdge) {
         const bodyStart = localPath.get(backEdge.targetId)!;
         const bodyBlocks = out.splice(bodyStart);
-        const pMatch = backEdge.name?.match(/(\d+(?:\.\d+)?)/);
+        const parsedP = parseProbability(backEdge.name, 20) ?? 20;
         const forward = outs.find((o) => o !== backEdge);
         const firstBody = bodyBlocks[0];
         const loopBlock: Block =
@@ -369,7 +451,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
                 taskId: firstBody.taskId ?? null,
                 mode: BlockMode.SIMPLE,
                 loopTime: firstBody.time ?? 1,
-                loopP: pMatch ? parseFloat(pMatch[1]) : 20,
+                loopP: parsedP,
               }
             : {
                 id: freshId("loop"),
@@ -377,7 +459,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
                 label: "Rework loop",
                 mode: BlockMode.COMPOSITE,
                 subBlocks: bodyBlocks,
-                loopP: pMatch ? parseFloat(pMatch[1]) : 20,
+                loopP: parsedP,
               };
         out.push(loopBlock);
         currentId = forward?.targetId ?? null;
@@ -391,7 +473,9 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
       );
       const branches: Branch[] = outs.map((o) => {
         const branchBlocks = walkChain(o.targetId, joinId, ctx);
-        const pFromName = o.name?.match(/(\d+(?:\.\d+)?)/)?.[1];
+        const parsedP = isParallel
+          ? undefined
+          : parseProbability(o.name, Math.round(100 / outs.length));
         const firstBranchBlock = branchBlocks[0];
         if (
           branchBlocks.length === 1 &&
@@ -402,11 +486,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
             id: freshId("br"),
             label: firstBranchBlock.label,
             taskId: firstBranchBlock.taskId ?? null,
-            p: isParallel
-              ? undefined
-              : pFromName
-                ? parseFloat(pFromName)
-                : Math.round(100 / outs.length),
+            p: parsedP,
             t: firstBranchBlock.time ?? 1,
             mode: BlockMode.SIMPLE,
           };
@@ -414,11 +494,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         return {
           id: freshId("br"),
           label: o.name || firstBranchBlock?.label || "Branch",
-          p: isParallel
-            ? undefined
-            : pFromName
-              ? parseFloat(pFromName)
-              : Math.round(100 / outs.length),
+          p: parsedP,
           mode: BlockMode.COMPOSITE,
           subBlocks: branchBlocks,
         };
@@ -442,7 +518,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
 
     // Task-like element (Task, UserTask, ServiceTask, ManualTask, ...).
     localPath.set(currentId, out.length);
-    const resolved = resolveTaskRef(el.name || el.id, ctx.tasks);
+    const resolved = resolveOrCreateTask(el.name || el.id, ctx.tasks);
     out.push({
       id: freshId("blk"),
       type: BlockType.SEQ,
@@ -459,17 +535,26 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
 
 export interface BpmnImportResult {
   blocks: Block[];
+  tasks: Task[];
   warnings: string[];
 }
 
-export async function bpmnXmlToBlocks(xml: string, tasks?: Task[]): Promise<BpmnImportResult> {
+export async function bpmnXmlToBlocks(
+  xml: string,
+  existingTasks?: Task[],
+): Promise<BpmnImportResult> {
   const moddle = new BpmnModdle();
   const { rootElement, references } = await moddle.fromXML(xml);
   void references;
 
   const warnings: string[] = [];
   const process = rootElement.rootElements?.find((r: MoBpmnElement) => r.$type === "bpmn:Process");
-  if (!process) return { blocks: [], warnings: ["No <bpmn:process> found in this file."] };
+  if (!process)
+    return {
+      blocks: [],
+      tasks: existingTasks || [],
+      warnings: ["No <bpmn:process> found in this file."],
+    };
 
   const flowElements: MoBpmnElement[] = process.flowElements ?? [];
   const elementsById = new Map<string, MoBpmnElement>(flowElements.map((el) => [el.id, el]));
@@ -477,7 +562,7 @@ export async function bpmnXmlToBlocks(xml: string, tasks?: Task[]): Promise<Bpmn
   const start = flowElements.find((el) => el.$type === "bpmn:StartEvent");
   if (!start) {
     warnings.push("No start event found — cannot determine where the flow begins.");
-    return { blocks: [], warnings };
+    return { blocks: [], tasks: existingTasks || [], warnings };
   }
   const starts = flowElements.filter((el) => el.$type === "bpmn:StartEvent");
   if (starts.length > 1)
@@ -489,6 +574,7 @@ export async function bpmnXmlToBlocks(xml: string, tasks?: Task[]): Promise<Bpmn
   if (pools?.length)
     warnings.push("This file has multiple pools/lanes — only the first process was converted.");
 
+  const tasks: Task[] = existingTasks ? [...existingTasks] : [];
   const blocks = walkChain(start.id, null, { elementsById, pathIndex: new Map(), tasks });
-  return { blocks, warnings };
+  return { blocks, tasks, warnings };
 }

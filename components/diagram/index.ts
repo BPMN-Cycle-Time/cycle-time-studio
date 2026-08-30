@@ -4,5 +4,8 @@ export * from "./graph";
 export * from "./diagram-panel";
 export * from "./diagram-inspector";
 export * from "./import-graph-dialog";
+export * from "./export-graph-dialog";
 export * from "./flow-node";
 export * from "./diagram-viewport";
+export * from "./diagram-guidelines";
+export * from "./diagram-routing-switcher";

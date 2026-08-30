@@ -1,20 +1,12 @@
 import { v4 as uuid } from "uuid";
 import { BlockType, BlockMode, type Block, type Branch, type Task } from "@/types";
+import { parseProbability } from "../bpmn";
 import type { RawGraphNodeRecord, RawGraphEdgeRecord } from "../xlsx";
 
 export interface ReconstructedGraphModel {
   blocks: Block[];
   tasks: Task[];
   warnings: string[];
-}
-
-function parseNumberFromLabel(label: string, defaultVal: number): number {
-  const match = label.match(/(\d+(?:\.\d+)?)/);
-  if (match && match[1]) {
-    const val = parseFloat(match[1]);
-    if (!isNaN(val)) return val;
-  }
-  return defaultVal;
 }
 
 /**
@@ -163,7 +155,7 @@ export function graphToBlocksAndTasks(
       for (let bIdx = 0; bIdx < outs.length; bIdx++) {
         const out = outs[bIdx]!;
         const branchTargetNode = nodeMap.get(out.target);
-        const prob = isXor ? parseNumberFromLabel(out.label, autoP ?? 50) : undefined;
+        const prob = isXor ? (parseProbability(out.label, autoP ?? 50) ?? autoP ?? 50) : undefined;
         const branchLabel =
           out.label || branchTargetNode?.name || `Branch ${String.fromCharCode(65 + bIdx)}`;
 
@@ -214,7 +206,7 @@ export function graphToBlocksAndTasks(
 
     if (hasBackLoop) {
       const loopEdge = outs.find((o) => o.back);
-      const loopP = loopEdge ? parseNumberFromLabel(loopEdge.label, 20) : 20;
+      const loopP = loopEdge ? (parseProbability(loopEdge.label, 20) ?? 20) : 20;
 
       blocks.push({
         id: uuid(),

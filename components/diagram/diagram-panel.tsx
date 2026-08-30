@@ -8,15 +8,7 @@ import { ProcessModelPanel } from "./process-model";
 import { GraphPanel } from "./graph";
 import { BpmnPanel } from "./bpmn";
 
-export function DiagramPanel({
-  blocks,
-  unit,
-  onApplyBlocks,
-}: {
-  blocks: Block[];
-  unit: string;
-  onApplyBlocks: (blocks: Block[]) => void;
-}) {
+export function DiagramPanel({ blocks, unit }: { blocks: Block[]; unit: string }) {
   const t = useTranslations("diagram");
   const tasks = useEditorStore((s) => s.project?.tasks);
 
@@ -34,14 +26,12 @@ export function DiagramPanel({
     {
       value: "bpmn",
       label: t("bpmnTab"),
-      content: (
-        <BpmnPanel blocks={blocks} tasks={tasks} unit={unit} onApplyBlocks={onApplyBlocks} />
-      ),
+      content: <BpmnPanel blocks={blocks} tasks={tasks} unit={unit} />,
     },
   ];
 
   return (
-    <Tabs defaultValue="model" className="w-full h-full flex-1 flex flex-col min-h-0">
+    <Tabs defaultValue="model" className="w-full flex-1 flex flex-col">
       <TabsList className="shrink-0 self-start">
         {tabs.map((tab) => (
           <TabsTrigger key={tab.value} value={tab.value}>
@@ -53,7 +43,7 @@ export function DiagramPanel({
         <TabsContent
           key={tab.value}
           value={tab.value}
-          className="w-full h-full flex-1 flex flex-col min-h-0 mt-4 outline-none data-[state=inactive]:hidden"
+          className="w-full flex-1 flex flex-col mt-4 outline-none data-[state=inactive]:hidden"
         >
           {tab.content}
         </TabsContent>

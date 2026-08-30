@@ -18,7 +18,7 @@ interface ProjectContainerProps {
 
 export function ProjectContainer({ id }: ProjectContainerProps) {
   const tStatus = useTranslations("common.status");
-  const { project, loadProjectById, setBlocks } = useEditorStore();
+  const { project, loadProjectById } = useEditorStore();
   const { touch } = useProjectsIndex();
   const [rightCollapsed, setRightCollapsed] = useLocalStorageState(
     STORAGE_KEYS.RIGHT_PANEL_COLLAPSED,
@@ -55,13 +55,13 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
         <>
           {/* Middle column — diagram */}
           <div className="flex-1 min-w-0 flex flex-col h-svh overflow-hidden">
-            <div className="w-full h-full px-6 py-6 flex-1 flex flex-col min-h-0 overflow-y-auto">
+            <div className="w-full h-full px-6 py-6 flex-1 flex flex-col overflow-y-auto">
               <ProjectHeader
                 rightCollapsed={rightCollapsed}
                 onExpandRightPanel={handleExpandRightPanel}
               />
 
-              <DiagramPanel blocks={project.blocks} unit={project.unit} onApplyBlocks={setBlocks} />
+              <DiagramPanel blocks={project.blocks} unit={project.unit} />
             </div>
           </div>
 

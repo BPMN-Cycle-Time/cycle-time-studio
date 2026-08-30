@@ -2,7 +2,7 @@ export { cn } from "./cn";
 export * from "./formats";
 export * from "./convert";
 export { computeFlow, runMonteCarlo } from "@/services/engine";
-export { blocksToBpmnXml, bpmnXmlToBlocks } from "@/services/bpmn";
+export { blocksToBpmnXml, bpmnXmlToBlocks, type BpmnImportResult } from "@/services/bpmn";
 export {
   blocksToGraph,
   buildProcessGraph,
@@ -24,4 +24,5 @@ export {
   normalizeEdgesData,
   exportGraphToWorkbook,
 } from "@/services/xlsx";
+export { exportSvgToPng } from "./export-image";
 export { loadProject, saveProjectData, emptyProject } from "@/store/useProjectsIndex";

@@ -1,13 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { Block } from "@/types";
+import type { Block, Task } from "@/types";
 import { Button, AppCard } from "@/components/ui";
 
 interface BpmnPreviewCardProps {
-  preview: { blocks: Block[]; warnings: string[] };
+  preview: { blocks: Block[]; tasks?: Task[]; warnings: string[] };
   unit: string;
-  onApply: (blocks: Block[]) => void;
+  onApply: (blocks: Block[], tasks?: Task[]) => void;
   onDiscard: () => void;
 }
 
@@ -24,7 +24,7 @@ export function BpmnPreviewCard({ preview, unit, onApply, onDiscard }: BpmnPrevi
         <div className="flex gap-2">
           <Button
             size="sm"
-            onClick={() => onApply(preview.blocks)}
+            onClick={() => onApply(preview.blocks, preview.tasks)}
             disabled={preview.blocks.length === 0}
           >
             {tBtn("apply")}
