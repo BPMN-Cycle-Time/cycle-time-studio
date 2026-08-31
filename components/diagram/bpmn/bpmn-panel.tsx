@@ -48,6 +48,8 @@ export function BpmnPanel({
   unit: string;
 }) {
   const t = useTranslations("diagram");
+  const storedBpmnXml = useEditorStore((s) => s.project?.bpmnXml);
+  const setBpmnXml = useEditorStore((s) => s.setBpmnXml);
   const importBlocksAndTasks = useEditorStore((s) => s.importBlocksAndTasks);
   const containerRef = useRef<HTMLDivElement>(null);
   const modelerRef = useRef<Modeler | null>(null);
@@ -110,8 +112,23 @@ export function BpmnPanel({
         }
       });
 
+      // Persist manual element positioning / adjustments made in the BPMN editor
+      modeler.on("commandStack.changed", async () => {
+        try {
+          const result = await modeler.saveXML({ format: true });
+          if (result.xml && result.xml !== lastXmlRef.current) {
+            lastXmlRef.current = result.xml;
+            setBpmnXml(result.xml);
+          }
+        } catch {
+          // ignore
+        }
+      });
+
       try {
-        const xml = blocks.length ? await blocksToBpmnXml(blocks, "Process", tasks) : EMPTY_DIAGRAM;
+        const xml =
+          storedBpmnXml ||
+          (blocks.length ? await blocksToBpmnXml(blocks, "Process", tasks) : EMPTY_DIAGRAM);
         lastXmlRef.current = xml;
         await modeler.importXML(xml);
         fitAndCenterDiagram(modeler);
@@ -147,6 +164,7 @@ export function BpmnPanel({
       const xml = await blocksToBpmnXml(blocks, "Process", tasks);
       lastXmlRef.current = xml;
       await modelerRef.current.importXML(xml);
+      setBpmnXml(xml);
       fitAndCenterDiagram(modelerRef.current);
       setStatus(t("status.generated"));
     } catch {
@@ -154,7 +172,7 @@ export function BpmnPanel({
     } finally {
       setBusy(false);
     }
-  }, [blocks, tasks, fitAndCenterDiagram, t]);
+  }, [blocks, tasks, fitAndCenterDiagram, setBpmnXml, t]);
 
   const handleImportFile = useCallback(
     async (file: File) => {
@@ -167,9 +185,9 @@ export function BpmnPanel({
         await modelerRef.current.importXML(xml);
         fitAndCenterDiagram(modelerRef.current);
 
-        // Immediately sync blocks & generated timesheet tasks to global store
+        // Immediately sync blocks, generated timesheet tasks & BPMN XML to global store
         const parsed = await bpmnXmlToBlocks(xml, tasks);
-        importBlocksAndTasks(parsed.blocks, parsed.tasks);
+        importBlocksAndTasks(parsed.blocks, parsed.tasks, xml);
 
         setStatus(t("status.loadedFile", { name: file.name }));
       } catch {

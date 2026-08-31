@@ -374,6 +374,7 @@ export function GraphSvgRenderer({
       <g
         key={n.id}
         className={`gn-node ${isSelected ? "selected" : ""} ${isDragging ? "dragging" : ""}`}
+        onMouseDown={(e) => e.stopPropagation()}
         onPointerDown={(e) => onNodePointerDown(e, n.id)}
         onPointerUp={(e) => onPointerUp(e, n)}
       >

@@ -43,7 +43,8 @@ export function BranchInspector({
     const foundTask = tasks.find((t) => t.id === taskId);
     onUpdateBranch(parentBlock.id, branch.id, {
       taskId,
-      label: foundTask ? foundTask.name : branch.label,
+      label: branch.label?.trim() ? branch.label : foundTask ? foundTask.name : "",
+      t: foundTask && typeof foundTask.time === "number" ? foundTask.time : branch.t,
     });
   };
 

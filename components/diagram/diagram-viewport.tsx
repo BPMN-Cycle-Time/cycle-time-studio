@@ -100,14 +100,22 @@ export function DiagramViewport({
       target.closest("button") ||
       target.closest("input") ||
       target.closest("select") ||
-      target.closest(".ins") ||
       target.closest("a") ||
+      target.closest(".ins") ||
+      target.closest(".node") ||
+      target.closest(".gn-node") ||
       target.closest(".gnode") ||
       target.closest(".edge-handle") ||
+      target.closest(".midpoint-handle") ||
+      target.closest(".midpoint-handle-group") ||
+      target.closest(".hit") ||
       target.closest(".pm-node") ||
       target.closest(".pm-interactive") ||
       target.closest(".pm-block") ||
-      target.closest("[data-no-pan]")
+      target.closest("[data-no-pan]") ||
+      target.closest("g[class*='node']") ||
+      target.closest("g[class*='hdl']") ||
+      target.closest("g[class*='handle']")
     ) {
       return;
     }

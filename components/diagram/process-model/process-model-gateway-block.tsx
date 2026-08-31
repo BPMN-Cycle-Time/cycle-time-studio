@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { BlockType, BlockMode } from "@/types";
+import { BlockType } from "@/types";
 import {
   branchDisplayName,
   computeBranchValue,
@@ -135,14 +135,54 @@ export function renderGatewayBlock(
       );
     }
 
-    // Branch condition label with modern badge pill styling
-    const caption = isXor
-      ? bx.branch.mode === BlockMode.COMPOSITE
-        ? `${branchDisplayName(bx.branch, ctx.tasks)} · ${formatTimeValue(bx.branch.p ?? 0)}%`
-        : `${formatTimeValue(bx.branch.p ?? 0)}%`
-      : bx.branch.mode === BlockMode.COMPOSITE
-        ? branchDisplayName(bx.branch, ctx.tasks)
-        : "";
+    // Branch condition label with modern badge pill styling (XOR exclusive choices only)
+    const customBranchLabel = bx.branch.label?.trim();
+    const task = ctx.tasks?.find((t) => t.id === bx.branch.taskId);
+    const taskName = task?.name?.trim() || "";
+    const isGenericBranchLabel =
+      !customBranchLabel ||
+      /^branch(\s+[a-z0-9]+)?$/i.test(customBranchLabel) ||
+      (taskName && customBranchLabel.toLowerCase() === taskName.toLowerCase());
+
+    const isDistinctCondition = !isGenericBranchLabel;
+    let effectiveConditionLabel = isDistinctCondition ? customBranchLabel : "";
+    if (isXor && item.branches.length === 2 && !effectiveConditionLabel) {
+      const otherIdx = bi === 0 ? 1 : 0;
+      const otherLabel = item.branches[otherIdx]?.branch.label?.trim().toLowerCase() || "";
+      const otherIsYes =
+        otherLabel.startsWith("yes") ||
+        otherLabel.startsWith("đạt") ||
+        otherLabel.startsWith("có") ||
+        otherLabel.startsWith("pass") ||
+        otherLabel.startsWith("true");
+      const otherIsNo =
+        otherLabel.startsWith("no") ||
+        otherLabel.startsWith("không") ||
+        otherLabel.startsWith("fail") ||
+        otherLabel.startsWith("false");
+
+      if (bi === 1 && otherIsYes) {
+        effectiveConditionLabel = "No";
+      } else if (bi === 0 && otherIsNo) {
+        effectiveConditionLabel = "Yes";
+      }
+    }
+
+    const pValue = (bx.branch.p ?? 0) / 100;
+    const pText = formatTimeValue(pValue);
+    let caption = "";
+    if (isXor) {
+      if (effectiveConditionLabel) {
+        // Strip trailing probability or separator like " - 0.7", " 0.7", " - 70%", etc. to standardize on "Label · 0.7"
+        const cleanLabel = effectiveConditionLabel
+          .replace(/[\s·\-_:]*(0?\.\d+|\d+%)?$/i, "")
+          .trim();
+        const baseName = cleanLabel || effectiveConditionLabel;
+        caption = `${baseName} · ${pText}`;
+      } else {
+        caption = pText;
+      }
+    }
 
     if (caption) {
       const badgeW = caption.length * 6.6 + 14;

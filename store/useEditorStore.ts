@@ -30,7 +30,8 @@ export interface EditorState {
   insertBlockRelative: (targetId: string, pos: "before" | "after", type?: BlockType) => void;
   addNestedBlock: (parentId: string, parentKind: SelectionKind, type: BlockType) => void;
   setBlocks: (blocks: Block[]) => void;
-  importBlocksAndTasks: (blocks: Block[], tasks: Task[]) => void;
+  setBpmnXml: (bpmnXml: string) => void;
+  importBlocksAndTasks: (blocks: Block[], tasks: Task[], bpmnXml?: string) => void;
   updateBlock: (id: string, patch: Partial<Block>) => void;
   removeBlock: (id: string) => void;
   moveBlock: (fromIndex: number, toIndex: number) => void;
@@ -141,10 +142,18 @@ export const useEditorStore = create<EditorState>()(
         persistNow(project);
       },
 
-      importBlocksAndTasks: (blocks, tasks) => {
+      setBpmnXml: (bpmnXml) => {
         const s = get();
         if (!s.project) return;
-        const project = { ...s.project, blocks, tasks };
+        const project = { ...s.project, bpmnXml };
+        set({ project });
+        persistNow(project);
+      },
+
+      importBlocksAndTasks: (blocks, tasks, bpmnXml) => {
+        const s = get();
+        if (!s.project) return;
+        const project = { ...s.project, blocks, tasks, ...(bpmnXml ? { bpmnXml } : {}) };
         set({ project, selectedId: null, selectedKind: null });
         persistNow(project);
       },

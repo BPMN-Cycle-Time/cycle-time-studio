@@ -162,7 +162,19 @@ function renderBlock(
     const branchTails: string[] = [];
     for (const br of b.branches ?? []) {
       const brTaskName = br.taskId ? tasks?.find((t) => t.id === br.taskId)?.name : null;
-      const flowName = isXor ? br.label || `${br.p ?? 0}%` : brTaskName || br.label;
+      const isTaskName =
+        brTaskName && br.label?.trim().toLowerCase() === brTaskName.trim().toLowerCase();
+      let flowName = "";
+      if (isXor) {
+        if (br.label && !isTaskName && br.label !== "Branch") {
+          flowName = br.label;
+        } else if (br.p != null) {
+          flowName = `${br.p / 100}`;
+        }
+      } else {
+        flowName = !isTaskName && br.label !== "Branch" ? br.label || "" : "";
+      }
+
       const branchBlocks: Block[] =
         br.mode === BlockMode.COMPOSITE && br.subBlocks?.length
           ? br.subBlocks
@@ -484,7 +496,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         ) {
           return {
             id: freshId("br"),
-            label: firstBranchBlock.label,
+            label: o.name || firstBranchBlock.label,
             taskId: firstBranchBlock.taskId ?? null,
             p: parsedP,
             t: firstBranchBlock.time ?? 1,

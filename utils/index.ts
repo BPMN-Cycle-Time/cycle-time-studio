@@ -24,5 +24,5 @@ export {
   normalizeEdgesData,
   exportGraphToWorkbook,
 } from "@/services/xlsx";
-export { exportSvgToPng } from "./export-image";
+export { exportSvgToPng, prepareSvgForExport } from "./export-image";
 export { loadProject, saveProjectData, emptyProject } from "@/store/useProjectsIndex";

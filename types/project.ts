@@ -9,6 +9,7 @@ export interface Project {
   unit: string; // e.g. "hours", "days", "minutes"
   tasks: Task[];
   blocks: Block[];
+  bpmnXml?: string;
   createdAt: number;
   updatedAt: number;
 }

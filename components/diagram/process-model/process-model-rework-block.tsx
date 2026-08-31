@@ -122,6 +122,7 @@ export function renderReworkBlock(
   }
 
   // Rate label above the peak with pointerEvents: none
+  const rValue = (r ?? 0) / 100;
   out.push(
     <g key={`lbl-${b.id}`} style={{ pointerEvents: "none" }}>
       <text
@@ -133,7 +134,7 @@ export function renderReworkBlock(
         fontFamily="ui-monospace, monospace"
         fontWeight={600}
       >
-        r = {formatTimeValue(r)}%
+        r = {formatTimeValue(rValue)}
       </text>
     </g>,
   );
