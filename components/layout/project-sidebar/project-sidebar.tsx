@@ -24,14 +24,18 @@ export function ProjectSidebar() {
 
   return (
     <>
-      {/* Inline Transition Sidebar */}
+      {/* Inline Transition Floating Sidebar */}
       <aside
         className={cn(
-          "shrink-0 border-r bg-card/45 backdrop-blur-md flex flex-col h-svh sticky top-0 z-10 transition-all duration-300 ease-in-out overflow-hidden shadow-sm",
-          collapsed ? "w-14" : "w-64",
+          "shrink-0 rounded-xl border border-border/70 bg-card shadow-sm flex flex-col h-[calc(100svh-1.5rem)] my-3 ml-3 sticky top-3 z-20 transition-all duration-300 ease-in-out overflow-hidden",
+          collapsed ? "w-16" : "w-72",
         )}
       >
-        <SidebarHeader collapsed={collapsed} onCollapsedChange={setCollapsed} />
+        <SidebarHeader
+          collapsed={collapsed}
+          onCollapsedChange={setCollapsed}
+          onCreateProject={() => setNewProjectOpen(true)}
+        />
         <SidebarProjectList
           activeId={activeId}
           collapsed={collapsed}
@@ -39,7 +43,7 @@ export function ProjectSidebar() {
           projects={projects}
           onDeleteProject={setPendingDelete}
         />
-        <SidebarFooter collapsed={collapsed} onCreateProject={() => setNewProjectOpen(true)} />
+        <SidebarFooter collapsed={collapsed} />
       </aside>
 
       <NewProjectDialog

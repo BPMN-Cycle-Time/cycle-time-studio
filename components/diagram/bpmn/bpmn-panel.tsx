@@ -297,7 +297,7 @@ export function BpmnPanel({
   }, [fitAndCenterDiagram]);
 
   return (
-    <div className="w-full flex-1 flex flex-col gap-4">
+    <div className="w-full flex-1 min-h-0 flex flex-col gap-3">
       <BpmnToolbar
         busy={busy}
         blockCount={blocks.length}
@@ -308,7 +308,7 @@ export function BpmnPanel({
         onPreviewSync={handlePreviewSync}
       />
 
-      <div className="relative border rounded-lg bg-card shadow-sm w-full flex flex-col h-[560px] lg:h-[620px] shrink-0 overflow-hidden">
+      <div className="relative border rounded-lg bg-card shadow-sm w-full flex-1 min-h-[500px] flex flex-col overflow-hidden">
         <div ref={containerRef} className="bpmn-canvas flex-1 w-full h-full" />
 
         {/* Floating Zoom Controls Bar */}

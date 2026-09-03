@@ -11,5 +11,20 @@
   "deleteWarning": "Thao tác này không thể hoàn tác.",
   "noProjects": "Chưa có dự án.",
   "expandSidebar": "Mở rộng thanh bên",
-  "collapseSidebar": "Thu gọn thanh bên"
+  "collapseSidebar": "Thu gọn thanh bên",
+  "newTask": "Tác vụ mới",
+  "team": "Đồng đội",
+  "viewMore": "Xem thêm",
+  "noTeammates": "Chưa có đồng đội nào",
+  "recent": "Gần đây",
+  "more": "Thêm",
+  "userName": "Trần Phú Sơn",
+  "userRole": "Primary Owner",
+  "home": "Trang chủ",
+  "notifications": "Thông báo",
+  "process": "Quy trình",
+  "share": "Chia sẻ",
+  "dataTable": "Bảng dữ liệu",
+  "vault": "Lưu trữ",
+  "apps": "Ứng dụng"
 }

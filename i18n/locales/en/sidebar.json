@@ -11,5 +11,20 @@
   "deleteWarning": "This cannot be undone.",
   "noProjects": "No projects yet.",
   "expandSidebar": "Expand sidebar",
-  "collapseSidebar": "Collapse sidebar"
+  "collapseSidebar": "Collapse sidebar",
+  "newTask": "New task",
+  "team": "Team",
+  "viewMore": "View more",
+  "noTeammates": "No teammates yet",
+  "recent": "Recent",
+  "more": "More",
+  "userName": "Trần Phú Sơn",
+  "userRole": "Primary Owner",
+  "home": "Home",
+  "notifications": "Notifications",
+  "process": "Process Flow",
+  "share": "Share",
+  "dataTable": "Data Table",
+  "vault": "Vault",
+  "apps": "Apps"
 }

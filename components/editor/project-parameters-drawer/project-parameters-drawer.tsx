@@ -78,8 +78,8 @@ export function ProjectParametersDrawer({
         minWidth: collapsed ? "0px" : undefined,
       }}
       className={cn(
-        "h-svh border-l bg-background shadow-2xl flex flex-col relative transition-all duration-300 ease-in-out overflow-hidden z-10 shrink-0",
-        collapsed && "border-l-0 shadow-none pointer-events-none",
+        "rounded-xl border border-border/70 bg-card shadow-sm flex flex-col h-[calc(100svh-1.5rem)] my-3 mr-3 relative transition-all duration-300 ease-in-out overflow-hidden z-10 shrink-0",
+        collapsed && "w-0 min-w-0 mr-0 border-0 shadow-none pointer-events-none",
         isResizing && "select-none transition-none",
       )}
     >
@@ -88,36 +88,34 @@ export function ProjectParametersDrawer({
         <div
           onMouseDown={startResizing}
           className={cn(
-            "absolute top-0 bottom-0 left-0 w-1.5 cursor-col-resize hover:bg-primary/40 active:bg-primary/80 z-50 transition-colors group flex items-center justify-center",
-            isResizing && "bg-primary/80",
+            "absolute top-0 bottom-0 left-0 w-2 cursor-col-resize hover:bg-primary/30 active:bg-primary/70 z-50 transition-colors group flex items-center justify-center",
+            isResizing && "bg-primary/70",
           )}
           title="Drag to resize panel width"
         >
-          <div className="w-0.5 h-8 rounded-full bg-muted-foreground/40 group-hover:bg-primary-foreground/60 group-active:bg-primary-foreground/80 transition-colors" />
+          <div className="w-0.5 h-8 rounded-full bg-muted-foreground/30 group-hover:bg-foreground/60 transition-colors" />
         </div>
       )}
 
-      <div className="px-5 pt-5 pb-3 border-b flex flex-row items-center justify-between space-y-0 shrink-0">
-        <h2 className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
-          {tEd("parameters")}
-        </h2>
+      <div className="px-4 pt-4 pb-3 border-b border-border/40 flex flex-row items-center justify-between space-y-0 shrink-0">
+        <h2 className="text-xs font-bold text-foreground tracking-tight">{tEd("parameters")}</h2>
         <AppTooltip content={tEd("collapsePanel")}>
           <Button
             variant="ghost"
             size="icon"
-            className="size-7"
+            className="size-7 rounded-lg"
             onClick={() => onCollapsedChange(true)}
           >
-            <PanelRightClose className="size-4" />
+            <PanelRightClose className="size-3.5" />
           </Button>
         </AppTooltip>
       </div>
 
-      <div className="p-5 flex flex-col gap-5 flex-1 overflow-y-auto">
-        <Tabs defaultValue="params" className="w-full flex flex-col gap-6">
-          <TabsList className="w-full">
+      <div className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto">
+        <Tabs defaultValue="params" className="w-full flex flex-col gap-5">
+          <TabsList className="w-full bg-muted/70 dark:bg-muted/40 p-1 rounded-xl">
             {tabs.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value}>
+              <TabsTrigger key={tab.value} value={tab.value} className="rounded-lg text-xs">
                 {tab.label}
               </TabsTrigger>
             ))}

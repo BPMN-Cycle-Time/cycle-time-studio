@@ -12,7 +12,7 @@ export function HomeContainer() {
   const hydrated = useHydration();
 
   return (
-    <div className="flex h-svh overflow-hidden">
+    <div className="flex h-svh overflow-hidden bg-muted/30 dark:bg-zinc-950/60">
       <ProjectSidebar />
 
       <div className="flex-1 overflow-y-auto">
