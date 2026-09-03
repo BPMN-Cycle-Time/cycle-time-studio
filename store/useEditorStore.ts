@@ -25,6 +25,7 @@ export interface EditorState {
   loadProjectById: (id: string) => void;
   setName: (name: string) => void;
   setUnit: (unit: string) => void;
+  setCurrency: (currency: string) => void;
 
   addBlock: (type: BlockType, afterIndex?: number) => void;
   insertBlockRelative: (targetId: string, pos: "before" | "after", type?: BlockType) => void;
@@ -69,6 +70,10 @@ export const useEditorStore = create<EditorState>()(
       setUnit: (unit) => {
         set((s) => (s.project ? { project: { ...s.project, unit } } : s));
         persistNow({ ...(get().project as Project), unit });
+      },
+      setCurrency: (currency) => {
+        set((s) => (s.project ? { project: { ...s.project, currency } } : s));
+        persistNow({ ...(get().project as Project), currency });
       },
 
       addBlock: (type, afterIndex) => {

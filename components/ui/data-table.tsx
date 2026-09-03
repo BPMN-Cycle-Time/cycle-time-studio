@@ -150,16 +150,16 @@ export function DataTable<T extends object>({
                   key={col.key}
                   onClick={() => col.sortable !== false && handleSort(col.key)}
                   className={cn(
-                    "font-semibold select-none",
+                    "font-semibold select-none whitespace-nowrap",
                     col.sortable !== false && "cursor-pointer hover:text-foreground",
                   )}
                 >
-                  <div className="flex items-center gap-1">
-                    {col.header}
+                  <div className="flex items-center gap-1 whitespace-nowrap">
+                    <span>{col.header}</span>
                     {col.sortable !== false && (
                       <ArrowUpDown
                         className={cn(
-                          "h-3 w-3 opacity-40 transition-opacity",
+                          "h-3 w-3 opacity-40 transition-opacity shrink-0",
                           sortKey === col.key && "opacity-100 text-primary",
                         )}
                       />

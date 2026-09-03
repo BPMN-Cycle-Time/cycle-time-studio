@@ -2,12 +2,23 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Plus } from "lucide-react";
+import { Plus, ArrowDown, Workflow, ChevronDown } from "lucide-react";
 import { BlockType, type Block } from "@/types";
 import { useEditorStore, SelectionKind } from "@/store/useEditorStore";
 import { BlockCard } from "./block-card";
-import { Button, AppSelect, type SelectOption } from "@/components/ui";
-import { BLOCK_TYPES } from "@/constants";
+import {
+  Button,
+  AppSelect,
+  type SelectOption,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui";
+import { BLOCK_TYPES, TYPE_META } from "@/constants";
+import { cn } from "@/utils";
 
 interface ProcessFlowSectionProps {
   blocks: Block[];
@@ -60,16 +71,19 @@ export function ProcessFlowSection({
       )}
 
       {blocks.length === 0 ? (
-        <div className="text-center py-4 text-xs text-muted-foreground border border-dashed rounded-lg bg-background/50">
-          {nested ? tEd("noStepsYet") : tEd("addStepNotice")}
+        <div className="flex flex-col items-center gap-2 py-6 text-center border border-dashed rounded-lg bg-background/50">
+          <Workflow className="size-7 text-muted-foreground/30" />
+          <p className="text-xs text-muted-foreground">
+            {nested ? tEd("noStepsYet") : tEd("addStepNotice")}
+          </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0">
           {blocks.map((b, i) => (
             <div key={b.id}>
               {i > 0 && (
-                <div className="text-center text-muted-foreground/40 font-mono text-xs py-0.5 select-none">
-                  ↓
+                <div className="text-center py-1 select-none">
+                  <ArrowDown className="size-3 text-muted-foreground mx-auto" />
                 </div>
               )}
               <BlockCard block={b} index={i} unit={unit} />
@@ -96,17 +110,35 @@ export function ProcessFlowSection({
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2 mt-3">
-          {BLOCK_TYPES.map((t) => (
-            <Button
-              key={t.value}
-              variant="outline"
-              size="sm"
-              onClick={() => handleAddBlock(t.value)}
-            >
-              <t.icon /> {tTypes(t.value)}
-            </Button>
-          ))}
+        <div className="mt-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="w-full">
+                <Plus className="size-3.5" />
+                {tEd("addTask")}
+                <ChevronDown className="size-3.5 ml-auto opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-52">
+              <DropdownMenuLabel>{tEd("processFlow")}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {BLOCK_TYPES.map((t) => {
+                const typeMeta = TYPE_META[t.value];
+                const Icon = t.icon;
+                return (
+                  <DropdownMenuItem
+                    key={t.value}
+                    onClick={() => handleAddBlock(t.value)}
+                    className="gap-2.5"
+                  >
+                    <div className={cn("size-2 rounded-full shrink-0", typeMeta.dot)} />
+                    <Icon className="size-3.5 text-muted-foreground" />
+                    <span>{tTypes(t.value)}</span>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
     </section>

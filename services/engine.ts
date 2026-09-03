@@ -82,6 +82,121 @@ export function computeBlockTime(block: Block, tasks?: Task[]): number {
   }
 }
 
+export interface CostBreakdown {
+  total: number;
+  labor: number;
+  fixed: number;
+}
+
+export function getLeafCost(
+  holder: {
+    taskId?: string | null;
+    time?: number;
+    t?: number;
+    loopTime?: number;
+    hourlyRate?: number;
+    fixedCost?: number;
+    cost?: number;
+    loopCost?: number;
+  },
+  tasks?: Task[],
+): CostBreakdown {
+  if (holder.taskId && tasks && tasks.length > 0) {
+    const found = tasks.find((t) => t.id === holder.taskId);
+    if (found) {
+      const time = num(found.time);
+      const rate = num(found.hourlyRate);
+      const fixed = num(found.fixedCost);
+      const labor = time * rate;
+      return { total: labor + fixed, labor, fixed };
+    }
+  }
+  const time = num(holder.time ?? holder.t ?? holder.loopTime);
+  const rate = num(holder.hourlyRate);
+  const fixed = num(holder.fixedCost ?? holder.cost ?? holder.loopCost);
+  const labor = time * rate;
+  return { total: labor + fixed, labor, fixed };
+}
+
+export function sumArrayCost(blocks: Block[] | undefined, tasks?: Task[]): CostBreakdown {
+  if (!blocks || blocks.length === 0) return { total: 0, labor: 0, fixed: 0 };
+  return blocks.reduce(
+    (acc, b) => {
+      const res = computeBlockCost(b, tasks);
+      return {
+        total: acc.total + res.total,
+        labor: acc.labor + res.labor,
+        fixed: acc.fixed + res.fixed,
+      };
+    },
+    { total: 0, labor: 0, fixed: 0 },
+  );
+}
+
+export function computeBranchCost(branch: Branch, tasks?: Task[]): CostBreakdown {
+  if (branch.mode === BlockMode.COMPOSITE) return sumArrayCost(branch.subBlocks, tasks);
+  return getLeafCost(branch, tasks);
+}
+
+export function computeBlockCost(block: Block, tasks?: Task[]): CostBreakdown {
+  switch (block.type) {
+    case BlockType.SEQ: {
+      if (block.mode === BlockMode.COMPOSITE) return sumArrayCost(block.subBlocks, tasks);
+      return getLeafCost(block, tasks);
+    }
+    case BlockType.XOR: {
+      const branches = block.branches ?? [];
+      if (branches.length === 0) return { total: 0, labor: 0, fixed: 0 };
+      const totalP = branches.reduce((s, b) => s + num(b.p), 0);
+      const denom = totalP > 0 ? totalP : 100;
+      return branches.reduce(
+        (acc, b) => {
+          const brCost = computeBranchCost(b, tasks);
+          const weight = num(b.p) / denom;
+          return {
+            total: acc.total + brCost.total * weight,
+            labor: acc.labor + brCost.labor * weight,
+            fixed: acc.fixed + brCost.fixed * weight,
+          };
+        },
+        { total: 0, labor: 0, fixed: 0 },
+      );
+    }
+    case BlockType.AND: {
+      const branches = block.branches ?? [];
+      if (branches.length === 0) return { total: 0, labor: 0, fixed: 0 };
+      return branches.reduce(
+        (acc, b) => {
+          const brCost = computeBranchCost(b, tasks);
+          return {
+            total: acc.total + brCost.total,
+            labor: acc.labor + brCost.labor,
+            fixed: acc.fixed + brCost.fixed,
+          };
+        },
+        { total: 0, labor: 0, fixed: 0 },
+      );
+    }
+    case BlockType.LOOP: {
+      const rawR = num(block.loopP);
+      const r = rawR / 100;
+      if (r >= 1) return { total: Infinity, labor: Infinity, fixed: Infinity };
+      const mult = 1 / (1 - r);
+      const base =
+        block.mode === BlockMode.COMPOSITE
+          ? sumArrayCost(block.subBlocks, tasks)
+          : getLeafCost(block, tasks);
+      return {
+        total: base.total * mult,
+        labor: base.labor * mult,
+        fixed: base.fixed * mult,
+      };
+    }
+    default:
+      return { total: 0, labor: 0, fixed: 0 };
+  }
+}
+
 export interface BlockComputationResult {
   value: number;
   formula: string;
@@ -169,10 +284,12 @@ export function computeFlow(blocks: Block[], tasks?: Task[]): FlowResult {
 
   function visitBlock(b: Block, depth: number, scale: number) {
     const own = computeBlockTime(b, tasks) * scale;
+    const ownCost = computeBlockCost(b, tasks);
     contributions.push({
       id: b.id,
       label: b.label,
       expected: Number.isFinite(own) ? own : 0,
+      expectedCost: Number.isFinite(ownCost.total * scale) ? ownCost.total * scale : 0,
       share: 0,
       depth,
       kind: ContributionKind.BLOCK,
@@ -183,10 +300,14 @@ export function computeFlow(blocks: Block[], tasks?: Task[]): FlowResult {
       for (const br of b.branches) {
         const mult = num(br.p) / totalP;
         const branchTime = computeBranchTime(br, tasks);
+        const branchCost = computeBranchCost(br, tasks);
         contributions.push({
           id: br.id,
           label: br.label,
           expected: Number.isFinite(branchTime * mult * scale) ? branchTime * mult * scale : 0,
+          expectedCost: Number.isFinite(branchCost.total * mult * scale)
+            ? branchCost.total * mult * scale
+            : 0,
           share: 0,
           depth: depth + 1,
           kind: ContributionKind.BRANCH,
@@ -200,10 +321,12 @@ export function computeFlow(blocks: Block[], tasks?: Task[]): FlowResult {
       const maxT = Math.max(0, ...times);
       b.branches.forEach((br, i) => {
         const isCritical = times[i] === maxT;
+        const branchCost = computeBranchCost(br, tasks);
         contributions.push({
           id: br.id,
           label: br.label,
           expected: Number.isFinite(times[i] * scale) ? times[i] * scale : 0,
+          expectedCost: Number.isFinite(branchCost.total * scale) ? branchCost.total * scale : 0,
           share: 0,
           depth: depth + 1,
           kind: ContributionKind.BRANCH,
@@ -219,8 +342,15 @@ export function computeFlow(blocks: Block[], tasks?: Task[]): FlowResult {
 
   visitArray(blocks, 0, 1);
   const total = sumArray(blocks, tasks);
+  const cost = sumArrayCost(blocks, tasks);
   for (const row of contributions) row.share = total > 0 ? row.expected / total : 0;
-  return { total, contributions };
+  return {
+    total,
+    totalCost: cost.total,
+    laborCost: cost.labor,
+    fixedCost: cost.fixed,
+    contributions,
+  };
 }
 
 function sampleBlock(b: Block, tasks?: Task[]): number {

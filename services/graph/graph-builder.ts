@@ -80,9 +80,22 @@ export function blockDisplayName(b: Block, tasks?: Task[]): string {
 }
 
 export function branchDisplayName(br: Branch, tasks?: Task[]): string {
-  if (br.label?.trim()) return br.label.trim();
+  // 1. Prefer the linked task's name (e.g. "C") over the branch label
+  //    which may be the flow probability label (e.g. "No - 0.3") from BPMN import.
   const task = findTaskById(tasks, br.taskId);
-  return task ? task.name : "Branch";
+  if (task) return task.name;
+
+  // 2. If COMPOSITE with a single SEQ subBlock, use that subBlock's task name.
+  if (br.mode === BlockMode.COMPOSITE && br.subBlocks?.length === 1) {
+    const sub = br.subBlocks[0];
+    const subTask = findTaskById(tasks, sub.taskId);
+    if (subTask) return subTask.name;
+    if (sub.label?.trim()) return sub.label.trim();
+  }
+
+  // 3. Fall back to the branch's own label or "Branch".
+  if (br.label?.trim()) return br.label.trim();
+  return "Branch";
 }
 
 export function formatTimeValue(n: number): string {

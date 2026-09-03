@@ -29,8 +29,9 @@ export function BlockSeqInputs({ block, unit, tasks = [] }: BlockSeqInputsProps)
   };
 
   return (
-    <div className="px-6 flex items-center gap-3 flex-wrap">
-      <div className="flex flex-col min-w-[140px]">
+    <div className="px-6 flex items-end gap-2">
+      {/* TASK picker — takes remaining space */}
+      <div className="flex flex-col gap-1 flex-1 overflow-hidden">
         <AppLabel variant="uppercase">{t("task")}</AppLabel>
         <TaskPicker
           tasks={tasks}
@@ -40,13 +41,15 @@ export function BlockSeqInputs({ block, unit, tasks = [] }: BlockSeqInputsProps)
         />
       </div>
 
+      {/* TIME — fixed width, unit shown inside */}
       {selectedTask ? (
         <AppInput
           label={t("time")}
           labelVariant="uppercase"
           type="number"
           readOnly
-          className="w-24 font-mono bg-muted/50 cursor-not-allowed"
+          wrapperClassName="w-24 shrink-0"
+          className="font-mono bg-muted/50 cursor-not-allowed"
           value={displayTime}
           suffix={unit}
           title={t("timeSheetHint")}
@@ -58,7 +61,8 @@ export function BlockSeqInputs({ block, unit, tasks = [] }: BlockSeqInputsProps)
           type="number"
           step="any"
           min="0"
-          className="w-24 font-mono"
+          wrapperClassName="w-24 shrink-0"
+          className="font-mono"
           value={block.time ?? 0}
           onChange={(e) => updateBlock(block.id, { time: parseFloat(e.target.value) || 0 })}
           suffix={unit}

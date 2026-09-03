@@ -76,66 +76,70 @@ export function BlockLoopInputs({ block, unit, tasks = [] }: BlockLoopInputsProp
   }
 
   return (
-    <div className="px-6 flex items-center justify-between gap-3 flex-wrap">
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex flex-col min-w-[130px]">
-          <AppLabel variant="uppercase">{t("taskInLoop")}</AppLabel>
-          <TaskPicker
-            tasks={tasks}
-            selectedTaskId={block.taskId}
-            onChange={handleTaskChange}
-            className="w-full"
-          />
-        </div>
+    <div className="px-6 flex items-end gap-2">
+      {/* TASK picker — flex-1 */}
+      <div className="flex flex-col gap-1 flex-1 overflow-hidden">
+        <AppLabel variant="uppercase">{t("taskInLoop")}</AppLabel>
+        <TaskPicker
+          tasks={tasks}
+          selectedTaskId={block.taskId}
+          onChange={handleTaskChange}
+          className="w-full"
+        />
+      </div>
 
-        {selectedTask ? (
-          <AppInput
-            label={t("loopTime")}
-            labelVariant="uppercase"
-            type="number"
-            readOnly
-            className="w-24 font-mono bg-muted/50 cursor-not-allowed"
-            value={displayTime}
-            suffix={unit}
-            title={t("timeSheetHint")}
-          />
-        ) : (
-          <AppInput
-            label={t("loopTime")}
-            labelVariant="uppercase"
-            type="number"
-            step="any"
-            min="0"
-            className="w-24 font-mono"
-            value={block.loopTime ?? 0}
-            onChange={(e) => updateBlock(block.id, { loopTime: parseFloat(e.target.value) || 0 })}
-            suffix={unit}
-          />
-        )}
-
+      {/* LOOP TIME — fixed width */}
+      {selectedTask ? (
         <AppInput
-          label={t("reworkProbability")}
+          label={t("loopTime")}
+          labelVariant="uppercase"
+          type="number"
+          readOnly
+          wrapperClassName="w-24 shrink-0"
+          className="font-mono bg-muted/50 cursor-not-allowed"
+          value={displayTime}
+          suffix={unit}
+          title={t("timeSheetHint")}
+        />
+      ) : (
+        <AppInput
+          label={t("loopTime")}
           labelVariant="uppercase"
           type="number"
           step="any"
           min="0"
-          max="99.9"
-          className="w-20 font-mono"
-          value={block.loopP ?? 0}
-          onChange={(e) => updateBlock(block.id, { loopP: parseFloat(e.target.value) || 0 })}
-          suffix="%"
+          wrapperClassName="w-24 shrink-0"
+          className="font-mono"
+          value={block.loopTime ?? 0}
+          onChange={(e) => updateBlock(block.id, { loopTime: parseFloat(e.target.value) || 0 })}
+          suffix={unit}
         />
-      </div>
+      )}
 
+      {/* REWORK % */}
+      <AppInput
+        label={t("reworkProbability")}
+        labelVariant="uppercase"
+        type="number"
+        step="any"
+        min="0"
+        max="99.9"
+        wrapperClassName="w-20 shrink-0"
+        className="font-mono"
+        value={block.loopP ?? 0}
+        onChange={(e) => updateBlock(block.id, { loopP: parseFloat(e.target.value) || 0 })}
+        suffix="%"
+      />
+
+      {/* Expand icon button */}
       <Button
         variant="outline"
-        size="sm"
-        className="h-8 text-xs gap-1.5 self-end"
+        size="icon"
+        className="size-9 shrink-0"
         onClick={() => toggleLoopMode(block.id)}
         title={t("expandSubProcess")}
       >
         <Maximize2 className="size-3.5" />
-        {t("expandSubProcess")}
       </Button>
     </div>
   );

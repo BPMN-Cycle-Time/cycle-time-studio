@@ -21,6 +21,12 @@ export interface Branch {
   weight?: number;
   /** Direct time for this branch, in the project's unit. Ignored when mode === BlockMode.COMPOSITE. */
   t?: number;
+  /** Hourly / resource labor rate. */
+  hourlyRate?: number;
+  /** Direct fixed overhead / material cost. */
+  fixedCost?: number;
+  /** Direct standalone total cost for this branch. */
+  cost?: number;
   taskId?: string | null;
   mode?: BlockMode;
   subBlocks?: Block[];
@@ -33,12 +39,20 @@ export interface Block {
   taskId?: string | null;
   /** Direct time for seq blocks, in the project's unit. Ignored when mode === BlockMode.COMPOSITE. */
   time?: number;
+  /** Hourly / resource labor rate. */
+  hourlyRate?: number;
+  /** Direct fixed overhead / material cost. */
+  fixedCost?: number;
+  /** Direct standalone total cost for seq blocks. */
+  cost?: number;
   /** xor | and: the branches taken. */
   branches?: Branch[];
   /** loop: probability (%) that the loop repeats. */
   loopP?: number;
   /** loop: time added per iteration when mode === BlockMode.SIMPLE. */
   loopTime?: number;
+  /** loop: cost added per iteration when mode === BlockMode.SIMPLE. */
+  loopCost?: number;
   mode?: BlockMode;
   subBlocks?: Block[];
 }

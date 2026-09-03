@@ -4,53 +4,111 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/store/useEditorStore";
 import { AppCard, AppSelect, type SelectOption } from "@/components/ui";
-import { TIME_UNITS } from "@/constants";
+import { CURRENCIES, DEFAULT_CURRENCY, TIME_UNITS } from "@/constants";
 
 interface ProjectTotalsCardProps {
   total: number;
   unit: string;
+  totalCost?: number;
+  laborCost?: number;
+  fixedCost?: number;
+  currency?: string;
 }
 
-export function ProjectTotalsCard({ total, unit }: ProjectTotalsCardProps) {
+export function ProjectTotalsCard({
+  total,
+  unit,
+  totalCost = 0,
+  laborCost = 0,
+  fixedCost = 0,
+  currency = DEFAULT_CURRENCY,
+}: ProjectTotalsCardProps) {
   const t = useTranslations("editor");
   const tUnits = useTranslations("common.units");
-  const { setUnit } = useEditorStore();
+  const { setUnit, setCurrency } = useEditorStore();
 
   const unitOptions: SelectOption<string>[] = useMemo(() => {
     const list = TIME_UNITS.map((u) => ({
       value: u,
       label: tUnits(u),
     }));
-    // If current unit is custom (not in standard list), preserve it
     if (unit && !TIME_UNITS.includes(unit as (typeof TIME_UNITS)[number])) {
       return [{ value: unit, label: unit }, ...list];
     }
     return list;
   }, [tUnits, unit]);
 
+  const currencyOptions: SelectOption<string>[] = useMemo(
+    () =>
+      CURRENCIES.map((c) => ({
+        value: c.code,
+        label: `${c.symbol} ${c.code}`,
+      })),
+    [],
+  );
+
   const displayUnit = TIME_UNITS.includes(unit as (typeof TIME_UNITS)[number])
     ? tUnits(unit)
     : unit;
 
+  const currentCurrency = CURRENCIES.find((c) => c.code === currency) ?? CURRENCIES[0];
+  const symbol = currentCurrency.symbol;
+
   return (
-    <AppCard className="py-4" contentClassName="px-4 flex items-end justify-between gap-3">
-      <div>
-        <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
-          {t("expectedCycleTime")}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {/* Expected Cycle Time */}
+      <AppCard className="py-3.5" contentClassName="px-4 flex flex-col justify-between gap-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("expectedCycleTime")}
+          </span>
+          <AppSelect
+            value={unit}
+            onValueChange={setUnit}
+            options={unitOptions}
+            triggerClassName="w-24 h-7 text-xs font-medium"
+          />
         </div>
-        <div className="font-mono font-semibold text-3xl tabular-nums">
-          {total.toFixed(2)}{" "}
-          <span className="text-sm text-muted-foreground font-medium">{displayUnit}</span>
+        <div className="font-mono font-bold text-2xl lg:text-3xl tabular-nums text-foreground flex items-baseline gap-1.5">
+          {total.toFixed(2)}
+          <span className="text-xs text-muted-foreground font-sans font-medium">{displayUnit}</span>
         </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <AppSelect
-          value={unit}
-          onValueChange={setUnit}
-          options={unitOptions}
-          triggerClassName="w-28 font-medium"
-        />
-      </div>
-    </AppCard>
+      </AppCard>
+
+      {/* Expected Process Cost */}
+      <AppCard className="py-3.5" contentClassName="px-4 flex flex-col justify-between gap-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("expectedCost")}
+          </span>
+          <AppSelect
+            value={currency}
+            onValueChange={setCurrency}
+            options={currencyOptions}
+            triggerClassName="w-24 h-7 text-xs font-medium"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="font-mono font-bold text-2xl lg:text-3xl tabular-nums text-foreground flex items-baseline gap-1.5">
+            <span className="text-lg text-muted-foreground font-sans">{symbol}</span>
+            {totalCost.toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </div>
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-mono">
+            <span>
+              {t("laborCost")}: {symbol}
+              {laborCost.toFixed(2)}
+            </span>
+            <span>•</span>
+            <span>
+              {t("fixedCost")}: {symbol}
+              {fixedCost.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      </AppCard>
+    </div>
   );
 }

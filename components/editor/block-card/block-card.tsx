@@ -1,11 +1,12 @@
 "use client";
 
 import { memo, useMemo } from "react";
+import { DollarSign, Timer } from "lucide-react";
 import { BlockType, type Block } from "@/types";
-import { Card } from "@/components/ui";
+import { Card, AppTooltip } from "@/components/ui";
 import { cn } from "@/utils";
 import { useEditorStore, SelectionKind } from "@/store/useEditorStore";
-import { computeBlockDetails } from "@/services/engine";
+import { computeBlockDetails, computeBlockCost } from "@/services/engine";
 import { TYPE_META } from "@/constants";
 import { BlockHeader } from "./block-header";
 import { BlockSeqInputs } from "./block-seq-inputs";
@@ -23,9 +24,15 @@ export const BlockCard = memo(function BlockCard({ block, index, unit }: BlockCa
   const selectedId = useEditorStore((s) => s.selectedId);
   const select = useEditorStore((s) => s.select);
   const tasks = useEditorStore((s) => s.project?.tasks ?? []);
+  const currency = useEditorStore((s) => s.project?.currency ?? "");
 
   const details = useMemo(() => computeBlockDetails(block, tasks), [block, tasks]);
+  const cost = useMemo(() => computeBlockCost(block, tasks), [block, tasks]);
   const isSelected = selectedId === block.id;
+
+  const hasCost = isFinite(cost.total) && cost.total > 0;
+  const timeDisplay = details.invalid ? "∞" : `${Math.round(details.value * 100) / 100}`;
+  const costDisplay = cost.total === Infinity ? "∞" : `${Math.round(cost.total * 100) / 100}`;
 
   return (
     <Card
@@ -64,13 +71,28 @@ export const BlockCard = memo(function BlockCard({ block, index, unit }: BlockCa
       )}
 
       {/* Formula & computed result footer */}
-      <div className="mx-6 pt-2.5 mt-1 border-t border-dashed flex items-center justify-between gap-3 flex-wrap">
-        <code className="font-mono text-[11px] text-muted-foreground break-all">
-          {details.formula}
-        </code>
-        <div className="font-mono text-sm font-semibold shrink-0">
-          {details.invalid ? "∞" : Math.round(details.value * 100) / 100}{" "}
-          <span className="text-xs text-muted-foreground font-normal">{unit}</span>
+      <div className="mx-6 pt-2.5 mt-1 border-t border-dashed flex items-start justify-between gap-2">
+        {/* Formula — truncated with tooltip on hover */}
+        <AppTooltip content={details.formula} side="bottom">
+          <code className="font-mono text-[11px] text-muted-foreground truncate max-w-[55%] cursor-default">
+            {details.formula}
+          </code>
+        </AppTooltip>
+
+        {/* Time + Cost stats */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-1 font-mono">
+            <Timer className={cn("size-3 shrink-0", meta.text)} />
+            <span className="text-sm font-semibold">{timeDisplay}</span>
+            <span className="text-xs text-muted-foreground font-normal">{unit}</span>
+          </div>
+          {hasCost && (
+            <div className="flex items-center gap-1 font-mono text-emerald-600 dark:text-emerald-400">
+              <DollarSign className="size-3 shrink-0" />
+              <span className="text-sm font-semibold">{costDisplay}</span>
+              {currency && <span className="text-xs font-normal opacity-70">{currency}</span>}
+            </div>
+          )}
         </div>
       </div>
 

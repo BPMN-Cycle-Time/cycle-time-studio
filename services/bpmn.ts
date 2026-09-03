@@ -503,6 +503,16 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
             mode: BlockMode.SIMPLE,
           };
         }
+        // Empty branch (join detection failed or branch has no tasks) — make a safe stub.
+        if (branchBlocks.length === 0) {
+          return {
+            id: freshId("br"),
+            label: o.name || "Branch",
+            p: parsedP,
+            t: 1,
+            mode: BlockMode.SIMPLE,
+          };
+        }
         return {
           id: freshId("br"),
           label: o.name || firstBranchBlock?.label || "Branch",

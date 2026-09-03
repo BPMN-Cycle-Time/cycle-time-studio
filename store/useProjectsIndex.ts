@@ -43,6 +43,7 @@ export function emptyProject(name: string): Project {
     id: uuid(),
     name,
     unit: "hours",
+    currency: "USD",
     tasks: [],
     blocks: [{ id: uuid(), type: BlockType.SEQ, label: "Step 1", time: 1, mode: BlockMode.SIMPLE }],
     createdAt: now,

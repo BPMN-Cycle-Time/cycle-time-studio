@@ -10,6 +10,8 @@ export interface ContributionRow {
   label: string;
   /** Expected time contributed to the overall total, in the project's unit. */
   expected: number;
+  /** Expected cost contributed to the overall total. */
+  expectedCost?: number;
   /** Share of the grand total, 0..1. */
   share: number;
   depth: number;
@@ -22,5 +24,8 @@ export interface ContributionRow {
 
 export interface FlowResult {
   total: number;
+  totalCost: number;
+  laborCost: number;
+  fixedCost: number;
   contributions: ContributionRow[];
 }

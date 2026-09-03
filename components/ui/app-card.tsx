@@ -50,7 +50,7 @@ export function AppCard({
             {title && (
               <CardTitle
                 className={cn(
-                  "text-xs uppercase tracking-wide text-muted-foreground font-medium",
+                  "text-xs uppercase tracking-wide text-muted-foreground font-medium whitespace-nowrap",
                   titleClassName,
                 )}
               >

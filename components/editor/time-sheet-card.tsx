@@ -6,15 +6,18 @@ import { Plus, X } from "lucide-react";
 import type { Block, Task } from "@/types";
 import { useEditorStore } from "@/store/useEditorStore";
 import { AppCard, Button, AppInput, Badge, DataTable, type TableColumn } from "@/components/ui";
+import { CURRENCIES, DEFAULT_CURRENCY } from "@/constants";
 
 interface TimeSheetCardProps {
   tasks: Task[];
   blocks: Block[];
   unit: string;
+  currency?: string;
 }
 
 interface TaskRow extends Task {
   usage: number;
+  totalCost: number;
 }
 
 /** Recursively count task usage into a single lookup map. */
@@ -38,16 +41,32 @@ function buildTaskUsageMap(blocks: Block[]): Record<string, number> {
   return map;
 }
 
-export function TimeSheetCard({ tasks, blocks, unit }: TimeSheetCardProps) {
+export function TimeSheetCard({
+  tasks,
+  blocks,
+  unit,
+  currency = DEFAULT_CURRENCY,
+}: TimeSheetCardProps) {
   const tEd = useTranslations("editor");
   const addTask = useEditorStore((s) => s.addTask);
   const updateTask = useEditorStore((s) => s.updateTask);
   const removeTask = useEditorStore((s) => s.removeTask);
 
+  const currencySymbol = CURRENCIES.find((c) => c.code === currency)?.symbol ?? "$";
   const usageMap = useMemo(() => buildTaskUsageMap(blocks), [blocks]);
 
   const taskRows: TaskRow[] = useMemo(
-    () => tasks.map((t) => ({ ...t, usage: usageMap[t.id] ?? 0 })),
+    () =>
+      tasks.map((t) => {
+        const time = t.time ?? 0;
+        const rate = t.hourlyRate ?? 0;
+        const fixed = t.fixedCost ?? 0;
+        return {
+          ...t,
+          usage: usageMap[t.id] ?? 0,
+          totalCost: time * rate + fixed,
+        };
+      }),
     [tasks, usageMap],
   );
 
@@ -58,8 +77,8 @@ export function TimeSheetCard({ tasks, blocks, unit }: TimeSheetCardProps) {
         header: tEd("task"),
         render: (row) => (
           <AppInput
-            wrapperClassName="w-full"
-            inputClassName="h-8 border-transparent bg-transparent shadow-none font-medium hover:border-input focus-visible:border-input"
+            wrapperClassName="w-full min-w-[110px]"
+            inputClassName="h-8 border-transparent bg-transparent shadow-none font-medium hover:border-input focus-visible:border-input text-xs"
             value={row.name}
             onChange={(e) => updateTask(row.id, { name: e.target.value })}
           />
@@ -73,11 +92,51 @@ export function TimeSheetCard({ tasks, blocks, unit }: TimeSheetCardProps) {
             type="number"
             step="any"
             min="0"
-            wrapperClassName="w-full max-w-[120px]"
+            wrapperClassName="w-full min-w-[70px] max-w-[90px]"
             inputClassName="h-8 font-mono text-xs"
             value={row.time ?? 0}
             onChange={(e) => updateTask(row.id, { time: parseFloat(e.target.value) || 0 })}
           />
+        ),
+      },
+      {
+        key: "hourlyRate",
+        header: `${tEd("hourlyRate")} (${currencySymbol}/${unit})`,
+        render: (row) => (
+          <AppInput
+            type="number"
+            step="any"
+            min="0"
+            wrapperClassName="w-full min-w-[75px] max-w-[95px]"
+            inputClassName="h-8 font-mono text-xs"
+            value={row.hourlyRate ?? 0}
+            onChange={(e) => updateTask(row.id, { hourlyRate: parseFloat(e.target.value) || 0 })}
+          />
+        ),
+      },
+      {
+        key: "fixedCost",
+        header: `${tEd("fixedCost")} (${currencySymbol})`,
+        render: (row) => (
+          <AppInput
+            type="number"
+            step="any"
+            min="0"
+            wrapperClassName="w-full min-w-[75px] max-w-[95px]"
+            inputClassName="h-8 font-mono text-xs"
+            value={row.fixedCost ?? 0}
+            onChange={(e) => updateTask(row.id, { fixedCost: parseFloat(e.target.value) || 0 })}
+          />
+        ),
+      },
+      {
+        key: "totalCost",
+        header: `${tEd("costPerRun")}`,
+        render: (row) => (
+          <div className="font-mono text-xs font-semibold text-foreground whitespace-nowrap">
+            {currencySymbol}
+            {row.totalCost.toFixed(2)}
+          </div>
         ),
       },
       {
@@ -114,7 +173,7 @@ export function TimeSheetCard({ tasks, blocks, unit }: TimeSheetCardProps) {
         ),
       },
     ],
-    [tEd, unit, updateTask, removeTask],
+    [tEd, unit, currencySymbol, updateTask, removeTask],
   );
 
   const handleAddTask = useCallback(() => {
@@ -123,7 +182,7 @@ export function TimeSheetCard({ tasks, blocks, unit }: TimeSheetCardProps) {
   }, [tasks.length, addTask]);
 
   return (
-    <AppCard title={tEd("timeSheet")}>
+    <AppCard title={tEd("timeAndCostSheet")} titleClassName="whitespace-nowrap">
       <div className="flex flex-col gap-3">
         {tasks.length === 0 ? (
           <div className="text-sm text-muted-foreground py-2 italic text-center">

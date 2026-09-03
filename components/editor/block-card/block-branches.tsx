@@ -42,8 +42,9 @@ export function BlockBranches({ block, unit, tasks = [] }: BlockBranchesProps) {
 
         return (
           <div key={br.id} className="flex flex-col gap-2 bg-muted/30 rounded-lg p-3 border">
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex-1 min-w-[120px]">
+            <div className="flex items-center gap-1.5 min-w-0">
+              {/* Branch name — flexible */}
+              <div className="flex-1 min-w-0">
                 <AppInput
                   wrapperClassName="w-full"
                   inputClassName="h-8 font-semibold bg-transparent border-transparent hover:border-input focus-visible:border-input shadow-none px-2"
@@ -53,44 +54,41 @@ export function BlockBranches({ block, unit, tasks = [] }: BlockBranchesProps) {
                 />
               </div>
 
+              {/* XOR Probability */}
               {isXor && (
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[10px] uppercase font-semibold text-muted-foreground">
-                    {tEd("probLabel")}
-                  </span>
-                  <AppInput
-                    type="number"
-                    step="any"
-                    min="0"
-                    max="100"
-                    wrapperClassName="w-20 shrink-0"
-                    inputClassName="h-8 font-mono text-xs px-2 pr-5 text-right"
-                    value={br.p ?? 0}
-                    onChange={(e) =>
-                      updateBranch(block.id, br.id, { p: parseFloat(e.target.value) || 0 })
-                    }
-                    suffix="%"
-                  />
-                </div>
+                <AppInput
+                  type="number"
+                  step="any"
+                  min="0"
+                  max="100"
+                  wrapperClassName="w-[4.5rem] shrink-0"
+                  inputClassName="h-8 font-mono text-xs px-2 pr-5 text-right"
+                  value={br.p ?? 0}
+                  onChange={(e) =>
+                    updateBranch(block.id, br.id, { p: parseFloat(e.target.value) || 0 })
+                  }
+                  suffix="%"
+                />
               )}
 
+              {/* Task + Time OR composite Σ badge */}
               {composite ? (
                 <Badge variant="outline" className="font-mono text-xs h-8 px-2.5 shrink-0">
                   Σ = {Math.round(branchTime * 100) / 100} {unit}
                 </Badge>
               ) : (
-                <div className="flex items-center gap-1.5 shrink-0">
+                <>
                   <TaskPicker
                     tasks={tasks}
                     selectedTaskId={br.taskId}
                     onChange={(tId) => handleTaskChange(br.id, tId)}
-                    className="h-8 text-xs min-w-[120px]"
+                    className="h-8 text-xs w-[7rem] shrink-0"
                   />
                   {selectedTask ? (
                     <AppInput
                       type="number"
                       readOnly
-                      wrapperClassName="w-24 shrink-0"
+                      wrapperClassName="w-20 shrink-0"
                       inputClassName="h-8 font-mono text-xs bg-muted/50 cursor-not-allowed"
                       value={displayTime}
                       suffix={unit}
@@ -101,7 +99,7 @@ export function BlockBranches({ block, unit, tasks = [] }: BlockBranchesProps) {
                       type="number"
                       step="any"
                       min="0"
-                      wrapperClassName="w-24 shrink-0"
+                      wrapperClassName="w-20 shrink-0"
                       inputClassName="h-8 font-mono text-xs"
                       value={br.t ?? 0}
                       onChange={(e) =>
@@ -110,9 +108,10 @@ export function BlockBranches({ block, unit, tasks = [] }: BlockBranchesProps) {
                       suffix={unit}
                     />
                   )}
-                </div>
+                </>
               )}
 
+              {/* Actions */}
               <div className="flex items-center gap-0.5 shrink-0">
                 <Button
                   variant="ghost"

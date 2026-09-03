@@ -7,6 +7,7 @@ export interface Project {
   id: string;
   name: string;
   unit: string; // e.g. "hours", "days", "minutes"
+  currency?: string; // e.g. "USD", "VND", "EUR", "GBP"
   tasks: Task[];
   blocks: Block[];
   bpmnXml?: string;

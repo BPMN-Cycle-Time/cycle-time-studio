@@ -13,6 +13,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## 1. Project Reference Docs
 
 - [Architecture Guide](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/ARCHITECTURE.md): Subsystems, calculation formulas, state management, diagram engines.
+- [Calculation Formulas Guide](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/FORMULAS.md): Complete, easy-to-read mathematical formulas for Cycle Time, Process Cost, and Monte Carlo.
 - [Project Rules](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/RULES.md): Coding guidelines, strict i18n rules, UI/UX interaction standards.
 - [Workflow Guide](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/WORKFLOW.md): Step-by-step development, verification, and commit protocols.
 - [Design Tokens & Guidelines](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/DESIGN_TOKENS.md): Extracted typography, radius, spacing, color roles, and CSS rules.

@@ -11,7 +11,7 @@ import { GraphDataTab } from "./graph-data-tab";
 import { ParametersTab } from "./parameters-tab";
 
 const MIN_WIDTH = 320;
-const MAX_WIDTH = 768;
+const MAX_WIDTH = 1024;
 const DEFAULT_WIDTH = 480;
 
 interface ProjectParametersDrawerProps {
