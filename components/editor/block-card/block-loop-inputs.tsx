@@ -5,6 +5,7 @@ import { Maximize2, Minimize2 } from "lucide-react";
 import { BlockMode, type Block, type Task } from "@/types";
 import { useEditorStore, SelectionKind } from "@/store/useEditorStore";
 import { AppInput, Button, Badge, AppLabel } from "@/components/ui";
+import { cn } from "@/utils";
 import { TaskPicker } from "./task-picker";
 import { ProcessFlowSection } from "../process-flow-section";
 import { sumArray } from "@/services/engine";
@@ -13,9 +14,10 @@ interface BlockLoopInputsProps {
   block: Block;
   unit: string;
   tasks?: Task[];
+  nested?: boolean;
 }
 
-export function BlockLoopInputs({ block, unit, tasks = [] }: BlockLoopInputsProps) {
+export function BlockLoopInputs({ block, unit, tasks = [], nested }: BlockLoopInputsProps) {
   const t = useTranslations("editor");
   const { updateBlock, toggleLoopMode } = useEditorStore();
 
@@ -35,7 +37,7 @@ export function BlockLoopInputs({ block, unit, tasks = [] }: BlockLoopInputsProp
 
   if (isComposite) {
     return (
-      <div className="px-6 flex flex-col gap-3">
+      <div className={cn("flex flex-col gap-3", nested ? "px-3" : "px-4 sm:px-5")}>
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold">{t("loopBody")}</span>
@@ -55,7 +57,7 @@ export function BlockLoopInputs({ block, unit, tasks = [] }: BlockLoopInputsProp
           </div>
         </div>
 
-        <div className="border border-border/60 bg-muted/20 rounded-lg p-3">
+        <div className="border border-border/60 bg-muted/20 rounded-lg p-2">
           <ProcessFlowSection
             blocks={block.subBlocks ?? []}
             unit={unit}
@@ -76,9 +78,9 @@ export function BlockLoopInputs({ block, unit, tasks = [] }: BlockLoopInputsProp
   }
 
   return (
-    <div className="px-6 flex items-end gap-2">
-      {/* TASK picker — flex-1 */}
-      <div className="flex flex-col gap-1 flex-1 overflow-hidden">
+    <div className={cn("flex flex-wrap items-end gap-2", nested ? "px-3" : "px-4 sm:px-5")}>
+      {/* TASK picker — full width row */}
+      <div className="flex flex-col gap-1 w-full min-w-0">
         <AppLabel variant="uppercase">{t("taskInLoop")}</AppLabel>
         <TaskPicker
           tasks={tasks}
@@ -88,59 +90,69 @@ export function BlockLoopInputs({ block, unit, tasks = [] }: BlockLoopInputsProp
         />
       </div>
 
-      {/* LOOP TIME — fixed width */}
-      {selectedTask ? (
-        <AppInput
-          label={t("loopTime")}
-          labelVariant="uppercase"
-          type="number"
-          readOnly
-          wrapperClassName="w-24 shrink-0"
-          className="font-mono bg-muted/50 cursor-not-allowed"
-          value={displayTime}
-          suffix={unit}
-          title={t("timeSheetHint")}
-        />
-      ) : (
-        <AppInput
-          label={t("loopTime")}
-          labelVariant="uppercase"
-          type="number"
-          step="any"
-          min="0"
-          wrapperClassName="w-24 shrink-0"
-          className="font-mono"
-          value={block.loopTime ?? 0}
-          onChange={(e) => updateBlock(block.id, { loopTime: parseFloat(e.target.value) || 0 })}
-          suffix={unit}
-        />
-      )}
+      {/* Row 2: LOOP TIME + REWORK % + Expand button */}
+      <div className="flex items-end gap-1.5 w-full min-w-0">
+        {/* LOOP TIME */}
+        <div className="flex-1 min-w-0">
+          {selectedTask ? (
+            <AppInput
+              label={t("loopTime")}
+              labelVariant="uppercase"
+              labelClassName="truncate"
+              type="number"
+              readOnly
+              wrapperClassName="w-full"
+              className="font-mono bg-muted/50 cursor-not-allowed"
+              value={displayTime}
+              suffix={unit}
+              title={t("timeSheetHint")}
+            />
+          ) : (
+            <AppInput
+              label={t("loopTime")}
+              labelVariant="uppercase"
+              labelClassName="truncate"
+              type="number"
+              step="any"
+              min="0"
+              wrapperClassName="w-full"
+              className="font-mono"
+              value={block.loopTime ?? 0}
+              onChange={(e) => updateBlock(block.id, { loopTime: parseFloat(e.target.value) || 0 })}
+              suffix={unit}
+            />
+          )}
+        </div>
 
-      {/* REWORK % */}
-      <AppInput
-        label={t("reworkProbability")}
-        labelVariant="uppercase"
-        type="number"
-        step="any"
-        min="0"
-        max="99.9"
-        wrapperClassName="w-20 shrink-0"
-        className="font-mono"
-        value={block.loopP ?? 0}
-        onChange={(e) => updateBlock(block.id, { loopP: parseFloat(e.target.value) || 0 })}
-        suffix="%"
-      />
+        {/* REWORK % */}
+        <div className="flex-1 min-w-0">
+          <AppInput
+            label={t("reworkProbability")}
+            labelVariant="uppercase"
+            labelClassName="truncate"
+            type="number"
+            step="any"
+            min="0"
+            max="99.9"
+            wrapperClassName="w-full"
+            className="font-mono"
+            value={block.loopP ?? 0}
+            onChange={(e) => updateBlock(block.id, { loopP: parseFloat(e.target.value) || 0 })}
+            suffix="%"
+          />
+        </div>
 
-      {/* Expand icon button */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="size-9 shrink-0"
-        onClick={() => toggleLoopMode(block.id)}
-        title={t("expandSubProcess")}
-      >
-        <Maximize2 className="size-3.5" />
-      </Button>
+        {/* Expand icon button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="size-8 shrink-0 mb-0.5"
+          onClick={() => toggleLoopMode(block.id)}
+          title={t("expandSubProcess")}
+        >
+          <Maximize2 className="size-3.5" />
+        </Button>
+      </div>
     </div>
   );
 }

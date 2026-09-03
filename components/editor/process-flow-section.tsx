@@ -86,27 +86,28 @@ export function ProcessFlowSection({
                   <ArrowDown className="size-3 text-muted-foreground mx-auto" />
                 </div>
               )}
-              <BlockCard block={b} index={i} unit={unit} />
+              <BlockCard block={b} index={i} unit={unit} nested={nested} />
             </div>
           ))}
         </div>
       )}
 
       {nested ? (
-        <div className="flex items-center gap-2 mt-3 flex-wrap">
+        <div className="flex items-center gap-1.5 mt-2">
           <AppSelect
             value={nestedNewType}
             onValueChange={setNestedNewType}
             options={blockTypeOptions}
+            triggerClassName="h-7 text-xs flex-1 min-w-[100px]"
           />
 
           <Button
             variant="secondary"
             size="sm"
-            className="h-8 text-xs"
+            className="h-7 text-xs px-2.5 shrink-0"
             onClick={() => handleAddBlock(nestedNewType)}
           >
-            <Plus className="size-3.5" /> {tEd("addTask")}
+            <Plus className="size-3" /> {tEd("addTask")}
           </Button>
         </div>
       ) : (

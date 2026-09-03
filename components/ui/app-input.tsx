@@ -40,6 +40,12 @@ export function AppInput({
 }: AppInputProps) {
   const isHorizontal = layout === "horizontal";
 
+  const suffixPadding = suffix
+    ? typeof suffix === "string" && suffix.length > 2
+      ? "pr-10"
+      : "pr-6"
+    : "";
+
   const inputElement = (
     <div className="relative flex items-center w-full">
       {prefix && (
@@ -52,10 +58,10 @@ export function AppInput({
         type={type}
         className={cn(
           prefix && "pl-6",
-          suffix && "pr-6",
           error && "border-destructive focus-visible:ring-destructive",
           inputClassName,
           className,
+          suffix && suffixPadding,
         )}
         {...props}
       />

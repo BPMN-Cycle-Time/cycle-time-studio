@@ -55,60 +55,64 @@ export function ProjectTotalsCard({
   const symbol = currentCurrency.symbol;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-      {/* Expected Cycle Time */}
-      <AppCard className="py-3.5" contentClassName="px-4 flex flex-col justify-between gap-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("expectedCycleTime")}
-          </span>
-          <AppSelect
-            value={unit}
-            onValueChange={setUnit}
-            options={unitOptions}
-            triggerClassName="w-24 h-7 text-xs font-medium"
-          />
-        </div>
-        <div className="font-mono font-bold text-2xl lg:text-3xl tabular-nums text-foreground flex items-baseline gap-1.5">
-          {total.toFixed(2)}
-          <span className="text-xs text-muted-foreground font-sans font-medium">{displayUnit}</span>
-        </div>
-      </AppCard>
-
-      {/* Expected Process Cost */}
-      <AppCard className="py-3.5" contentClassName="px-4 flex flex-col justify-between gap-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("expectedCost")}
-          </span>
-          <AppSelect
-            value={currency}
-            onValueChange={setCurrency}
-            options={currencyOptions}
-            triggerClassName="w-24 h-7 text-xs font-medium"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
+    <div className="@container">
+      <div className="grid grid-cols-1 @xl:grid-cols-2 gap-3">
+        {/* Expected Cycle Time */}
+        <AppCard className="py-3.5" contentClassName="px-4 flex flex-col justify-between gap-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("expectedCycleTime")}
+            </span>
+            <AppSelect
+              value={unit}
+              onValueChange={setUnit}
+              options={unitOptions}
+              triggerClassName="w-24 h-7 text-xs font-medium"
+            />
+          </div>
           <div className="font-mono font-bold text-2xl lg:text-3xl tabular-nums text-foreground flex items-baseline gap-1.5">
-            <span className="text-lg text-muted-foreground font-sans">{symbol}</span>
-            {totalCost.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </div>
-          <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-mono">
-            <span>
-              {t("laborCost")}: {symbol}
-              {laborCost.toFixed(2)}
-            </span>
-            <span>•</span>
-            <span>
-              {t("fixedCost")}: {symbol}
-              {fixedCost.toFixed(2)}
+            {total.toFixed(2)}
+            <span className="text-xs text-muted-foreground font-sans font-medium">
+              {displayUnit}
             </span>
           </div>
-        </div>
-      </AppCard>
+        </AppCard>
+
+        {/* Expected Process Cost */}
+        <AppCard className="py-3.5" contentClassName="px-4 flex flex-col justify-between gap-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("expectedCost")}
+            </span>
+            <AppSelect
+              value={currency}
+              onValueChange={setCurrency}
+              options={currencyOptions}
+              triggerClassName="w-24 h-7 text-xs font-medium"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <div className="font-mono font-bold text-2xl lg:text-3xl tabular-nums text-foreground flex items-baseline gap-1.5">
+              <span className="text-lg text-muted-foreground font-sans">{symbol}</span>
+              {totalCost.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </div>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-muted-foreground font-mono">
+              <span className="whitespace-nowrap">
+                {t("laborCost")}: {symbol}
+                {laborCost.toFixed(2)}
+              </span>
+              <span className="text-muted-foreground/40 select-none">•</span>
+              <span className="whitespace-nowrap">
+                {t("fixedCost")}: {symbol}
+                {fixedCost.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </AppCard>
+      </div>
     </div>
   );
 }

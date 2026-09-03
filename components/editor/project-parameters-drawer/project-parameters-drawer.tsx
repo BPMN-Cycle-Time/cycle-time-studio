@@ -10,7 +10,7 @@ import { cn } from "@/utils";
 import { GraphDataTab } from "./graph-data-tab";
 import { ParametersTab } from "./parameters-tab";
 
-const MIN_WIDTH = 320;
+const MIN_WIDTH = 512;
 const MAX_WIDTH = 1024;
 const DEFAULT_WIDTH = 480;
 
@@ -111,7 +111,7 @@ export function ProjectParametersDrawer({
         </AppTooltip>
       </div>
 
-      <div className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto">
+      <div className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto @container">
         <Tabs defaultValue="params" className="w-full flex flex-col gap-5">
           <TabsList className="w-full bg-muted/70 dark:bg-muted/40 p-1 rounded-xl">
             {tabs.map((tab) => (

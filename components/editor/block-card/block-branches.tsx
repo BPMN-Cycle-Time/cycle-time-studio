@@ -8,14 +8,16 @@ import { Button, AppInput, Badge } from "@/components/ui";
 import { TaskPicker } from "./task-picker";
 import { ProcessFlowSection } from "../process-flow-section";
 import { computeBranchTime } from "@/services/engine";
+import { cn } from "@/utils";
 
 interface BlockBranchesProps {
   block: Block;
   unit: string;
   tasks?: Task[];
+  nested?: boolean;
 }
 
-export function BlockBranches({ block, unit, tasks = [] }: BlockBranchesProps) {
+export function BlockBranches({ block, unit, tasks = [], nested }: BlockBranchesProps) {
   const tEd = useTranslations("editor");
   const tBtn = useTranslations("common.buttons");
   const { addBranch, updateBranch, removeBranch, toggleBranchMode } = useEditorStore();
@@ -33,7 +35,7 @@ export function BlockBranches({ block, unit, tasks = [] }: BlockBranchesProps) {
   };
 
   return (
-    <div className="px-6 flex flex-col gap-3">
+    <div className={cn("flex flex-col gap-2.5", nested ? "px-3" : "px-4 sm:px-5")}>
       {branches.map((br) => {
         const composite = br.mode === BlockMode.COMPOSITE;
         const selectedTask = tasks.find((t) => t.id === br.taskId);
@@ -41,55 +43,78 @@ export function BlockBranches({ block, unit, tasks = [] }: BlockBranchesProps) {
         const branchTime = computeBranchTime(br, tasks);
 
         return (
-          <div key={br.id} className="flex flex-col gap-2 bg-muted/30 rounded-lg p-3 border">
-            <div className="flex items-center gap-1.5 min-w-0">
-              {/* Branch name — flexible */}
-              <div className="flex-1 min-w-0">
+          <div key={br.id} className="flex flex-col gap-1.5 bg-muted/30 rounded-lg p-2.5 border">
+            <div className="flex flex-wrap items-center justify-between gap-1.5 min-w-0">
+              {/* Branch name & probability */}
+              <div className="flex items-center gap-1.5 flex-1 min-w-[7rem]">
                 <AppInput
-                  wrapperClassName="w-full"
-                  inputClassName="h-8 font-semibold bg-transparent border-transparent hover:border-input focus-visible:border-input shadow-none px-2"
+                  wrapperClassName="flex-1 min-w-0"
+                  inputClassName="h-7 text-xs font-semibold bg-transparent border-transparent hover:border-input focus-visible:border-input shadow-none px-1.5"
                   value={br.label}
                   onChange={(e) => updateBranch(block.id, br.id, { label: e.target.value })}
                   placeholder={tEd("branchNamePlaceholder")}
                 />
+
+                {/* XOR Probability */}
+                {isXor && (
+                  <AppInput
+                    type="number"
+                    step="any"
+                    min="0"
+                    max="100"
+                    wrapperClassName="w-[4.5rem] shrink-0"
+                    inputClassName="h-7 font-mono text-xs px-1.5 text-right"
+                    value={br.p ?? 0}
+                    onChange={(e) =>
+                      updateBranch(block.id, br.id, { p: parseFloat(e.target.value) || 0 })
+                    }
+                    suffix="%"
+                  />
+                )}
               </div>
 
-              {/* XOR Probability */}
-              {isXor && (
-                <AppInput
-                  type="number"
-                  step="any"
-                  min="0"
-                  max="100"
-                  wrapperClassName="w-[4.5rem] shrink-0"
-                  inputClassName="h-8 font-mono text-xs px-2 pr-5 text-right"
-                  value={br.p ?? 0}
-                  onChange={(e) =>
-                    updateBranch(block.id, br.id, { p: parseFloat(e.target.value) || 0 })
-                  }
-                  suffix="%"
-                />
-              )}
-
-              {/* Task + Time OR composite Σ badge */}
+              {/* Task/Time controls & actions */}
               {composite ? (
-                <Badge variant="outline" className="font-mono text-xs h-8 px-2.5 shrink-0">
-                  Σ = {Math.round(branchTime * 100) / 100} {unit}
-                </Badge>
+                <div className="flex items-center gap-1 shrink-0 ml-auto">
+                  <Badge variant="outline" className="font-mono text-[11px] h-7 px-2 shrink-0">
+                    Σ = {Math.round(branchTime * 100) / 100} {unit}
+                  </Badge>
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-muted-foreground hover:text-primary shrink-0"
+                      onClick={() => toggleBranchMode(block.id, br.id)}
+                      title={tEd("collapseSubProcess")}
+                    >
+                      <Minimize2 className="size-3.5" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-muted-foreground hover:text-destructive shrink-0"
+                      onClick={() => removeBranch(block.id, br.id)}
+                      disabled={branches.length <= 1}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
               ) : (
-                <>
+                <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                   <TaskPicker
                     tasks={tasks}
                     selectedTaskId={br.taskId}
                     onChange={(tId) => handleTaskChange(br.id, tId)}
-                    className="h-8 text-xs w-[7rem] shrink-0"
+                    className="h-7 text-xs w-[6.5rem] shrink-0"
                   />
                   {selectedTask ? (
                     <AppInput
                       type="number"
                       readOnly
                       wrapperClassName="w-20 shrink-0"
-                      inputClassName="h-8 font-mono text-xs bg-muted/50 cursor-not-allowed"
+                      inputClassName="h-7 font-mono text-xs bg-muted/50 cursor-not-allowed"
                       value={displayTime}
                       suffix={unit}
                       title={tEd("timeSheetHint")}
@@ -100,7 +125,7 @@ export function BlockBranches({ block, unit, tasks = [] }: BlockBranchesProps) {
                       step="any"
                       min="0"
                       wrapperClassName="w-20 shrink-0"
-                      inputClassName="h-8 font-mono text-xs"
+                      inputClassName="h-7 font-mono text-xs"
                       value={br.t ?? 0}
                       onChange={(e) =>
                         updateBranch(block.id, br.id, { t: parseFloat(e.target.value) || 0 })
@@ -108,37 +133,36 @@ export function BlockBranches({ block, unit, tasks = [] }: BlockBranchesProps) {
                       suffix={unit}
                     />
                   )}
-                </>
+
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-muted-foreground hover:text-primary shrink-0"
+                      onClick={() => toggleBranchMode(block.id, br.id)}
+                      title={tEd("expandSubProcess")}
+                    >
+                      <Maximize2 className="size-3.5" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-muted-foreground hover:text-destructive shrink-0"
+                      onClick={() => removeBranch(block.id, br.id)}
+                      disabled={branches.length <= 1}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
               )}
-
-              {/* Actions */}
-              <div className="flex items-center gap-0.5 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-muted-foreground hover:text-primary shrink-0"
-                  onClick={() => toggleBranchMode(block.id, br.id)}
-                  title={composite ? tEd("collapseSubProcess") : tEd("expandSubProcess")}
-                >
-                  {composite ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-muted-foreground hover:text-destructive shrink-0"
-                  onClick={() => removeBranch(block.id, br.id)}
-                  disabled={branches.length <= 1}
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
             </div>
 
             {/* Render nested sub-process if composite mode */}
             {composite && (
-              <div className="border border-dashed rounded-md p-2.5 bg-background/60 mt-1">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              <div className="border border-dashed rounded-md p-2 bg-background/60 mt-1">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-0.5 truncate">
                   {tEd("subProcessFor", { name: br.label })}
                 </p>
                 <ProcessFlowSection

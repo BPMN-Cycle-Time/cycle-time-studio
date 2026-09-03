@@ -4,15 +4,17 @@ import { useTranslations } from "next-intl";
 import type { Block, Task } from "@/types";
 import { useEditorStore } from "@/store/useEditorStore";
 import { AppInput, AppLabel } from "@/components/ui";
+import { cn } from "@/utils";
 import { TaskPicker } from "./task-picker";
 
 interface BlockSeqInputsProps {
   block: Block;
   unit: string;
   tasks?: Task[];
+  nested?: boolean;
 }
 
-export function BlockSeqInputs({ block, unit, tasks = [] }: BlockSeqInputsProps) {
+export function BlockSeqInputs({ block, unit, tasks = [], nested }: BlockSeqInputsProps) {
   const t = useTranslations("editor");
   const { updateBlock } = useEditorStore();
 
@@ -29,9 +31,9 @@ export function BlockSeqInputs({ block, unit, tasks = [] }: BlockSeqInputsProps)
   };
 
   return (
-    <div className="px-6 flex items-end gap-2">
-      {/* TASK picker — takes remaining space */}
-      <div className="flex flex-col gap-1 flex-1 overflow-hidden">
+    <div className={cn("flex flex-wrap items-end gap-2", nested ? "px-3" : "px-4 sm:px-5")}>
+      {/* TASK picker — takes remaining space or full row on narrow */}
+      <div className="flex flex-col gap-1 flex-1 min-w-[10rem]">
         <AppLabel variant="uppercase">{t("task")}</AppLabel>
         <TaskPicker
           tasks={tasks}
@@ -41,14 +43,14 @@ export function BlockSeqInputs({ block, unit, tasks = [] }: BlockSeqInputsProps)
         />
       </div>
 
-      {/* TIME — fixed width, unit shown inside */}
+      {/* TIME — fixed width or flexible on wrap */}
       {selectedTask ? (
         <AppInput
           label={t("time")}
           labelVariant="uppercase"
           type="number"
           readOnly
-          wrapperClassName="w-24 shrink-0"
+          wrapperClassName="w-28 shrink-0 min-w-[6rem] flex-1 sm:flex-initial"
           className="font-mono bg-muted/50 cursor-not-allowed"
           value={displayTime}
           suffix={unit}
@@ -61,7 +63,7 @@ export function BlockSeqInputs({ block, unit, tasks = [] }: BlockSeqInputsProps)
           type="number"
           step="any"
           min="0"
-          wrapperClassName="w-24 shrink-0"
+          wrapperClassName="w-28 shrink-0 min-w-[6rem] flex-1 sm:flex-initial"
           className="font-mono"
           value={block.time ?? 0}
           onChange={(e) => updateBlock(block.id, { time: parseFloat(e.target.value) || 0 })}
