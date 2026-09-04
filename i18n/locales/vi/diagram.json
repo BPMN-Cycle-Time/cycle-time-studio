@@ -112,5 +112,6 @@
   "colSource": "Nút nguồn",
   "colTarget": "Nút đích",
   "colLabel": "Nhãn / Xác suất",
-  "colBack": "Vòng lặp (Quay lại)"
+  "colBack": "Vòng lặp (Quay lại)",
+  "toggleAdjacency": "Danh sách kề ({count})"
 }

@@ -175,16 +175,45 @@ svg[aria-label="Process Directed Graph"] .midpoint-handle-group:hover .midpoint-
   margin-left: 3px;
 }
 
-.adjacency-block {
-  font-family: ui-monospace, monospace;
-  font-size: 0.82rem;
-  line-height: 1.75;
+.adjacency-container {
   background: var(--muted) / 30;
   border: 1px solid var(--border);
   border-radius: var(--radius-control);
-  padding: 12px 14px;
+  padding: 4px 4px 4px 10px;
+  overflow: hidden;
+}
+
+.adjacency-block {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  padding: 6px 8px 6px 4px;
   overflow-x: auto;
+  overflow-y: auto;
+  min-height: 180px;
+  max-height: 300px;
   white-space: pre;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 140, 140, 0.35) transparent;
+}
+
+.adjacency-block::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.adjacency-block::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 6px 0;
+}
+
+.adjacency-block::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 140, 0.35);
+  border-radius: 9999px;
+}
+
+.adjacency-block::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 140, 140, 0.6);
 }
 
 .adjacency-block .aid {

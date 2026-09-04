@@ -48,5 +48,8 @@
     "hours": "Giờ",
     "days": "Ngày",
     "weeks": "Tuần"
+  },
+  "inputs": {
+    "search": "Tìm kiếm…"
   }
 }

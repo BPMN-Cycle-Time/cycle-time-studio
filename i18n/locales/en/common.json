@@ -48,5 +48,8 @@
     "hours": "Hours",
     "days": "Days",
     "weeks": "Weeks"
+  },
+  "inputs": {
+    "search": "Search…"
   }
 }

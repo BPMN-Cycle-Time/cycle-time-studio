@@ -2,7 +2,7 @@
 
 import { PanelRightClose } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { AppTooltip, Button, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { FlowResult, Project } from "@/types";
@@ -10,9 +10,23 @@ import { cn } from "@/utils";
 import { GraphDataTab } from "./graph-data-tab";
 import { ParametersTab } from "./parameters-tab";
 
-const MIN_WIDTH = 512;
-const MAX_WIDTH = 1024;
-const DEFAULT_WIDTH = 480;
+const ABSOLUTE_MIN_WIDTH = 512;
+const ABSOLUTE_MAX_WIDTH = 1024;
+const DEFAULT_WIDTH = 512;
+
+const SIDEBAR_WIDTH = 250;
+const MIN_DIAGRAM_CANVAS_WIDTH = 520;
+const RESERVED_CANVAS_AND_SIDEBAR = SIDEBAR_WIDTH + MIN_DIAGRAM_CANVAS_WIDTH;
+
+function computeBounds(windowWidth: number) {
+  // Sidebar is ~250px (w-72 + margins) when expanded.
+  // The middle diagram column MUST retain at least 520px so nodes are never crushed into a sliver.
+  const availableForDrawer = windowWidth - RESERVED_CANVAS_AND_SIDEBAR;
+
+  const maxWidth = Math.max(ABSOLUTE_MIN_WIDTH, Math.min(ABSOLUTE_MAX_WIDTH, availableForDrawer));
+  const minWidth = Math.min(ABSOLUTE_MIN_WIDTH, maxWidth);
+  return { minWidth, maxWidth };
+}
 
 interface ProjectParametersDrawerProps {
   collapsed: boolean;
@@ -30,7 +44,23 @@ export function ProjectParametersDrawer({
   const tEd = useTranslations("editor");
 
   const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const [maxAllowedWidth, setMaxAllowedWidth] = useState(ABSOLUTE_MAX_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
+
+  // Clamp width whenever the window is resized
+  useEffect(() => {
+    const handleWindowResize = () => {
+      const { maxWidth } = computeBounds(window.innerWidth);
+      setMaxAllowedWidth(maxWidth);
+      setWidth((curr) => (curr > maxWidth ? maxWidth : curr));
+    };
+
+    // Run once on mount to ensure initial width fits current screen
+    handleWindowResize();
+
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, []);
 
   const startResizing = useCallback(
     (mouseDownEvent: React.MouseEvent) => {
@@ -42,7 +72,8 @@ export function ProjectParametersDrawer({
 
       const onMouseMove = (mouseMoveEvent: MouseEvent) => {
         const deltaX = startX - mouseMoveEvent.clientX;
-        const newWidth = Math.min(Math.max(startWidth + deltaX, MIN_WIDTH), MAX_WIDTH);
+        const { minWidth, maxWidth } = computeBounds(window.innerWidth);
+        const newWidth = Math.min(Math.max(startWidth + deltaX, minWidth), maxWidth);
         setWidth(newWidth);
       };
 
@@ -76,6 +107,7 @@ export function ProjectParametersDrawer({
       style={{
         width: collapsed ? "0px" : `${width}px`,
         minWidth: collapsed ? "0px" : undefined,
+        maxWidth: collapsed ? "0px" : `${maxAllowedWidth}px`,
       }}
       className={cn(
         "rounded-xl border border-border/70 bg-card shadow-sm flex flex-col h-[calc(100svh-1.5rem)] my-3 mr-3 relative transition-all duration-300 ease-in-out overflow-hidden z-10 shrink-0",

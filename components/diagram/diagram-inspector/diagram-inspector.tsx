@@ -71,18 +71,20 @@ export function DiagramInspector() {
     if (!hit) return null;
 
     return (
-      <BranchInspector
-        branch={hit.branch}
-        parentBlock={hit.parentBlock}
-        tasks={tasks}
-        unit={unit}
-        taskOptions={taskOptions}
-        onClose={() => select(null, null)}
-        onUpdateBranch={updateBranch}
-        onRemoveBranch={removeBranch}
-        onToggleBranchMode={toggleBranchMode}
-        onAddBranch={addBranch}
-      />
+      <div className="shrink-0">
+        <BranchInspector
+          branch={hit.branch}
+          parentBlock={hit.parentBlock}
+          tasks={tasks}
+          unit={unit}
+          taskOptions={taskOptions}
+          onClose={() => select(null, null)}
+          onUpdateBranch={updateBranch}
+          onRemoveBranch={removeBranch}
+          onToggleBranchMode={toggleBranchMode}
+          onAddBranch={addBranch}
+        />
+      </div>
     );
   }
 
@@ -91,19 +93,21 @@ export function DiagramInspector() {
   if (!found) return null;
 
   return (
-    <BlockInspector
-      block={found.block}
-      index={found.index}
-      tasks={tasks}
-      unit={unit}
-      taskOptions={taskOptions}
-      blockTypeOptions={blockTypeOptions}
-      onClose={() => select(null, null)}
-      onUpdateBlock={updateBlock}
-      onRemoveBlock={removeBlock}
-      onAddBlock={addBlock}
-      onAddBranch={addBranch}
-      onToggleLoopMode={toggleLoopMode}
-    />
+    <div className="shrink-0">
+      <BlockInspector
+        block={found.block}
+        index={found.index}
+        tasks={tasks}
+        unit={unit}
+        taskOptions={taskOptions}
+        blockTypeOptions={blockTypeOptions}
+        onClose={() => select(null, null)}
+        onUpdateBlock={updateBlock}
+        onRemoveBlock={removeBlock}
+        onAddBlock={addBlock}
+        onAddBranch={addBranch}
+        onToggleLoopMode={toggleLoopMode}
+      />
+    </div>
   );
 }

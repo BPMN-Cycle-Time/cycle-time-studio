@@ -75,9 +75,12 @@ export function TimeSheetCard({
       {
         key: "name",
         header: tEd("task"),
+        sticky: "left",
+        className: "w-[120px] min-w-[120px] max-w-[140px]",
+        headerClassName: "w-[120px] min-w-[120px] max-w-[140px]",
         render: (row) => (
           <AppInput
-            wrapperClassName="w-full min-w-[110px]"
+            wrapperClassName="w-full"
             inputClassName="h-8 border-transparent bg-transparent shadow-none font-medium hover:border-input focus-visible:border-input text-xs"
             value={row.name}
             onChange={(e) => updateTask(row.id, { name: e.target.value })}

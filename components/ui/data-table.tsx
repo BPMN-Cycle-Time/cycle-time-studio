@@ -13,6 +13,9 @@ export interface TableColumn<T> {
   header: string;
   render?: (row: T) => React.ReactNode;
   sortable?: boolean;
+  className?: string;
+  headerClassName?: string;
+  sticky?: "left" | "right" | boolean;
 }
 
 interface DataTableProps<T> {
@@ -30,6 +33,7 @@ export function DataTable<T extends object>({
 }: DataTableProps<T>) {
   const tBtn = useTranslations("common.buttons");
   const tStatus = useTranslations("common.status");
+  const tInputs = useTranslations("common.inputs");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -110,7 +114,7 @@ export function DataTable<T extends object>({
       <div className="flex items-center gap-2 justify-between">
         <AppInput
           prefix={<Search className="h-3.5 w-3.5" />}
-          placeholder={searchPlaceholder || "Search..."}
+          placeholder={searchPlaceholder || tInputs("search")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           wrapperClassName="flex-1"
@@ -141,7 +145,7 @@ export function DataTable<T extends object>({
       </div>
 
       {/* Table Container */}
-      <div className="overflow-x-auto border rounded-lg bg-card">
+      <div className="border rounded-lg bg-card overflow-hidden isolate">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40">
@@ -152,6 +156,11 @@ export function DataTable<T extends object>({
                   className={cn(
                     "font-semibold select-none whitespace-nowrap",
                     col.sortable !== false && "cursor-pointer hover:text-foreground",
+                    (col.sticky === "left" || col.sticky === true) &&
+                      "sticky left-0 z-20 bg-[color-mix(in_srgb,var(--muted)_40%,var(--card))] border-r border-border/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]",
+                    col.sticky === "right" &&
+                      "sticky right-0 z-20 bg-[color-mix(in_srgb,var(--muted)_40%,var(--card))] border-l border-border/50 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]",
+                    col.headerClassName,
                   )}
                 >
                   <div className="flex items-center gap-1 whitespace-nowrap">
@@ -183,10 +192,23 @@ export function DataTable<T extends object>({
               sortedData.map((row, idx) => (
                 <TableRow
                   key={((row as Record<string, unknown>).id as string | number) ?? idx}
-                  className="hover:bg-muted/30 transition-colors"
+                  className="group/row hover:bg-muted/30 transition-colors"
                 >
                   {columns.map((col) => (
-                    <TableCell key={col.key}>
+                    <TableCell
+                      key={col.key}
+                      className={cn(
+                        (col.sticky === "left" || col.sticky === true) &&
+                          "sticky left-0 z-10 bg-card group-hover/row:bg-[color-mix(in_srgb,var(--muted)_30%,var(--card))] border-r border-border/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]",
+                        idx === sortedData.length - 1 &&
+                          (col.sticky === "left" || col.sticky === true) &&
+                          "rounded-bl-lg",
+                        col.sticky === "right" &&
+                          "sticky right-0 z-10 bg-card group-hover/row:bg-[color-mix(in_srgb,var(--muted)_30%,var(--card))] border-l border-border/50 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]",
+                        idx === sortedData.length - 1 && col.sticky === "right" && "rounded-br-lg",
+                        col.className,
+                      )}
+                    >
                       {col.render
                         ? col.render(row)
                         : ((row as Record<string, unknown>)[col.key] as React.ReactNode)}

@@ -161,7 +161,7 @@ export function DiagramViewport({
     <div
       ref={containerRef}
       className={cn(
-        "relative w-full h-full min-h-[480px] overflow-hidden select-none bg-card rounded-md border border-border/50",
+        "relative w-full h-full min-h-0 overflow-hidden select-none bg-card rounded-md border border-border/50",
         isDragging ? "cursor-grabbing" : "cursor-grab",
         className,
       )}

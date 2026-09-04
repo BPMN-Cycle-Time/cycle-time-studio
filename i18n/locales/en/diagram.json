@@ -112,5 +112,6 @@
   "colSource": "Source",
   "colTarget": "Target",
   "colLabel": "Label / Probability",
-  "colBack": "Loop (Back)"
+  "colBack": "Loop (Back)",
+  "toggleAdjacency": "Adjacency list ({count})"
 }
