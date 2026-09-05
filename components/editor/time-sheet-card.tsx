@@ -88,6 +88,21 @@ export function TimeSheetCard({
         ),
       },
       {
+        key: "resource",
+        header: tEd("resource"),
+        className: "w-[120px] min-w-[110px]",
+        headerClassName: "w-[120px] min-w-[110px]",
+        render: (row) => (
+          <AppInput
+            wrapperClassName="w-full"
+            inputClassName="h-8 border-transparent bg-transparent shadow-none hover:border-input focus-visible:border-input text-xs"
+            placeholder={tEd("resourcePlaceholder")}
+            value={row.resource ?? ""}
+            onChange={(e) => updateTask(row.id, { resource: e.target.value })}
+          />
+        ),
+      },
+      {
         key: "time",
         header: `${tEd("time")} (${unit})`,
         render: (row) => (

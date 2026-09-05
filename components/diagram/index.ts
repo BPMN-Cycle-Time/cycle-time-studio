@@ -9,3 +9,5 @@ export * from "./flow-node";
 export * from "./diagram-viewport";
 export * from "./diagram-guidelines";
 export * from "./diagram-routing-switcher";
+export * from "./event-log";
+export * from "./social-network";

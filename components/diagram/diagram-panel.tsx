@@ -7,10 +7,13 @@ import { useEditorStore } from "@/store/useEditorStore";
 import { ProcessModelPanel } from "./process-model";
 import { GraphPanel } from "./graph";
 import { BpmnPanel } from "./bpmn";
+import { EventLogPanel } from "./event-log";
+import { SocialNetworkPanel } from "./social-network";
 
 export function DiagramPanel({ blocks, unit }: { blocks: Block[]; unit: string }) {
   const t = useTranslations("diagram");
   const tasks = useEditorStore((s) => s.project?.tasks);
+  const currency = useEditorStore((s) => s.project?.currency);
 
   const tabs = [
     {
@@ -27,6 +30,16 @@ export function DiagramPanel({ blocks, unit }: { blocks: Block[]; unit: string }
       value: "bpmn",
       label: t("bpmnTab"),
       content: <BpmnPanel blocks={blocks} tasks={tasks} unit={unit} />,
+    },
+    {
+      value: "eventLog",
+      label: t("eventLogTab"),
+      content: <EventLogPanel blocks={blocks} tasks={tasks} unit={unit} currency={currency} />,
+    },
+    {
+      value: "socialNetwork",
+      label: t("socialNetworkTab"),
+      content: <SocialNetworkPanel blocks={blocks} tasks={tasks} unit={unit} />,
     },
   ];
 

@@ -29,6 +29,8 @@
   "addTask": "Thêm công việc",
   "searchTasks": "Tìm kiếm công việc...",
   "task": "Công việc",
+  "resource": "Nhân sự / Vai trò",
+  "resourcePlaceholder": "VD: Trưởng phòng",
   "used": "Sử dụng",
   "unused": "chưa dùng",
   "customTime": "— Nhập thời gian riêng —",

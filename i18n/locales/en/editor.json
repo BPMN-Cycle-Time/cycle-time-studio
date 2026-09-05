@@ -29,6 +29,8 @@
   "addTask": "Add task",
   "searchTasks": "Search tasks...",
   "task": "Task",
+  "resource": "Resource / Role",
+  "resourcePlaceholder": "e.g. Reviewer",
   "used": "Used",
   "unused": "unused",
   "customTime": "— custom time —",

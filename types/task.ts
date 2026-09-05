@@ -11,4 +11,6 @@ export interface Task {
   fixedCost?: number;
   /** Minutes of raw time logged against this task (used by the timesheet view). */
   usedMinutes?: number;
+  /** Name of the resource / performer / role responsible for this task. */
+  resource?: string;
 }

@@ -28,6 +28,8 @@ export interface Branch {
   /** Direct standalone total cost for this branch. */
   cost?: number;
   taskId?: string | null;
+  /** Name of the resource / performer / role responsible for this branch. */
+  resource?: string;
   mode?: BlockMode;
   subBlocks?: Block[];
 }
@@ -37,6 +39,8 @@ export interface Block {
   type: BlockType;
   label: string;
   taskId?: string | null;
+  /** Name of the resource / performer / role responsible for this block. */
+  resource?: string;
   /** Direct time for seq blocks, in the project's unit. Ignored when mode === BlockMode.COMPOSITE. */
   time?: number;
   /** Hourly / resource labor rate. */

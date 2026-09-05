@@ -4,3 +4,5 @@ export * from "./task";
 export * from "./flow";
 export * from "./simulation";
 export * from "./graph";
+export * from "./event-log";
+export * from "./social-network";
