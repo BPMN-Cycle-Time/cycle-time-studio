@@ -1,5 +1,4 @@
-// Parser for external Event Log files (CSV, IEEE XES XML, and JSON)
-
+import * as XLSX from "xlsx";
 import type { EventLogItem } from "@/types";
 
 let idCounter = 0;
@@ -64,12 +63,56 @@ export function parseEventLogCsv(csvContent: string): EventLogItem[] {
   };
 
   const caseIdx = findColIndex("caseid", "case", "traceid", "trace", "id", "caseno");
-  const actIdx = findColIndex("activity", "conceptname", "task", "action", "event", "step");
-  const resIdx = findColIndex("resource", "orgresource", "user", "role", "performer", "executor");
-  const startIdx = findColIndex("starttimestamp", "start", "starttime", "timestamp", "date");
-  const endIdx = findColIndex("completetimestamp", "complete", "endtime", "end");
-  const durIdx = findColIndex("duration", "leadtime", "time");
-  const costIdx = findColIndex("cost", "price", "expense", "amount");
+  const actIdx = findColIndex(
+    "activity",
+    "conceptname",
+    "task",
+    "action",
+    "event",
+    "step",
+    "taskname",
+    "tentask",
+  );
+  const resIdx = findColIndex(
+    "resource",
+    "orgresource",
+    "user",
+    "role",
+    "performer",
+    "executor",
+    "personsname",
+    "person",
+    "nguoithuchien",
+  );
+  const startIdx = findColIndex(
+    "starttimestamp",
+    "start",
+    "starttime",
+    "timestamp",
+    "date",
+    "thoigianbatdau",
+  );
+  const endIdx = findColIndex("completetimestamp", "complete", "endtime", "end", "thoigianketthuc");
+  const durIdx = findColIndex(
+    "duration",
+    "leadtime",
+    "time",
+    "thoigianthucte",
+    "thoigianthuctephut",
+    "actualduration",
+  );
+  const costIdx = findColIndex("cost", "price", "expense", "amount", "chiphi");
+  const taskIdx = findColIndex("taskid", "taskcode", "task_id", "matask");
+  const benchmarkIdx = findColIndex(
+    "benchmarkduration",
+    "benchmark",
+    "dinhmuc",
+    "dinhmucphut",
+    "sla",
+    "standardtime",
+    "targetduration",
+  );
+  const slaStatusIdx = findColIndex("slastatus", "ketqua", "trangthai", "result", "status");
 
   const items: EventLogItem[] = [];
   const now = Date.now();
@@ -109,6 +152,37 @@ export function parseEventLogCsv(csvContent: string): EventLogItem[] {
       if (!isNaN(parsed) && parsed >= 0) cost = parsed;
     }
 
+    const taskId = taskIdx !== -1 && row[taskIdx] ? row[taskIdx]! : undefined;
+
+    let benchmarkDuration: number | undefined;
+    if (benchmarkIdx !== -1 && row[benchmarkIdx]) {
+      const parsed = parseFloat(row[benchmarkIdx]!);
+      if (!isNaN(parsed) && parsed >= 0) benchmarkDuration = parsed;
+    }
+
+    let slaStatus: "met" | "delayed" | undefined;
+    if (slaStatusIdx !== -1 && row[slaStatusIdx]) {
+      const statusText = row[slaStatusIdx]!.toLowerCase();
+      if (
+        statusText.includes("dat") ||
+        statusText.includes("met") ||
+        statusText.includes("pass") ||
+        statusText.includes("ok")
+      ) {
+        slaStatus = "met";
+      } else if (
+        statusText.includes("tre") ||
+        statusText.includes("delay") ||
+        statusText.includes("fail") ||
+        statusText.includes("late")
+      ) {
+        slaStatus = "delayed";
+      }
+    }
+    if (!slaStatus && benchmarkDuration !== undefined) {
+      slaStatus = duration <= benchmarkDuration ? "met" : "delayed";
+    }
+
     items.push({
       id: uniqueId(),
       caseId,
@@ -118,6 +192,9 @@ export function parseEventLogCsv(csvContent: string): EventLogItem[] {
       completeTimestamp: endIso,
       duration,
       cost,
+      taskId,
+      benchmarkDuration,
+      slaStatus,
     });
   }
 
@@ -205,8 +282,23 @@ export function parseEventLogXes(xesXml: string): EventLogItem[] {
  * Universal file reader & parser for uploaded event logs.
  */
 export async function parseEventLogFile(file: File): Promise<EventLogItem[]> {
-  const text = await file.text();
   const name = file.name.toLowerCase();
+
+  // Support Excel (.xlsx, .xls) files directly
+  if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+    const buffer = await file.arrayBuffer();
+    const wb = XLSX.read(buffer, { type: "array" });
+    const firstSheetName = wb.SheetNames[0];
+    if (firstSheetName) {
+      const sheet = wb.Sheets[firstSheetName];
+      if (sheet) {
+        const csv = XLSX.utils.sheet_to_csv(sheet);
+        return parseEventLogCsv(csv);
+      }
+    }
+  }
+
+  const text = await file.text();
 
   if (name.endsWith(".xes") || name.endsWith(".xml")) {
     const xesParsed = parseEventLogXes(text);
@@ -226,6 +318,10 @@ export async function parseEventLogFile(file: File): Promise<EventLogItem[]> {
           completeTimestamp: String(d.completeTimestamp || d.end || new Date().toISOString()),
           duration: typeof d.duration === "number" ? d.duration : 1,
           cost: typeof d.cost === "number" ? d.cost : 0,
+          taskId: d.taskId ? String(d.taskId) : undefined,
+          benchmarkDuration:
+            typeof d.benchmarkDuration === "number" ? d.benchmarkDuration : undefined,
+          slaStatus: d.slaStatus === "met" || d.slaStatus === "delayed" ? d.slaStatus : undefined,
         }));
       }
     } catch {

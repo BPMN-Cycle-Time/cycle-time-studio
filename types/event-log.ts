@@ -11,6 +11,34 @@ export interface EventLogItem {
   cost: number;
   taskId?: string;
   blockId?: string;
+  benchmarkDuration?: number;
+  slaStatus?: "met" | "delayed";
+}
+
+export interface TaskBenchmarkSummary {
+  taskId: string;
+  taskName: string;
+  benchmarkDuration: number;
+  totalInstances: number;
+  metCount: number;
+  delayedCount: number;
+  complianceRate: number;
+  avgActualDuration: number;
+  maxDelay: number;
+}
+
+export interface SlaEvaluationResult {
+  taskSummaries: TaskBenchmarkSummary[];
+  totalInstances: number;
+  totalMet: number;
+  totalDelayed: number;
+  overallComplianceRate: number;
+  topDelayedTasks: {
+    taskId: string;
+    taskName: string;
+    delayedCount: number;
+    delayedRate: number;
+  }[];
 }
 
 export interface EventLogConfig {

@@ -51,17 +51,6 @@ export const BlockCard = memo(function BlockCard({ block, index, unit, nested }:
         select(SelectionKind.BLOCK, block.id);
       }}
     >
-      {/* Sleek vertical colored indicator pill */}
-      <div className={cn("absolute left-0 top-0 bottom-0 w-1.5 transition-colors", meta.bg)} />
-
-      {/* Subtle soft background gradient glow on the left edge */}
-      <div
-        className={cn(
-          "absolute inset-y-0 left-0 w-24 bg-gradient-to-r pointer-events-none opacity-40 transition-opacity",
-          meta.lightBg,
-        )}
-      />
-
       <BlockHeader block={block} index={index} nested={nested} />
 
       {block.type === BlockType.SEQ && (

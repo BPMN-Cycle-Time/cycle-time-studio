@@ -18,7 +18,7 @@ export function BpmnPreviewCard({ preview, unit, onApply, onDiscard }: BpmnPrevi
   return (
     <AppCard variant="subtle" className="mt-4" contentClassName="px-4">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs uppercase tracking-wide text-muted-foreground">
+        <h3 className="text-xs capitalize tracking-wide text-muted-foreground">
           {tDia("previewTitle", { count: preview.blocks.length })}
         </h3>
         <div className="flex gap-2">

@@ -9,6 +9,7 @@ import {
   type EventLogSummary,
 } from "@/types";
 import { getLeafCost, getLeafTime } from "./engine";
+import { cleanTaskName } from "@/utils/formats";
 
 const DEFAULT_ROLES = [
   "Clerk",
@@ -120,11 +121,14 @@ function traverseBranch(branch: Branch, startTimeMs: number, ctx: TraverseContex
   const costResult = getLeafCost(branch, ctx.tasks);
   const resource = resolveResource(branch, ctx.tasks);
 
+  const linkedBranchTask = branch.taskId ? ctx.tasks?.find((t) => t.id === branch.taskId) : null;
+  const activity = cleanTaskName(linkedBranchTask?.name || branch.label) || "Branch Task";
+
   ctx.eventSeq += 1;
   ctx.events.push({
     id: `${ctx.caseId}-evt-${ctx.eventSeq}`,
     caseId: ctx.caseId,
-    activity: branch.label || "Branch Task",
+    activity,
     resource,
     startTimestamp: new Date(startTimeMs).toISOString(),
     completeTimestamp: new Date(endTimeMs).toISOString(),
@@ -132,6 +136,8 @@ function traverseBranch(branch: Branch, startTimeMs: number, ctx: TraverseContex
     cost: Math.round(costResult.total * 100) / 100,
     taskId: branch.taskId || undefined,
     blockId: branch.id,
+    benchmarkDuration: baseTime,
+    slaStatus: duration <= baseTime ? "met" : "delayed",
   });
 
   return endTimeMs;
@@ -151,11 +157,14 @@ function traverseBlock(block: Block, startTimeMs: number, ctx: TraverseContext):
       const costResult = getLeafCost(block, ctx.tasks);
       const resource = resolveResource(block, ctx.tasks);
 
+      const linkedSeqTask = block.taskId ? ctx.tasks?.find((t) => t.id === block.taskId) : null;
+      const activity = cleanTaskName(linkedSeqTask?.name || block.label) || "Task";
+
       ctx.eventSeq += 1;
       ctx.events.push({
         id: `${ctx.caseId}-evt-${ctx.eventSeq}`,
         caseId: ctx.caseId,
-        activity: block.label || "Task",
+        activity,
         resource,
         startTimestamp: new Date(startTimeMs).toISOString(),
         completeTimestamp: new Date(endTimeMs).toISOString(),
@@ -163,6 +172,8 @@ function traverseBlock(block: Block, startTimeMs: number, ctx: TraverseContext):
         cost: Math.round(costResult.total * 100) / 100,
         taskId: block.taskId || undefined,
         blockId: block.id,
+        benchmarkDuration: baseTime,
+        slaStatus: duration <= baseTime ? "met" : "delayed",
       });
 
       return endTimeMs;
@@ -216,11 +227,17 @@ function traverseBlock(block: Block, startTimeMs: number, ctx: TraverseContext):
           const costResult = getLeafCost(block, ctx.tasks);
           const resource = resolveResource(block, ctx.tasks);
 
+          const linkedLoopTask = block.taskId
+            ? ctx.tasks?.find((t) => t.id === block.taskId)
+            : null;
+          const baseLabel = cleanTaskName(linkedLoopTask?.name || block.label) || "Task";
+          const activity = iter > 0 ? `${baseLabel} (Rework #${iter})` : baseLabel;
+
           ctx.eventSeq += 1;
           ctx.events.push({
             id: `${ctx.caseId}-evt-${ctx.eventSeq}`,
             caseId: ctx.caseId,
-            activity: iter > 0 ? `${block.label} (Rework #${iter})` : block.label,
+            activity,
             resource,
             startTimestamp: new Date(currStart).toISOString(),
             completeTimestamp: new Date(endTimeMs).toISOString(),
@@ -228,6 +245,8 @@ function traverseBlock(block: Block, startTimeMs: number, ctx: TraverseContext):
             cost: Math.round(costResult.total * 100) / 100,
             taskId: block.taskId || undefined,
             blockId: block.id,
+            benchmarkDuration: baseTime,
+            slaStatus: duration <= baseTime ? "met" : "delayed",
           });
 
           currStart = endTimeMs;
@@ -344,6 +363,8 @@ export function exportEventLogToCsv(events: EventLogItem[]): string {
     "Start Timestamp",
     "Complete Timestamp",
     "Duration",
+    "Benchmark Duration",
+    "SLA Status",
     "Cost",
   ];
 
@@ -354,6 +375,8 @@ export function exportEventLogToCsv(events: EventLogItem[]): string {
     `"${e.startTimestamp}"`,
     `"${e.completeTimestamp}"`,
     e.duration,
+    e.benchmarkDuration ?? "",
+    e.slaStatus ?? "",
     e.cost,
   ]);
 

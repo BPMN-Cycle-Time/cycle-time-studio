@@ -1,6 +1,7 @@
 import { BpmnModdle } from "bpmn-moddle";
 import { layoutProcess } from "bpmn-auto-layout";
 import { BlockType, BlockMode, type Block, type Branch, type Task } from "@/types";
+import { cleanTaskName } from "@/utils/formats";
 
 /**
  * Bidirectional bridge between our Block/Branch tree and BPMN 2.0 XML.
@@ -182,7 +183,7 @@ function renderBlock(
               {
                 id: br.id,
                 type: BlockType.SEQ,
-                label: brTaskName || br.label,
+                label: brTaskName || cleanTaskName(br.label),
                 taskId: br.taskId,
                 time: br.t,
                 mode: BlockMode.SIMPLE,
@@ -345,7 +346,7 @@ function resolveOrCreateTask(
   rawName: string,
   tasks: Task[],
 ): { label: string; taskId: string; time: number } {
-  const clean = (rawName || "").trim();
+  const clean = cleanTaskName(rawName || "").trim();
   const taskName = clean || "Step";
   const matched = tasks.find(
     (t) =>
@@ -488,6 +489,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         const parsedP = isParallel
           ? undefined
           : parseProbability(o.name, Math.round(100 / outs.length));
+        const cleanFlow = cleanTaskName(o.name);
         const firstBranchBlock = branchBlocks[0];
         if (
           branchBlocks.length === 1 &&
@@ -496,7 +498,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         ) {
           return {
             id: freshId("br"),
-            label: o.name || firstBranchBlock.label,
+            label: firstBranchBlock.label || cleanFlow || "Branch",
             taskId: firstBranchBlock.taskId ?? null,
             p: parsedP,
             t: firstBranchBlock.time ?? 1,
@@ -507,7 +509,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         if (branchBlocks.length === 0) {
           return {
             id: freshId("br"),
-            label: o.name || "Branch",
+            label: cleanFlow || "Branch",
             p: parsedP,
             t: 1,
             mode: BlockMode.SIMPLE,
@@ -515,7 +517,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         }
         return {
           id: freshId("br"),
-          label: o.name || firstBranchBlock?.label || "Branch",
+          label: firstBranchBlock?.label || cleanFlow || "Branch",
           p: parsedP,
           mode: BlockMode.COMPOSITE,
           subBlocks: branchBlocks,

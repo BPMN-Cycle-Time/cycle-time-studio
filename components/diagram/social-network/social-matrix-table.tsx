@@ -85,7 +85,7 @@ export function SocialMatrixTable({ edges, totalInteractions }: SocialMatrixTabl
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <h3 className="text-xs font-semibold capitalize tracking-wider text-muted-foreground">
         {tDiag("matrixTitle")} ({edges.length})
       </h3>
       {edges.length === 0 ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { useEditorStore } from "@/store/useEditorStore";
@@ -8,7 +8,8 @@ import { useProjectsIndex } from "@/store/useProjectsIndex";
 import { useLocalStorageState } from "@/hooks";
 import { computeFlow } from "@/utils";
 import { STORAGE_KEYS } from "@/constants";
-import { ProjectSidebar } from "@/components/layout";
+import { CompactActivityBar } from "@/components/layout";
+import type { DiagramTab } from "@/components/layout";
 import { ProjectHeader, ProjectParametersDrawer } from "@/components/editor";
 import { DiagramPanel } from "@/components/diagram";
 
@@ -24,6 +25,7 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
     STORAGE_KEYS.RIGHT_PANEL_COLLAPSED,
     false,
   );
+  const [activeTab, setActiveTab] = useState<DiagramTab>("model");
 
   useEffect(() => {
     loadProjectById(id);
@@ -45,7 +47,7 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
 
   return (
     <div className="flex h-svh overflow-hidden bg-background">
-      <ProjectSidebar />
+      <CompactActivityBar activeTab={activeTab} onTabChange={setActiveTab} />
 
       {!project ? (
         <div className="flex-1 flex items-center justify-center">
@@ -54,14 +56,14 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
       ) : (
         <>
           {/* Middle column — diagram */}
-          <div className="flex-1 min-w-[500px] flex flex-col h-svh overflow-hidden">
+          <div className="flex-1 min-w-[400px] flex flex-col h-svh overflow-hidden">
             <div className="w-full h-full px-3 py-3 flex-1 min-h-0 flex flex-col overflow-y-auto no-scrollbar">
               <ProjectHeader
                 rightCollapsed={rightCollapsed}
                 onExpandRightPanel={handleExpandRightPanel}
               />
 
-              <DiagramPanel blocks={project.blocks} unit={project.unit} />
+              <DiagramPanel blocks={project.blocks} unit={project.unit} activeTab={activeTab} />
             </div>
           </div>
 

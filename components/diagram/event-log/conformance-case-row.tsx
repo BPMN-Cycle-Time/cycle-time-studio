@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { CaseConformanceResult } from "@/types";
 import { Badge, Button, TableRow, TableCell } from "@/components/ui";
+import { cleanTaskName } from "@/utils";
 
 export interface CaseRowItemProps {
   item: CaseConformanceResult;
@@ -147,8 +148,11 @@ export function CaseRowItem({
                         </span>
                         <StepStatusIndicator status={st.status} tDiag={tDiag} />
                       </div>
-                      <div className="font-semibold text-xs truncate" title={st.activity}>
-                        {st.activity}
+                      <div
+                        className="font-semibold text-xs truncate"
+                        title={cleanTaskName(st.activity)}
+                      >
+                        {cleanTaskName(st.activity)}
                       </div>
                       <div className="text-[11px] text-muted-foreground truncate mt-0.5">
                         👤 {st.resource}
@@ -208,7 +212,7 @@ function ViolationBadge({
         variant="outline"
         className="bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30 text-[10px] font-normal"
       >
-        {tDiag("tagSkipped")}: {violation.activity}
+        {tDiag("tagSkipped")}: {cleanTaskName(violation.activity)}
       </Badge>
     );
   }
@@ -218,7 +222,7 @@ function ViolationBadge({
         variant="outline"
         className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px] font-normal"
       >
-        {tDiag("tagOrder")}: {violation.activity}
+        {tDiag("tagOrder")}: {cleanTaskName(violation.activity)}
       </Badge>
     );
   }
@@ -228,7 +232,7 @@ function ViolationBadge({
         variant="outline"
         className="bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/30 text-[10px] font-normal"
       >
-        {tDiag("tagResource")}: {violation.activity} ({violation.actual})
+        {tDiag("tagResource")}: {cleanTaskName(violation.activity)} ({violation.actual})
       </Badge>
     );
   }
@@ -237,7 +241,7 @@ function ViolationBadge({
       variant="outline"
       className="bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30 text-[10px] font-normal"
     >
-      {tDiag("tagUnexpected")}: {violation.activity}
+      {tDiag("tagUnexpected")}: {cleanTaskName(violation.activity)}
     </Badge>
   );
 }

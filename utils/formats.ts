@@ -31,3 +31,37 @@ export function slugify(text?: string, defaultFallback = "project"): string {
     .replace(/^-+|-+$/g, "");
   return slug || defaultFallback;
 }
+
+/**
+ * Strips probability annotations or flow markers from a task/activity/branch name,
+ * e.g. "No - 0.3" -> "No", "Yes - 0.7" -> "Yes", "Reject (30%)" -> "Reject".
+ */
+export function cleanTaskName(rawName?: string): string {
+  if (!rawName) return "";
+  let name = rawName.trim();
+  name = name.replace(
+    /\s*[-:=~]\s*(?:p\s*=\s*)?(?:0(?:\.\d+)?|1(?:\.0+)?|\d+(?:\.\d+)?%)\s*$/i,
+    "",
+  );
+  name = name.replace(/\s*\((?:p\s*=\s*)?(?:0(?:\.\d+)?|1(?:\.0+)?|\d+(?:\.\d+)?%)\)\s*$/i, "");
+  return name.trim() || rawName.trim();
+}
+
+/**
+ * Formats internal generated IDs (e.g. "task_1_8r3mp", "blk_1_abcde", UUIDs)
+ * into a clean, human-readable display ID like "T-1", "T-2", etc.
+ */
+export function formatDisplayTaskId(rawId: string | undefined, index: number): string {
+  if (!rawId) return `T-${index + 1}`;
+  const trimmed = rawId.trim();
+  const isInternal =
+    /^task[_-]/i.test(trimmed) ||
+    /^blk[_-]/i.test(trimmed) ||
+    /^Activity_[a-z0-9]+/i.test(trimmed) ||
+    /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(trimmed);
+
+  if (isInternal) {
+    return `T-${index + 1}`;
+  }
+  return trimmed;
+}

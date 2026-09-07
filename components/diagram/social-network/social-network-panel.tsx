@@ -6,7 +6,15 @@ import { Share2, ArrowRightLeft, Users2, Filter, RefreshCw, BarChart3, Table2 } 
 import type { Block, Task, SocialMetricType } from "@/types";
 import { generateEventLog } from "@/services/event-log";
 import { buildSocialNetwork } from "@/services/social-network";
-import { Card, Button, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
+import {
+  Card,
+  CardContent,
+  Button,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui";
 import { DiagramViewport } from "../diagram-viewport";
 import { SocialNetworkEdges } from "./social-network-edges";
 import { SocialMatrixTable } from "./social-matrix-table";
@@ -312,54 +320,56 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
           </DiagramViewport>
         </Card>
 
-        {/* Bottom Details: Node Inspector / Network Insights & Interaction Matrix Table */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 w-full items-start">
-          {/* Left Column (col-span-4): Node Inspector / Network Insights + Metrics Guide */}
-          <div className="lg:col-span-4 flex flex-col gap-3">
-            <SocialNodeInspector
-              selectedNode={selectedNode}
-              onClearSelection={() => setSelectedNodeId(null)}
-              mostActiveNode={mostActiveNode}
-              topEdge={topEdge}
-              totalNodes={networkData.nodes.length}
-            />
-            <SocialMetricsGuide />
-          </div>
+        {/* Bottom Details: Full-width stacked layout */}
+        <div className="flex flex-col gap-4 w-full">
+          {/* Node Inspector / Network Insights (Full width) */}
+          <SocialNodeInspector
+            selectedNode={selectedNode}
+            onClearSelection={() => setSelectedNodeId(null)}
+            mostActiveNode={mostActiveNode}
+            topEdge={topEdge}
+            totalNodes={networkData.nodes.length}
+          />
 
-          {/* Right Column (col-span-8): Sub-Tabs for Evaluation & Matrix Table */}
-          <div className="lg:col-span-8 flex flex-col gap-2.5">
-            <Tabs defaultValue="evaluation" className="w-full flex flex-col">
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <TabsList className="h-8 bg-muted/60 p-0.5 rounded-lg border border-border/60">
-                  <TabsTrigger
-                    value="evaluation"
-                    className="text-xs px-3 h-7 flex items-center gap-1.5 rounded-md"
-                  >
-                    <BarChart3 className="w-3.5 h-3.5" />
-                    {tDiag("evaluationTab")}
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="matrix"
-                    className="text-xs px-3 h-7 flex items-center gap-1.5 rounded-md"
-                  >
-                    <Table2 className="w-3.5 h-3.5" />
-                    {tDiag("interactionTab")}
-                  </TabsTrigger>
-                </TabsList>
-              </div>
+          {/* Sub-Tabs for Evaluation & Matrix Table (Full width) */}
+          <Card className="w-full">
+            <CardContent className="px-4">
+              <Tabs defaultValue="evaluation" className="w-full flex flex-col">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <TabsList className="h-8 bg-muted/60 p-0.5 rounded-lg border border-border/60">
+                    <TabsTrigger
+                      value="evaluation"
+                      className="text-xs px-3 h-7 flex items-center gap-1.5 rounded-md"
+                    >
+                      <BarChart3 className="w-3.5 h-3.5" />
+                      {tDiag("evaluationTab")}
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="matrix"
+                      className="text-xs px-3 h-7 flex items-center gap-1.5 rounded-md"
+                    >
+                      <Table2 className="w-3.5 h-3.5" />
+                      {tDiag("interactionTab")}
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
-              <TabsContent value="evaluation" className="mt-0 outline-none">
-                <SocialEvaluationTable evaluations={networkData.evaluations} />
-              </TabsContent>
+                <TabsContent value="evaluation" className="mt-0 outline-none">
+                  <SocialEvaluationTable evaluations={networkData.evaluations} />
+                </TabsContent>
 
-              <TabsContent value="matrix" className="mt-0 outline-none">
-                <SocialMatrixTable
-                  edges={networkData.edges}
-                  totalInteractions={networkData.totalInteractions}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+                <TabsContent value="matrix" className="mt-0 outline-none">
+                  <SocialMatrixTable
+                    edges={networkData.edges}
+                    totalInteractions={networkData.totalInteractions}
+                  />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          {/* Metrics Guide */}
+          <SocialMetricsGuide />
         </div>
       </div>
     </div>

@@ -23,7 +23,7 @@ export function SocialNodeInspector({
   const tDiag = useTranslations("diagram");
 
   return (
-    <AppCard className="p-3.5 bg-card/80 flex flex-col shadow-xs border-border/70">
+    <AppCard className="bg-card/80 flex flex-col shadow-xs border-border/70">
       {selectedNode ? (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between border-b border-border/50 pb-2.5">
@@ -71,7 +71,7 @@ export function SocialNodeInspector({
       ) : (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between border-b border-border/50 pb-2.5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <span className="text-xs font-semibold capitalize tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
               {tDiag("networkInsights")}
             </span>

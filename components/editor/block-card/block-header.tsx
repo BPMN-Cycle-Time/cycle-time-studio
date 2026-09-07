@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { X } from "lucide-react";
+import { X, ListOrdered } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { BlockType, BlockMode, type Block } from "@/types";
 import { useEditorStore } from "@/store/useEditorStore";
-import { Input, Button, Badge, AppSelect, type SelectOption } from "@/components/ui";
+import { Input, Button, AppSelect, type SelectOption } from "@/components/ui";
 import { cn } from "@/utils";
-import { BLOCK_TYPES } from "@/constants";
+import { BLOCK_TYPES, TYPE_META } from "@/constants";
 
 interface BlockHeaderProps {
   block: Block;
@@ -20,6 +20,10 @@ export function BlockHeader({ block, index, nested }: BlockHeaderProps) {
   const tEd = useTranslations("editor");
   const updateBlock = useEditorStore((s) => s.updateBlock);
   const removeBlock = useEditorStore((s) => s.removeBlock);
+
+  const meta = TYPE_META[block.type as BlockType];
+  const typeConfig = BLOCK_TYPES.find((bt) => bt.value === block.type);
+  const TypeIcon = typeConfig?.icon ?? ListOrdered;
 
   const blockTypeOptions: SelectOption<BlockType>[] = useMemo(
     () =>
@@ -69,14 +73,18 @@ export function BlockHeader({ block, index, nested }: BlockHeaderProps) {
         nested ? "px-3" : "px-4 sm:px-5",
       )}
     >
-      {/* Left: Index badge + Name input */}
+      {/* Left: Type Icon Tag + Step Index + Name input */}
       <div className="flex items-center gap-1.5 flex-1 min-w-[100px]">
-        <Badge
-          variant="secondary"
-          className="font-mono rounded-full size-5 text-[11px] justify-center p-0 shrink-0"
+        <div
+          className={cn(
+            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-mono font-bold border shrink-0 transition-colors shadow-2xs",
+            meta.tagBg,
+          )}
+          title={tTypes(block.type)}
         >
-          {index + 1}
-        </Badge>
+          <TypeIcon className="size-3 shrink-0" />
+          <span>{index + 1}</span>
+        </div>
 
         <Input
           className="flex-1 min-w-0 font-semibold border-transparent hover:border-input focus-visible:border-input shadow-none px-1.5 h-7 text-xs sm:text-sm"
@@ -86,13 +94,16 @@ export function BlockHeader({ block, index, nested }: BlockHeaderProps) {
         />
       </div>
 
-      {/* Right: Type select + Delete button */}
+      {/* Right: Type select styled as icon tag + Delete button */}
       <div className="flex items-center gap-1 shrink-0 ml-auto">
         <AppSelect
           value={block.type}
           onValueChange={handleTypeChange}
           options={blockTypeOptions}
-          triggerClassName="font-medium h-7 text-xs shrink-0 max-w-[140px]"
+          triggerClassName={cn(
+            "font-medium h-7 text-xs shrink-0 max-w-[150px] border transition-colors shadow-2xs",
+            meta.tagBg,
+          )}
         />
 
         <Button

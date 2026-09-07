@@ -2,11 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { ShieldCheck, FileWarning, XCircle, Layers, UserX, Clock } from "lucide-react";
+import { ShieldCheck, FileWarning, XCircle, Layers, UserX, Clock, Search } from "lucide-react";
 import type { Block, Task, EventLogItem } from "@/types";
 import { analyzeConformance } from "@/services/conformance";
 import {
-  AppCard,
   Input,
   AppSelect,
   Table,
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui";
 import { DiscoveredBpmnDialog } from "./discovered-bpmn-dialog";
 import { CaseRowItem } from "./conformance-case-row";
+import { KpiStatCard } from "./kpi-stat-card";
 
 interface ConformanceAnalysisViewProps {
   events: EventLogItem[];
@@ -103,137 +103,89 @@ export function ConformanceAnalysisView({
         ? "text-amber-600 dark:text-amber-400"
         : "text-rose-600 dark:text-rose-400";
 
+  const kpiCards = useMemo(
+    () => [
+      {
+        id: "fitness",
+        label: tDiag("overallFitnessScore"),
+        value: `${analysis.overallFitnessScore}%`,
+        valueColorClassName: fitnessColor,
+        description: `${analysis.conformantCases} / ${analysis.totalCases} ${tDiag("conformantCasesLabel")}`,
+        icon: ShieldCheck,
+        iconColorClassName: "bg-emerald-500/10 text-emerald-500",
+      },
+      {
+        id: "skipped",
+        label: tDiag("skippedActivities"),
+        value: analysis.violationCounts.skipped_activity,
+        valueColorClassName: "text-rose-600 dark:text-rose-400",
+        description: tDiag("skippedActivitiesDesc"),
+        icon: XCircle,
+        iconColorClassName: "bg-rose-500/10 text-rose-500",
+      },
+      {
+        id: "out-of-order",
+        label: tDiag("outOfOrderActivities"),
+        value: analysis.violationCounts.out_of_order,
+        valueColorClassName: "text-amber-600 dark:text-amber-400",
+        description: tDiag("outOfOrderDesc"),
+        icon: Clock,
+        iconColorClassName: "bg-amber-500/10 text-amber-500",
+      },
+      {
+        id: "wrong-resource",
+        label: tDiag("wrongResourceViolations"),
+        value: analysis.violationCounts.wrong_resource,
+        valueColorClassName: "text-violet-600 dark:text-violet-400",
+        description: tDiag("wrongResourceDesc"),
+        icon: UserX,
+        iconColorClassName: "bg-violet-500/10 text-violet-500",
+      },
+      {
+        id: "unexpected",
+        label: tDiag("unexpectedActivities"),
+        value: analysis.violationCounts.unexpected_activity,
+        valueColorClassName: "text-blue-600 dark:text-blue-400",
+        description: tDiag("unexpectedActivitiesDesc"),
+        icon: FileWarning,
+        iconColorClassName: "bg-blue-500/10 text-blue-500",
+      },
+      {
+        id: "variants",
+        label: tDiag("traceVariants"),
+        value: analysis.variants.length,
+        description: `${analysis.nonConformantCases} ${tDiag("nonConformantCasesLabel")}`,
+        icon: Layers,
+        iconColorClassName: "bg-indigo-500/10 text-indigo-500",
+      },
+    ],
+    [analysis, tDiag, fitnessColor],
+  );
+
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col gap-4 w-full @container">
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5">
-        {/* Fitness Card */}
-        <AppCard className="p-4 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {tDiag("overallFitnessScore")}
-            </span>
-            <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-500">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className={`text-2xl font-bold font-mono tracking-tight ${fitnessColor}`}>
-              {analysis.overallFitnessScore}%
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {analysis.conformantCases} / {analysis.totalCases} {tDiag("conformantCasesLabel")}
-            </p>
-          </div>
-        </AppCard>
-
-        {/* Skipped Steps */}
-        <AppCard className="p-4 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {tDiag("skippedActivities")}
-            </span>
-            <div className="p-1.5 rounded-md bg-rose-500/10 text-rose-500">
-              <XCircle className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400">
-              {analysis.violationCounts.skipped_activity}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{tDiag("skippedActivitiesDesc")}</p>
-          </div>
-        </AppCard>
-
-        {/* Out-of-Order */}
-        <AppCard className="p-4 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {tDiag("outOfOrderActivities")}
-            </span>
-            <div className="p-1.5 rounded-md bg-amber-500/10 text-amber-500">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold font-mono tracking-tight text-amber-600 dark:text-amber-400">
-              {analysis.violationCounts.out_of_order}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{tDiag("outOfOrderDesc")}</p>
-          </div>
-        </AppCard>
-
-        {/* Wrong Resource */}
-        <AppCard className="p-4 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {tDiag("wrongResourceViolations")}
-            </span>
-            <div className="p-1.5 rounded-md bg-violet-500/10 text-violet-500">
-              <UserX className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold font-mono tracking-tight text-violet-600 dark:text-violet-400">
-              {analysis.violationCounts.wrong_resource}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{tDiag("wrongResourceDesc")}</p>
-          </div>
-        </AppCard>
-
-        {/* Unexpected Activity */}
-        <AppCard className="p-4 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {tDiag("unexpectedActivities")}
-            </span>
-            <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-500">
-              <FileWarning className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold font-mono tracking-tight text-blue-600 dark:text-blue-400">
-              {analysis.violationCounts.unexpected_activity}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {tDiag("unexpectedActivitiesDesc")}
-            </p>
-          </div>
-        </AppCard>
-
-        {/* Variants Count */}
-        <AppCard className="p-4 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {tDiag("traceVariants")}
-            </span>
-            <div className="p-1.5 rounded-md bg-indigo-500/10 text-indigo-500">
-              <Layers className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold font-mono tracking-tight text-foreground">
-              {analysis.variants.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {analysis.nonConformantCases} {tDiag("nonConformantCasesLabel")}
-            </p>
-          </div>
-        </AppCard>
+      <div className="grid grid-cols-2 @[540px]:grid-cols-3 gap-3.5">
+        {kpiCards.map((kpi) => (
+          <KpiStatCard key={kpi.id} {...kpi} className="p-4" />
+        ))}
       </div>
 
       {/* Action Toolbar & Filters */}
-      <AppCard className="p-4 bg-card border border-border/70 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div className="flex items-center gap-2 flex-1 min-w-[280px]">
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={tDiag("searchCaseOrViolation")}
-            className="h-8 text-xs max-w-sm"
-          />
+      <div className="w-full flex flex-wrap items-center justify-between gap-3 bg-card border border-border/70 p-3 px-3.5 rounded-xl shadow-xs">
+        <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={tDiag("searchCaseOrViolation")}
+              className="h-8 text-xs pl-8 pr-3 bg-background/70"
+            />
+          </div>
 
           {/* Status Filter */}
-          <div className="w-40">
+          <div className="w-36 shrink-0">
             <AppSelect
               value={statusFilter}
               onValueChange={(val) => setStatusFilter(val as "all" | "conformant" | "violation")}
@@ -243,7 +195,7 @@ export function ConformanceAnalysisView({
           </div>
 
           {/* Type Filter */}
-          <div className="w-48">
+          <div className="w-44 shrink-0">
             <AppSelect
               value={violationTypeFilter}
               onValueChange={(val) => setViolationTypeFilter(val)}
@@ -254,11 +206,13 @@ export function ConformanceAnalysisView({
         </div>
 
         {/* Generate BPMN from Log */}
-        <DiscoveredBpmnDialog events={events} />
-      </AppCard>
+        <div className="shrink-0">
+          <DiscoveredBpmnDialog events={events} />
+        </div>
+      </div>
 
       {/* Case Violations Table using standard shadcn Table components */}
-      <AppCard className="p-0 overflow-hidden border-border/80 shadow-xs">
+      <div className="rounded-xl border border-border/70 overflow-hidden bg-card shadow-xs">
         <Table>
           <TableHeader>
             <TableRow className="border-b border-border/70 bg-muted/30 text-muted-foreground font-semibold hover:bg-muted/30">
@@ -294,7 +248,7 @@ export function ConformanceAnalysisView({
             )}
           </TableBody>
         </Table>
-      </AppCard>
+      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { Plus, ArrowUpRight, Workflow, Layers, Cpu, GitBranch } from "lucide-rea
 
 import { useProjectsIndex, loadProject } from "@/store/useProjectsIndex";
 import { useHydration } from "@/hooks";
-import { ProjectSidebar, DashboardTopbar, NewProjectDialog } from "@/components/layout";
+import { DashboardTopbar, NewProjectDialog } from "@/components/layout";
 import {
   RecentProjectsList,
   EmptyProjectsState,
@@ -94,10 +94,8 @@ export function HomeContainer() {
   ];
 
   return (
-    <div className="flex h-svh overflow-hidden bg-background">
-      <ProjectSidebar />
-
-      <div className="flex-1 flex flex-col min-w-0 h-svh overflow-hidden">
+    <div className="flex h-svh flex-col overflow-hidden bg-background">
+      <div className="flex flex-col min-w-0 h-svh overflow-hidden">
         {/* Donezo Top Navigation Bar */}
         <DashboardTopbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 

@@ -17,4 +17,5 @@ export const STORAGE_KEYS = {
   PROJECTS_INDEX: "cycletime:projects-index",
   PROJECT_PREFIX: "cycletime:project:",
   RIGHT_PANEL_COLLAPSED: "rightpanel:collapsed",
+  ACTIVITY_BAR_COLLAPSED: "activitybar:collapsed",
 } as const;
