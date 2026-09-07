@@ -110,7 +110,7 @@ export function ProjectParametersDrawer({
         maxWidth: collapsed ? "0px" : `${maxAllowedWidth}px`,
       }}
       className={cn(
-        "rounded-xl border border-border/70 bg-card shadow-sm flex flex-col h-[calc(100svh-1.5rem)] my-3 mr-3 relative transition-all duration-300 ease-in-out overflow-hidden z-10 shrink-0",
+        "rounded-2xl border border-border/70 bg-card shadow-xs flex flex-col h-[calc(100svh-1.5rem)] my-3 mr-3 relative transition-all duration-300 ease-in-out overflow-hidden z-10 shrink-0",
         collapsed && "w-0 min-w-0 mr-0 border-0 shadow-none pointer-events-none",
         isResizing && "select-none transition-none",
       )}

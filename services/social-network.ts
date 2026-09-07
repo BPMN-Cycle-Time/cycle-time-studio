@@ -32,6 +32,8 @@ export function buildSocialNetwork(
       evaluations: [],
       maxEdgeWeight: 0,
       totalInteractions: 0,
+      availableThresholds: [1],
+      thresholdEdgeCounts: { 1: 0 },
     };
   }
 
@@ -75,21 +77,63 @@ export function buildSocialNetwork(
       }
     }
   } else {
-    // Working Together: co-occurrence of resources in the same case
+    // Working Together: co-occurrence of resources in the same case with step-distance decay (beta^(d-1))
+    // van der Aalst, Reijers & Song (2005): resources executing adjacent/close tasks have higher collaboration strength.
+    const pairDecayWeights = new Map<string, number>();
+
     for (const caseEvents of traces.values()) {
-      const caseResources = Array.from(new Set(caseEvents.map((e) => e.resource)));
+      const sorted = [...caseEvents].sort(
+        (a, b) => new Date(a.startTimestamp).getTime() - new Date(b.startTimestamp).getTime(),
+      );
+
+      // Collect step indices for each resource in this trace
+      const resourceIndices = new Map<string, number[]>();
+      for (let idx = 0; idx < sorted.length; idx++) {
+        const res = sorted[idx].resource;
+        const list = resourceIndices.get(res) || [];
+        list.push(idx);
+        resourceIndices.set(res, list);
+      }
+
+      const caseResources = Array.from(resourceIndices.keys());
       for (let i = 0; i < caseResources.length; i++) {
         for (let j = i + 1; j < caseResources.length; j++) {
           const rA = caseResources[i];
           const rB = caseResources[j];
           const [source, target] = [rA, rB].sort();
           const key = `${source}<->${target}`;
-          edgeWeights.set(key, (edgeWeights.get(key) || 0) + 1);
 
-          workingTogetherCounts[source] = (workingTogetherCounts[source] || 0) + 1;
-          workingTogetherCounts[target] = (workingTogetherCounts[target] || 0) + 1;
+          // Find minimum step distance d between rA and rB in this trace (d >= 1)
+          const indicesA = resourceIndices.get(rA) || [];
+          const indicesB = resourceIndices.get(rB) || [];
+          let minDistance = Infinity;
+
+          for (const posA of indicesA) {
+            for (const posB of indicesB) {
+              const d = Math.abs(posA - posB);
+              if (d < minDistance) {
+                minDistance = d;
+              }
+            }
+          }
+
+          if (minDistance !== Infinity && minDistance >= 1) {
+            // Step decay beta^(d-1) with beta = 0.6
+            const decay = Math.pow(0.6, minDistance - 1);
+            pairDecayWeights.set(key, (pairDecayWeights.get(key) || 0) + decay);
+          }
         }
       }
+    }
+
+    // Convert accumulated decay weights to clean integers
+    for (const [key, rawWeight] of pairDecayWeights.entries()) {
+      const weight = Math.max(1, Math.round(rawWeight));
+      edgeWeights.set(key, weight);
+
+      const [source, target] = key.split("<->");
+      workingTogetherCounts[source] = (workingTogetherCounts[source] || 0) + weight;
+      workingTogetherCounts[target] = (workingTogetherCounts[target] || 0) + weight;
     }
   }
 
@@ -149,33 +193,48 @@ export function buildSocialNetwork(
     }
   }
 
-  // 4. Build Distinct Edges for Graph Topology & Centrality Evaluation
+  // 4. Build Distinct Edges for Graph Topology & Centrality Evaluation (using filtered edges)
   const distinctEdges: Array<{ source: string; target: string }> = [];
   const distinctEdgeSet = new Set<string>();
 
-  for (const key of edgeWeights.keys()) {
-    if (metric === "handover") {
-      const [s, t] = key.split("-->");
-      if (s && t && s !== t && !distinctEdgeSet.has(`${s}->${t}`)) {
+  for (const edge of edges) {
+    const s = edge.source;
+    const t = edge.target;
+    if (s && t && s !== t) {
+      if (!distinctEdgeSet.has(`${s}->${t}`)) {
         distinctEdgeSet.add(`${s}->${t}`);
         distinctEdges.push({ source: s, target: t });
       }
-    } else {
-      const [s, t] = key.split("<->");
-      if (s && t && s !== t) {
-        if (!distinctEdgeSet.has(`${s}->${t}`)) {
-          distinctEdgeSet.add(`${s}->${t}`);
-          distinctEdges.push({ source: s, target: t });
-        }
-        if (!distinctEdgeSet.has(`${t}->${s}`)) {
-          distinctEdgeSet.add(`${t}->${s}`);
-          distinctEdges.push({ source: t, target: s });
-        }
+      if (metric !== "handover" && !distinctEdgeSet.has(`${t}->${s}`)) {
+        distinctEdgeSet.add(`${t}->${s}`);
+        distinctEdges.push({ source: t, target: s });
       }
     }
   }
 
   const evaluations = computeSocialEvaluation(allResources, distinctEdges);
+
+  // 5. Dynamic Thresholds based on real edge weight distribution
+  const allWeights = Array.from(edgeWeights.values()).filter((w) => w > 0);
+  let availableThresholds: number[] = [1];
+  const thresholdEdgeCounts: Record<number, number> = {};
+
+  if (allWeights.length > 0) {
+    const uniqueSorted = Array.from(new Set(allWeights)).sort((a, b) => a - b);
+    if (uniqueSorted.length <= 4) {
+      availableThresholds = Array.from(new Set([1, ...uniqueSorted]));
+    } else {
+      const step1 = 1;
+      const step2 = uniqueSorted[Math.floor(uniqueSorted.length * 0.33)];
+      const step3 = uniqueSorted[Math.floor(uniqueSorted.length * 0.67)];
+      const step4 = uniqueSorted[uniqueSorted.length - 1];
+      availableThresholds = Array.from(new Set([step1, step2, step3, step4])).sort((a, b) => a - b);
+    }
+  }
+
+  for (const th of availableThresholds) {
+    thresholdEdgeCounts[th] = allWeights.filter((w) => w >= th).length;
+  }
 
   return {
     metric,
@@ -184,6 +243,8 @@ export function buildSocialNetwork(
     evaluations,
     maxEdgeWeight: maxWeight,
     totalInteractions,
+    availableThresholds,
+    thresholdEdgeCounts,
   };
 }
 

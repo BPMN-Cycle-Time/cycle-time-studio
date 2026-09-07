@@ -3,4 +3,7 @@ export * from "./bpmn";
 export * from "./xlsx";
 export * from "./graph";
 export * from "./event-log";
+export * from "./event-log-parser";
+export * from "./conformance";
+export * from "./process-discovery";
 export * from "./social-network";

@@ -39,4 +39,6 @@ export interface SocialNetworkData {
   evaluations: SocialEvaluationRow[];
   maxEdgeWeight: number;
   totalInteractions: number;
+  availableThresholds: number[];
+  thresholdEdgeCounts?: Record<number, number>;
 }

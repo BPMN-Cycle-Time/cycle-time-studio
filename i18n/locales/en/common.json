@@ -51,5 +51,14 @@
   },
   "inputs": {
     "search": "Search…"
+  },
+  "table": {
+    "rowsPerPage": "Rows per page",
+    "showingEntries": "Showing {start} to {end} of {total} entries",
+    "pageOf": "Page {current} of {total}",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "firstPage": "First page",
+    "lastPage": "Last page"
   }
 }

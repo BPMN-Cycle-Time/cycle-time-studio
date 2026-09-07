@@ -33,48 +33,55 @@ export function resolveResource(
   holder: { resource?: string; label?: string; taskId?: string | null; id?: string },
   tasks?: Task[],
 ): string {
-  if (holder.resource?.trim()) return holder.resource.trim();
-
-  if (holder.taskId && tasks) {
+  let primary = "";
+  if (holder.resource?.trim()) {
+    primary = holder.resource.trim();
+  } else if (holder.taskId && tasks) {
     const task = tasks.find((t) => t.id === holder.taskId);
-    if (task?.resource?.trim()) return task.resource.trim();
+    if (task?.resource?.trim()) {
+      primary = task.resource.trim();
+    }
   }
 
-  // Infer deterministic role based on label / task name
-  const text = (holder.label || holder.id || "task").toLowerCase();
-  if (text.includes("approve") || text.includes("phê duyệt") || text.includes("manager")) {
-    return "Department Manager";
-  }
-  if (
-    text.includes("check") ||
-    text.includes("review") ||
-    text.includes("kiểm tra") ||
-    text.includes("thẩm định")
-  ) {
-    return "Reviewer";
-  }
-  if (
-    text.includes("finance") ||
-    text.includes("payment") ||
-    text.includes("invoice") ||
-    text.includes("thanh toán")
-  ) {
-    return "Finance Officer";
-  }
-  if (
-    text.includes("auto") ||
-    text.includes("system") ||
-    text.includes("api") ||
-    text.includes("hệ thống")
-  ) {
-    return "System / Service";
-  }
-  if (text.includes("analyze") || text.includes("phân tích") || text.includes("đánh giá")) {
-    return "Senior Analyst";
+  if (!primary) {
+    // Infer deterministic role based on label / task name
+    const text = (holder.label || holder.id || "task").toLowerCase();
+    if (text.includes("approve") || text.includes("phê duyệt") || text.includes("manager")) {
+      primary = "Department Manager";
+    } else if (
+      text.includes("check") ||
+      text.includes("review") ||
+      text.includes("kiểm tra") ||
+      text.includes("thẩm định")
+    ) {
+      primary = "Reviewer";
+    } else if (
+      text.includes("finance") ||
+      text.includes("payment") ||
+      text.includes("invoice") ||
+      text.includes("thanh toán")
+    ) {
+      primary = "Finance Officer";
+    } else if (
+      text.includes("auto") ||
+      text.includes("system") ||
+      text.includes("api") ||
+      text.includes("hệ thống")
+    ) {
+      primary = "System / Service";
+    } else if (
+      text.includes("analyze") ||
+      text.includes("phân tích") ||
+      text.includes("đánh giá")
+    ) {
+      primary = "Senior Analyst";
+    } else {
+      const idx = hashString(text) % (DEFAULT_ROLES.length - 1);
+      primary = DEFAULT_ROLES[idx];
+    }
   }
 
-  const idx = hashString(text) % (DEFAULT_ROLES.length - 1);
-  return DEFAULT_ROLES[idx];
+  return primary;
 }
 
 function getUnitMultiplierMs(unit: string): number {

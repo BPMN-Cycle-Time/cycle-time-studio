@@ -11,6 +11,9 @@ import {
   Layers,
   Clock,
   Coins,
+  ShieldCheck,
+  Table2,
+  X,
 } from "lucide-react";
 import type { Block, Task, EventLogItem } from "@/types";
 import {
@@ -19,7 +22,20 @@ import {
   exportEventLogToCsv,
   exportEventLogToXes,
 } from "@/services/event-log";
-import { AppCard, Button, DataTable, Badge, AppSelect, type TableColumn } from "@/components/ui";
+import {
+  AppCard,
+  Button,
+  DataTable,
+  Badge,
+  AppSelect,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  type TableColumn,
+} from "@/components/ui";
+import { UploadEventLogDialog } from "./upload-event-log-dialog";
+import { ConformanceAnalysisView } from "./conformance-analysis-view";
+import { DiscoveredBpmnDialog } from "./discovered-bpmn-dialog";
 
 interface EventLogPanelProps {
   blocks: Block[];
@@ -32,6 +48,8 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
   const tDiag = useTranslations("diagram");
   const [caseCount, setCaseCount] = useState<number>(20);
   const [seed, setSeed] = useState<number>(1);
+  const [activeTab, setActiveTab] = useState<"data" | "conformance">("data");
+  const [uploadedEvents, setUploadedEvents] = useState<EventLogItem[] | null>(null);
 
   const caseOptions = useMemo(
     () => [
@@ -44,17 +62,23 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
   );
 
   // Generate events based on blocks, tasks, caseCount, and seed
-  const events = useMemo(() => {
+  const generatedEvents = useMemo(() => {
     if (!blocks || blocks.length === 0) return [];
-    // seed triggers regeneration
     void seed;
     return generateEventLog(blocks, tasks, unit, { caseCount });
   }, [blocks, tasks, unit, caseCount, seed]);
 
+  const events = uploadedEvents ?? generatedEvents;
+
   const summary = useMemo(() => computeEventLogSummary(events), [events]);
 
   const handleRegenerate = useCallback(() => {
+    setUploadedEvents(null);
     setSeed((s) => s + 1);
+  }, []);
+
+  const handleResetToSimulated = useCallback(() => {
+    setUploadedEvents(null);
   }, []);
 
   const handleDownloadCsv = useCallback(() => {
@@ -166,38 +190,87 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
   );
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full pb-6">
+    <div className="flex flex-col gap-3.5 w-full h-full pb-6">
       {/* Header & Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-card border border-border/70 p-4 rounded-xl shadow-xs">
-        <div className="flex flex-col gap-0.5">
-          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Activity className="w-4 h-4 text-primary" />
-            {tDiag("eventLogTitle")}
-          </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card border border-border/70 p-3 px-3.5 rounded-xl shadow-xs">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+              <Activity className="w-4 h-4 text-primary" />
+              {tDiag("eventLogTitle")}
+            </h2>
+            {uploadedEvents ? (
+              <Badge
+                variant="secondary"
+                className="text-xs bg-primary/10 text-primary border border-primary/20 flex items-center gap-1"
+              >
+                <span>{tDiag("sourceUploadedFile")}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleResetToSimulated}
+                  className="h-4 w-4 p-0 text-primary hover:text-destructive hover:bg-transparent"
+                  title={tDiag("resetToSimulated")}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs text-muted-foreground">
+                {tDiag("sourceSimulatedBpmn")}
+              </Badge>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground">{tDiag("eventLogDesc")}</p>
         </div>
 
+        {/* Action Controls & Sub-tabs */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>{tDiag("caseCount")}:</span>
-            <div className="w-32">
-              <AppSelect
-                value={String(caseCount)}
-                onValueChange={(val) => setCaseCount(Number(val))}
-                options={caseOptions}
-              />
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRegenerate}
-            className="text-xs flex items-center gap-1.5"
+          {/* Sub-tabs: Data vs Conformance */}
+          <Tabs
+            value={activeTab}
+            onValueChange={(val) => setActiveTab(val as "data" | "conformance")}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            {tDiag("generateEventLog")}
-          </Button>
+            <TabsList className="h-8">
+              <TabsTrigger value="data" className="text-xs px-2.5 h-6">
+                <Table2 className="w-3 h-3 mr-1.5" />
+                {tDiag("tabEventLogData")}
+              </TabsTrigger>
+              <TabsTrigger value="conformance" className="text-xs px-2.5 h-6">
+                <ShieldCheck className="w-3 h-3 mr-1.5" />
+                {tDiag("tabConformanceChecking")}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <UploadEventLogDialog onImport={(items) => setUploadedEvents(items)} />
+
+          {!uploadedEvents && (
+            <>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span>{tDiag("caseCount")}:</span>
+                <div className="w-28">
+                  <AppSelect
+                    value={String(caseCount)}
+                    onValueChange={(val) => setCaseCount(Number(val))}
+                    options={caseOptions}
+                  />
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRegenerate}
+                className="text-xs flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                {tDiag("generateEventLog")}
+              </Button>
+            </>
+          )}
+
+          <DiscoveredBpmnDialog events={events} />
 
           <Button
             variant="outline"
@@ -223,113 +296,141 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
         </div>
       </div>
 
-      {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <AppCard className="p-3.5 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
-              {tDiag("totalEvents")}
-            </span>
-            <div className="p-1 rounded-md bg-indigo-500/10 text-indigo-500 shrink-0">
-              <Layers className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div className="text-xl font-bold font-mono tracking-tight text-foreground">
-            {summary.totalEvents.toLocaleString()}
-          </div>
-        </AppCard>
+      {activeTab === "conformance" ? (
+        <ConformanceAnalysisView
+          events={events}
+          blocks={blocks}
+          tasks={tasks}
+          unit={unit}
+          currency={currency}
+        />
+      ) : (
+        <>
+          {/* Summary KPI Cards - 6 columns row */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            <AppCard className="p-3 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate"
+                  title={tDiag("totalEvents")}
+                >
+                  {tDiag("totalEvents")}
+                </span>
+                <div className="p-1 rounded-md bg-indigo-500/10 text-indigo-500 shrink-0">
+                  <Layers className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="text-xl font-bold font-mono tracking-tight text-foreground">
+                {summary.totalEvents.toLocaleString()}
+              </div>
+            </AppCard>
 
-        <AppCard className="p-3.5 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
-              {tDiag("totalCases")}
-            </span>
-            <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-500 shrink-0">
-              <Activity className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div className="text-xl font-bold font-mono tracking-tight text-foreground">
-            {summary.totalCases}
-          </div>
-        </AppCard>
+            <AppCard className="p-3 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate"
+                  title={tDiag("totalCases")}
+                >
+                  {tDiag("totalCases")}
+                </span>
+                <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-500 shrink-0">
+                  <Activity className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="text-xl font-bold font-mono tracking-tight text-foreground">
+                {summary.totalCases}
+              </div>
+            </AppCard>
 
-        <AppCard className="p-3.5 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
-              {tDiag("distinctActivities")}
-            </span>
-            <div className="p-1 rounded-md bg-amber-500/10 text-amber-500 shrink-0">
-              <Layers className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div className="text-xl font-bold font-mono tracking-tight text-foreground">
-            {summary.distinctActivities}
-          </div>
-        </AppCard>
+            <AppCard className="p-3 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate"
+                  title={tDiag("distinctActivities")}
+                >
+                  {tDiag("distinctActivities")}
+                </span>
+                <div className="p-1 rounded-md bg-amber-500/10 text-amber-500 shrink-0">
+                  <Layers className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="text-xl font-bold font-mono tracking-tight text-foreground">
+                {summary.distinctActivities}
+              </div>
+            </AppCard>
 
-        <AppCard className="p-3.5 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
-              {tDiag("distinctResources")}
-            </span>
-            <div className="p-1 rounded-md bg-violet-500/10 text-violet-500 shrink-0">
-              <Users className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div className="text-xl font-bold font-mono tracking-tight text-foreground">
-            {summary.distinctResources}
-          </div>
-        </AppCard>
+            <AppCard className="p-3 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate"
+                  title={tDiag("distinctResources")}
+                >
+                  {tDiag("distinctResources")}
+                </span>
+                <div className="p-1 rounded-md bg-violet-500/10 text-violet-500 shrink-0">
+                  <Users className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="text-xl font-bold font-mono tracking-tight text-foreground">
+                {summary.distinctResources}
+              </div>
+            </AppCard>
 
-        <AppCard className="p-3.5 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
-              {tDiag("avgCaseDuration")}
-            </span>
-            <div className="p-1 rounded-md bg-sky-500/10 text-sky-500 shrink-0">
-              <Clock className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-bold font-mono tracking-tight text-foreground">
-              {summary.avgCaseDuration}
-            </span>
-            <span className="text-xs text-muted-foreground font-medium">{unit}</span>
-          </div>
-        </AppCard>
+            <AppCard className="p-3 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate"
+                  title={tDiag("avgCaseDuration")}
+                >
+                  {tDiag("avgCaseDuration")}
+                </span>
+                <div className="p-1 rounded-md bg-sky-500/10 text-sky-500 shrink-0">
+                  <Clock className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl font-bold font-mono tracking-tight text-foreground">
+                  {summary.avgCaseDuration}
+                </span>
+                <span className="text-[11px] text-muted-foreground font-medium">{unit}</span>
+              </div>
+            </AppCard>
 
-        <AppCard className="p-3.5 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
-              {tDiag("avgCaseCost")}
-            </span>
-            <div className="p-1 rounded-md bg-amber-500/10 text-amber-500 shrink-0">
-              <Coins className="w-3.5 h-3.5" />
-            </div>
+            <AppCard className="p-3 bg-card/70 border-border/80 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate"
+                  title={tDiag("avgCaseCost")}
+                >
+                  {tDiag("avgCaseCost")}
+                </span>
+                <div className="p-1 rounded-md bg-amber-500/10 text-amber-500 shrink-0">
+                  <Coins className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="text-xl font-bold font-mono tracking-tight text-foreground">
+                {currency}
+                {summary.avgCaseCost.toLocaleString()}
+              </div>
+            </AppCard>
           </div>
-          <div className="text-xl font-bold font-mono tracking-tight text-foreground">
-            {currency}
-            {summary.avgCaseCost.toLocaleString()}
-          </div>
-        </AppCard>
-      </div>
 
-      {/* Main Table */}
-      <AppCard className="p-4 flex-1 flex flex-col min-h-[420px]">
-        {events.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-12">
-            <Activity className="w-8 h-8 mb-2 opacity-40" />
-            <p className="text-sm">{tDiag("noEventsFound")}</p>
-          </div>
-        ) : (
-          <DataTable<EventLogItem>
-            data={events}
-            columns={columns}
-            searchPlaceholder={tDiag("searchEventLog")}
-            searchKeys={["caseId", "activity", "resource"]}
-          />
-        )}
-      </AppCard>
+          {/* Main Table - DataTable renders directly without redundant outer AppCard border/padding */}
+          {events.length === 0 ? (
+            <AppCard className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-12 border-border/80">
+              <Activity className="w-8 h-8 mb-2 opacity-40" />
+              <p className="text-sm">{tDiag("noEventsFound")}</p>
+            </AppCard>
+          ) : (
+            <DataTable<EventLogItem>
+              data={events}
+              columns={columns}
+              searchPlaceholder={tDiag("searchEventLog")}
+              searchKeys={["caseId", "activity", "resource"]}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 }

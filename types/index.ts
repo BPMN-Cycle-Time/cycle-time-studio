@@ -6,3 +6,4 @@ export * from "./simulation";
 export * from "./graph";
 export * from "./event-log";
 export * from "./social-network";
+export * from "./conformance";

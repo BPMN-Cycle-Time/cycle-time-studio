@@ -45,9 +45,9 @@ export function DiagramPanel({ blocks, unit }: { blocks: Block[]; unit: string }
 
   return (
     <Tabs defaultValue="model" className="w-full flex-1 flex flex-col">
-      <TabsList className="shrink-0 self-start">
+      <TabsList className="shrink-0 self-start bg-muted/60 p-1 rounded-xl border border-border/60 shadow-2xs">
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
+          <TabsTrigger key={tab.value} value={tab.value} className="rounded-lg text-xs font-medium">
             {tab.label}
           </TabsTrigger>
         ))}

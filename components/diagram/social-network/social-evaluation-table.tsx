@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { SocialEvaluationRow } from "@/types";
-import { DataTable, Badge, AppCard, type TableColumn } from "@/components/ui";
+import { DataTable, Badge, type TableColumn } from "@/components/ui";
 
 interface SocialEvaluationTableProps {
   evaluations: SocialEvaluationRow[];
@@ -95,45 +95,10 @@ export function SocialEvaluationTable({ evaluations }: SocialEvaluationTableProp
   );
 
   return (
-    <div className="flex flex-col gap-4 w-full">
-      {/* Table */}
-      <div className="w-full">
-        <DataTable<SocialEvaluationRow>
-          data={evaluations}
-          columns={columns}
-          searchKeys={["resource"]}
-        />
-      </div>
-
-      {/* 3 Metric Explanatory Cards (Directly matching course material) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-        <AppCard className="p-3.5 bg-muted/30 border border-border/50 flex flex-col gap-1.5">
-          <h4 className="text-xs font-bold text-foreground tracking-tight">
-            {tDiag("cardDegreeTitle")}
-          </h4>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            {tDiag("cardDegreeDesc")}
-          </p>
-        </AppCard>
-
-        <AppCard className="p-3.5 bg-muted/30 border border-border/50 flex flex-col gap-1.5">
-          <h4 className="text-xs font-bold text-foreground tracking-tight">
-            {tDiag("cardBetweennessTitle")}
-          </h4>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            {tDiag("cardBetweennessDesc")}
-          </p>
-        </AppCard>
-
-        <AppCard className="p-3.5 bg-muted/30 border border-border/50 flex flex-col gap-1.5">
-          <h4 className="text-xs font-bold text-foreground tracking-tight">
-            {tDiag("cardClosenessTitle")}
-          </h4>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            {tDiag("cardClosenessDesc")}
-          </p>
-        </AppCard>
-      </div>
-    </div>
+    <DataTable<SocialEvaluationRow>
+      data={evaluations}
+      columns={columns}
+      searchKeys={["resource"]}
+    />
   );
 }

@@ -23,7 +23,7 @@ export function SocialNodeInspector({
   const tDiag = useTranslations("diagram");
 
   return (
-    <AppCard className="lg:col-span-4 p-4 bg-card/80 flex flex-col shadow-xs border-border/70">
+    <AppCard className="p-3.5 bg-card/80 flex flex-col shadow-xs border-border/70">
       {selectedNode ? (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between border-b border-border/50 pb-2.5">

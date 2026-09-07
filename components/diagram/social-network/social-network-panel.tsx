@@ -6,11 +6,13 @@ import { Share2, ArrowRightLeft, Users2, Filter, RefreshCw, BarChart3, Table2 } 
 import type { Block, Task, SocialMetricType } from "@/types";
 import { generateEventLog } from "@/services/event-log";
 import { buildSocialNetwork } from "@/services/social-network";
-import { AppCard, Button, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
+import { Card, Button, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
 import { DiagramViewport } from "../diagram-viewport";
+import { SocialNetworkEdges } from "./social-network-edges";
 import { SocialMatrixTable } from "./social-matrix-table";
 import { SocialEvaluationTable } from "./social-evaluation-table";
 import { SocialNodeInspector } from "./social-node-inspector";
+import { SocialMetricsGuide } from "./social-metrics-guide";
 
 interface SocialNetworkPanelProps {
   blocks: Block[];
@@ -36,10 +38,20 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
     return generateEventLog(blocks, tasks, unit, { caseCount: 50 });
   }, [blocks, tasks, unit, seed]);
 
-  // Construct network graph
+  // Construct baseline network graph (unfiltered to derive dynamic thresholds & edge counts)
+  const baseNetwork = useMemo(() => {
+    return buildSocialNetwork(events, metric, 1);
+  }, [events, metric]);
+
+  const availableThresholds = baseNetwork.availableThresholds;
+  const thresholdEdgeCounts = baseNetwork.thresholdEdgeCounts || {};
+  const activeThreshold = availableThresholds.includes(minThreshold) ? minThreshold : 1;
+
+  // Construct filtered network graph based on active threshold
   const networkData = useMemo(() => {
-    return buildSocialNetwork(events, metric, minThreshold);
-  }, [events, metric, minThreshold]);
+    if (activeThreshold === 1) return baseNetwork;
+    return buildSocialNetwork(events, metric, activeThreshold);
+  }, [events, metric, activeThreshold, baseNetwork]);
 
   const selectedNode = useMemo(() => {
     if (!selectedNodeId) return null;
@@ -75,9 +87,9 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
   }, [networkData.nodes]);
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full pb-6">
+    <div className="flex flex-col gap-3.5 w-full h-full pb-6">
       {/* Header & Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-card border border-border/70 p-4 rounded-xl shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card border border-border/70 p-3 px-3.5 rounded-xl shadow-xs">
         <div className="flex flex-col gap-0.5">
           <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
             <Share2 className="w-4 h-4 text-primary" />
@@ -105,21 +117,37 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
             </TabsList>
           </Tabs>
 
-          {/* Min Weight Filter */}
+          {/* Min Weight Filter (Dynamic Thresholds) */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground border border-border/70 rounded-md px-2 py-1 bg-background/50">
-            <Filter className="w-3 h-3 text-muted-foreground" />
+            <Filter className="w-3 h-3 text-muted-foreground shrink-0" />
             <span>{tDiag("minThreshold")}:</span>
-            {[1, 2, 3, 5].map((thresh) => (
-              <Button
-                key={thresh}
-                variant={minThreshold === thresh ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setMinThreshold(thresh)}
-                className="h-6 px-2 py-0 text-xs font-mono"
-              >
-                {thresh}
-              </Button>
-            ))}
+            <div className="flex items-center gap-1">
+              {availableThresholds.map((thresh) => {
+                const count = thresholdEdgeCounts[thresh] ?? 0;
+                const isSelected = activeThreshold === thresh;
+                return (
+                  <Button
+                    key={thresh}
+                    variant={isSelected ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setMinThreshold(thresh)}
+                    className="h-6 px-1.5 py-0 text-xs font-mono flex items-center gap-1"
+                    title={`Threshold ${thresh}+ (${count} connections)`}
+                  >
+                    <span>{thresh === 1 ? "1" : `≥${thresh}`}</span>
+                    <span
+                      className={`text-[10px] px-1 rounded-full leading-tight ${
+                        isSelected
+                          ? "bg-primary-foreground/20 text-primary-foreground font-semibold"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </Button>
+                );
+              })}
+            </div>
           </div>
 
           <Button
@@ -137,11 +165,11 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
       {/* Main Content Layout: Full Width Canvas on top, stacked details below */}
       <div className="flex flex-col gap-4 w-full">
         {/* Top: Diagram Canvas (Full Width) */}
-        <AppCard className="w-full p-0 flex flex-col h-[560px] overflow-hidden relative shadow-xs">
+        <Card className="w-full p-4 flex flex-col h-[560px] overflow-hidden relative shadow-xs border-border/80">
           <DiagramViewport
             contentWidth={CANVAS_WIDTH}
             contentHeight={CANVAS_HEIGHT}
-            className="w-full h-full"
+            className="w-full h-full flex-1"
           >
             <svg
               width={CANVAS_WIDTH}
@@ -149,35 +177,6 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
               className="select-none overflow-visible"
               onClick={() => setSelectedNodeId(null)}
             >
-              <defs>
-                <marker
-                  id="social-arrow"
-                  viewBox="0 0 10 10"
-                  refX="18"
-                  refY="5"
-                  markerWidth="6"
-                  markerHeight="6"
-                  orient="auto-start-reverse"
-                >
-                  <path
-                    d="M 0 1 L 10 5 L 0 9 z"
-                    fill="currentColor"
-                    className="text-muted-foreground"
-                  />
-                </marker>
-                <marker
-                  id="social-arrow-active"
-                  viewBox="0 0 10 10"
-                  refX="18"
-                  refY="5"
-                  markerWidth="7"
-                  markerHeight="7"
-                  orient="auto-start-reverse"
-                >
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="currentColor" className="text-primary" />
-                </marker>
-              </defs>
-
               {/* Background circular guide */}
               <circle
                 cx={400}
@@ -189,93 +188,14 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
                 className="text-border/40"
               />
 
-              {/* Render Edges */}
-              {networkData.edges.map((edge) => {
-                const s = nodeMap.get(edge.source);
-                const t = nodeMap.get(edge.target);
-                if (!s || !t) return null;
-
-                const isConnected =
-                  !selectedNodeId ||
-                  edge.source === selectedNodeId ||
-                  edge.target === selectedNodeId;
-
-                const strokeWidth = Math.max(
-                  1.5,
-                  Math.min(6, 1.5 + (edge.weight / (networkData.maxEdgeWeight || 1)) * 4.5),
-                );
-
-                // Curved path calculation
-                const dx = t.x - s.x;
-                const dy = t.y - s.y;
-                const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-                const nx = -dy / dist;
-                const ny = dx / dist;
-
-                const curvature = metric === "handover" ? 24 : 0;
-                const mx = (s.x + t.x) / 2 + nx * curvature;
-                const my = (s.y + t.y) / 2 + ny * curvature;
-
-                const pathData =
-                  curvature > 0
-                    ? `M ${s.x} ${s.y} Q ${mx} ${my} ${t.x} ${t.y}`
-                    : `M ${s.x} ${s.y} L ${t.x} ${t.y}`;
-
-                return (
-                  <g
-                    key={edge.id}
-                    className={`transition-opacity duration-200 ${
-                      isConnected ? "opacity-100" : "opacity-15"
-                    }`}
-                  >
-                    <path
-                      d={pathData}
-                      fill="none"
-                      stroke={
-                        selectedNodeId &&
-                        (edge.source === selectedNodeId || edge.target === selectedNodeId)
-                          ? "var(--primary)"
-                          : "currentColor"
-                      }
-                      strokeWidth={strokeWidth}
-                      markerEnd={
-                        metric === "handover"
-                          ? selectedNodeId &&
-                            (edge.source === selectedNodeId || edge.target === selectedNodeId)
-                            ? "url(#social-arrow-active)"
-                            : "url(#social-arrow)"
-                          : undefined
-                      }
-                      className={
-                        selectedNodeId &&
-                        (edge.source === selectedNodeId || edge.target === selectedNodeId)
-                          ? "text-primary"
-                          : "text-border hover:text-muted-foreground"
-                      }
-                    />
-                    {/* Weight Badge */}
-                    <g transform={`translate(${mx}, ${my})`}>
-                      <rect
-                        x="-12"
-                        y="-8"
-                        width="24"
-                        height="16"
-                        rx="8"
-                        className="fill-card stroke-border/80"
-                        strokeWidth="1"
-                      />
-                      <text
-                        x="0"
-                        y="3.5"
-                        textAnchor="middle"
-                        className="text-[10px] font-mono font-bold fill-foreground"
-                      >
-                        {edge.weight}
-                      </text>
-                    </g>
-                  </g>
-                );
-              })}
+              {/* Render Edges (memoized subcomponent) */}
+              <SocialNetworkEdges
+                edges={networkData.edges}
+                nodeMap={nodeMap}
+                metric={metric}
+                selectedNodeId={selectedNodeId}
+                maxEdgeWeight={networkData.maxEdgeWeight}
+              />
 
               {/* Render Nodes */}
               {networkData.nodes.map((node) => {
@@ -288,18 +208,37 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
                   .toUpperCase();
 
                 const x = node.x ?? 400;
-                const y = node.y ?? 300;
+                const y = node.y ?? 260;
+
+                // Radial label placement: position labels outward from diagram center to prevent obscuring edge flow
+                const angleFromCenter = Math.atan2(y - 260, x - 400);
+                const labelOffsetX = Math.round(Math.cos(angleFromCenter) * 44);
+                const labelOffsetY = Math.round(Math.sin(angleFromCenter) * 38);
 
                 return (
                   <g
                     key={node.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${node.label}, ${node.activityCount} activities`}
+                    aria-pressed={isSelected}
                     transform={`translate(${x}, ${y})`}
-                    className="cursor-pointer transition-transform duration-200 hover:scale-105"
+                    className="group/node cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedNodeId(isSelected ? null : node.id);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setSelectedNodeId(isSelected ? null : node.id);
+                      }
+                    }}
                   >
+                    {/* Transparent buffer circle to stabilize hit-testing at the boundary */}
+                    <circle cx="0" cy="0" r="28" fill="transparent" pointerEvents="all" />
+
                     {/* Selection halo */}
                     {isSelected && (
                       <circle
@@ -308,47 +247,60 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
                         r="32"
                         fill="none"
                         stroke="var(--primary)"
-                        strokeWidth="3"
+                        strokeWidth="2.5"
                         strokeDasharray="4 2"
-                        className="animate-spin-slow"
+                        className="animate-spin-slow pointer-events-none"
                       />
                     )}
 
-                    {/* Main Node Circle */}
+                    {/* Subtle hover ring (fades in smoothly without any scale/jump jitter) */}
+                    {!isSelected && (
+                      <circle
+                        cx="0"
+                        cy="0"
+                        r="28"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="text-primary/0 group-hover/node:text-primary/40 transition-colors duration-200 pointer-events-none"
+                      />
+                    )}
+
+                    {/* Main Node Circle with smooth brightness and shadow on hover */}
                     <circle
                       cx="0"
                       cy="0"
                       r="24"
                       fill={node.color || "#3b82f6"}
-                      className="shadow-md"
+                      className="shadow-md transition-all duration-200 group-hover/node:brightness-110 group-hover/node:drop-shadow-md"
                     />
 
                     {/* Initials */}
                     <text
                       x="0"
-                      y="5"
+                      y="4.5"
                       textAnchor="middle"
-                      className="text-xs font-bold fill-white pointer-events-none"
+                      className="text-xs font-bold fill-white pointer-events-none select-none"
                     >
                       {initials}
                     </text>
 
-                    {/* Node Label Card below */}
-                    <g transform="translate(0, 36)">
+                    {/* Node Label Card positioned radially outward */}
+                    <g transform={`translate(${labelOffsetX}, ${labelOffsetY})`}>
                       <rect
-                        x="-54"
-                        y="-10"
-                        width="108"
+                        x="-52"
+                        y="-11"
+                        width="104"
                         height="22"
                         rx="6"
-                        className="fill-card/90 stroke-border shadow-xs"
+                        className="fill-card/95 stroke-border/80 group-hover/node:stroke-primary/60 group-hover/node:shadow-sm transition-all duration-200"
                         strokeWidth="1"
                       />
                       <text
                         x="0"
-                        y="5"
+                        y="4"
                         textAnchor="middle"
-                        className="text-[11px] font-semibold fill-foreground pointer-events-none"
+                        className="text-[11px] font-semibold fill-foreground group-hover/node:fill-primary pointer-events-none select-none transition-colors duration-200"
                       >
                         {node.label.length > 14 ? `${node.label.slice(0, 13)}…` : node.label}
                       </text>
@@ -358,34 +310,37 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
               })}
             </svg>
           </DiagramViewport>
-        </AppCard>
+        </Card>
 
         {/* Bottom Details: Node Inspector / Network Insights & Interaction Matrix Table */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full items-start">
-          {/* Left: Node Inspector & Insights Card */}
-          <SocialNodeInspector
-            selectedNode={selectedNode}
-            onClearSelection={() => setSelectedNodeId(null)}
-            mostActiveNode={mostActiveNode}
-            topEdge={topEdge}
-            totalNodes={networkData.nodes.length}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 w-full items-start">
+          {/* Left Column (col-span-4): Node Inspector / Network Insights + Metrics Guide */}
+          <div className="lg:col-span-4 flex flex-col gap-3">
+            <SocialNodeInspector
+              selectedNode={selectedNode}
+              onClearSelection={() => setSelectedNodeId(null)}
+              mostActiveNode={mostActiveNode}
+              topEdge={topEdge}
+              totalNodes={networkData.nodes.length}
+            />
+            <SocialMetricsGuide />
+          </div>
 
-          {/* Right: Sub-Tabs for Evaluation & Matrix Table */}
-          <AppCard className="lg:col-span-8 p-4 flex flex-col shadow-xs border-border/70">
+          {/* Right Column (col-span-8): Sub-Tabs for Evaluation & Matrix Table */}
+          <div className="lg:col-span-8 flex flex-col gap-2.5">
             <Tabs defaultValue="evaluation" className="w-full flex flex-col">
-              <div className="flex items-center justify-between gap-2 mb-3 border-b border-border/50 pb-2.5">
-                <TabsList className="h-8">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <TabsList className="h-8 bg-muted/60 p-0.5 rounded-lg border border-border/60">
                   <TabsTrigger
                     value="evaluation"
-                    className="text-xs px-3 h-6 flex items-center gap-1.5"
+                    className="text-xs px-3 h-7 flex items-center gap-1.5 rounded-md"
                   >
                     <BarChart3 className="w-3.5 h-3.5" />
                     {tDiag("evaluationTab")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="matrix"
-                    className="text-xs px-3 h-6 flex items-center gap-1.5"
+                    className="text-xs px-3 h-7 flex items-center gap-1.5 rounded-md"
                   >
                     <Table2 className="w-3.5 h-3.5" />
                     {tDiag("interactionTab")}
@@ -404,7 +359,7 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
                 />
               </TabsContent>
             </Tabs>
-          </AppCard>
+          </div>
         </div>
       </div>
     </div>

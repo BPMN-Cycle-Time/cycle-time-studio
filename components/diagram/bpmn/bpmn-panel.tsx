@@ -308,12 +308,12 @@ export function BpmnPanel({
         onPreviewSync={handlePreviewSync}
       />
 
-      <div className="relative border rounded-lg bg-card shadow-sm w-full flex-1 min-h-[500px] flex flex-col overflow-hidden">
+      <div className="relative rounded-2xl border border-border/80 bg-card shadow-xs w-full flex-1 min-h-[500px] flex flex-col overflow-hidden">
         <div ref={containerRef} className="bpmn-canvas flex-1 w-full h-full" />
 
         {/* Floating Zoom Controls Bar */}
         <div
-          className="absolute bottom-4 right-4 z-20 flex items-center gap-1 bg-card/90 backdrop-blur-md border border-border/80 shadow-md rounded-lg p-1 transition-all"
+          className="absolute bottom-4 right-4 z-20 flex items-center gap-1 bg-card/90 backdrop-blur-md border border-border/80 shadow-xs rounded-xl p-1 transition-all"
           onMouseDown={(e) => e.stopPropagation()}
         >
           <Button

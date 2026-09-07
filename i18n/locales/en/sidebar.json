@@ -26,5 +26,13 @@
   "share": "Share",
   "dataTable": "Data Table",
   "vault": "Vault",
-  "apps": "Apps"
+  "apps": "Apps",
+  "menu": "MENU",
+  "general": "GENERAL",
+  "dashboard": "Dashboard",
+  "promoTitle": "Simulation Studio",
+  "promoDesc": "Cycle time & cost calculation engine",
+  "promoBtn": "Explore",
+  "settings": "Settings",
+  "help": "Help"
 }

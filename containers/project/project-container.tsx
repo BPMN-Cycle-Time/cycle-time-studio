@@ -44,7 +44,7 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
   }, [setRightCollapsed]);
 
   return (
-    <div className="flex h-svh overflow-hidden bg-muted/30 dark:bg-zinc-950/60">
+    <div className="flex h-svh overflow-hidden bg-background">
       <ProjectSidebar />
 
       {!project ? (
@@ -55,7 +55,7 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
         <>
           {/* Middle column — diagram */}
           <div className="flex-1 min-w-[500px] flex flex-col h-svh overflow-hidden">
-            <div className="w-full h-full px-5 py-3 flex-1 min-h-0 flex flex-col overflow-y-auto no-scrollbar">
+            <div className="w-full h-full px-3 py-3 flex-1 min-h-0 flex flex-col overflow-y-auto no-scrollbar">
               <ProjectHeader
                 rightCollapsed={rightCollapsed}
                 onExpandRightPanel={handleExpandRightPanel}

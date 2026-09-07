@@ -43,7 +43,7 @@ export function AppInput({
   const suffixPadding = suffix
     ? typeof suffix === "string" && suffix.length > 2
       ? "pr-10"
-      : "pr-6"
+      : "pr-7"
     : "";
 
   const inputElement = (
@@ -57,7 +57,7 @@ export function AppInput({
         id={id}
         type={type}
         className={cn(
-          prefix && "pl-6",
+          prefix && "pl-7",
           error && "border-destructive focus-visible:ring-destructive",
           inputClassName,
           className,

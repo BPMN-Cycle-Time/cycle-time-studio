@@ -1,9 +1,10 @@
-import { useTranslations } from "next-intl";
-import { User } from "lucide-react";
+"use client";
 
-import { LocaleSwitcher } from "@/components/layout/locale-switcher";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { useTranslations } from "next-intl";
+import { Settings, HelpCircle } from "lucide-react";
+
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 interface SidebarFooterProps {
   collapsed: boolean;
@@ -14,48 +15,57 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 
   if (collapsed) {
     return (
-      <div className="mt-auto pt-2 pb-3 flex flex-col items-center gap-2 border-t border-border/40">
+      <div className="mt-auto pt-2 pb-3 flex flex-col items-center gap-1.5 border-t border-border/40">
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="size-8 rounded-full bg-primary/10 border border-border flex items-center justify-center font-semibold text-[10px] text-primary cursor-pointer">
-              TPS
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
+            >
+              <Settings className="size-4" />
+            </Button>
           </TooltipTrigger>
-          <TooltipContent side="right">
-            {t("userName")} — {t("userRole")}
-          </TooltipContent>
+          <TooltipContent side="right">{t("settings")}</TooltipContent>
         </Tooltip>
-        <ThemeToggle />
-        <LocaleSwitcher />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
+            >
+              <HelpCircle className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">{t("help")}</TooltipContent>
+        </Tooltip>
       </div>
     );
   }
 
   return (
-    <div className="mt-auto px-3 py-3 border-t border-border/40 flex items-center justify-between gap-2 shrink-0">
-      <div className="flex items-center gap-2.5 min-w-0">
-        {/* User Avatar */}
-        <div className="size-8 rounded-full bg-muted-foreground/15 border border-border/80 flex items-center justify-center font-semibold text-[11px] text-foreground shrink-0 overflow-hidden relative">
-          <User className="size-4 text-muted-foreground" />
-          <span className="absolute bottom-0 right-0 size-2 bg-emerald-500 rounded-full ring-1 ring-background" />
-        </div>
-
-        {/* User Info */}
-        <div className="flex flex-col min-w-0">
-          <span className="text-xs font-semibold text-foreground truncate leading-tight">
-            {t("userName")}
-          </span>
-          <span className="text-[10px] text-muted-foreground truncate leading-tight">
-            {t("userRole")}
-          </span>
-        </div>
-      </div>
-
-      {/* Toggles */}
-      <div className="flex items-center gap-0.5 shrink-0">
-        <ThemeToggle />
-        <LocaleSwitcher />
-      </div>
+    <div className="mt-auto px-3.5 py-3 border-t border-border/40 flex flex-col gap-1 shrink-0">
+      <span className="font-bold text-[10px] tracking-wider text-muted-foreground/80 px-2 uppercase mb-1">
+        {t("general")}
+      </span>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="justify-start gap-2.5 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground h-auto font-medium"
+      >
+        <Settings className="size-3.5 shrink-0" />
+        <span>{t("settings")}</span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="justify-start gap-2.5 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground h-auto font-medium"
+      >
+        <HelpCircle className="size-3.5 shrink-0" />
+        <span>{t("help")}</span>
+      </Button>
     </div>
   );
 }

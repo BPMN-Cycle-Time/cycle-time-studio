@@ -1,196 +1,93 @@
----
-version: alpha
-name: "Frequency-Based Extraction"
-description: "Design tokens extracted from frequency analysis without LLM interpretation."
-colors:
-  local-accent: "#ffffff"
-typography:
-  type-1:
-    fontFamily: "Mona Sans"
-    fontSize: "16px"
-    fontWeight: "400"
-    lineHeight: "24px"
-  type-2:
-    fontFamily: "Mona Sans"
-    fontSize: "12px"
-    fontWeight: "400"
-    lineHeight: "16px"
-  type-3:
-    fontFamily: "Mona Sans"
-    fontSize: "14px"
-    fontWeight: "400"
-    lineHeight: "20px"
-  type-4:
-    fontFamily: "Mona Sans"
-    fontSize: "14px"
-    fontWeight: "500"
-    lineHeight: "20px"
-  type-5:
-    fontFamily: "Mona Sans"
-    fontSize: "24px"
-    fontWeight: "400"
-    lineHeight: "32px"
-rounded:
-  radius-1: "24px"
-  radius-2: "22px"
-  radius-3: "10px"
-  radius-4: "20px"
-spacing:
-  space-1: "10px"
-  space-2: "16px"
-  space-3: "8px"
-  space-4: "32px"
-  space-5: "20px"
-  space-6: "5px"
-  space-7: "48px"
-  space-8: "24px"
-  space-9: "12px"
-  space-10: "4px"
+# Design Tokens & Guidelines — Cycle Time Studio
+
+This document specifies the design tokens, visual aesthetics, color roles, typography scale, radius geometry, and styling standards for **Cycle Time Studio**, designed after modern productivity and financial dashboard benchmarks (Donezo & Neatclever).
+
 ---
 
-## Overview
+## 1. Color Palette & Roles
 
-Design tokens extracted from frequency analysis without LLM interpretation.
+The design system is grounded in a distinctive, rich **Forest Emerald / Pine Green** brand identity paired with a clean **Warm Sage Canvas**, crisp white surfaces, and an energizing **Warm Amber** accent.
 
-**Signature traits:**
+### A. Core Theme Variables
 
-- Evidence was insufficient to extract distinctive signature traits for this system.
+| Token                    | Light Theme Value                    | Dark Theme Value                    | Role / Usage                                                                     |
+| ------------------------ | ------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------- |
+| `--primary`              | `oklch(0.44 0.145 152)` (`#166838`)  | `oklch(0.52 0.15 152)` (`#1F874C`)  | Hero brand color, primary CTA buttons, active sidebar items, key highlight cards |
+| `--primary-foreground`   | `oklch(0.99 0 0)` (`#FFFFFF`)        | `oklch(0.99 0 0)` (`#FFFFFF`)       | Text and icon contrast on primary background                                     |
+| `--secondary`            | `oklch(0.96 0.038 152)` (`#E8F7EC`)  | `oklch(0.22 0.04 152)` (`#132B1E`)  | Soft mint/sage badge background, secondary action buttons                        |
+| `--secondary-foreground` | `oklch(0.35 0.12 152)` (`#13502C`)   | `oklch(0.92 0.06 152)` (`#B8F2CE`)  | Text and icon on secondary elements                                              |
+| `--background`           | `oklch(0.985 0.003 150)` (`#F7F9F7`) | `oklch(0.12 0.014 150)` (`#0B110D`) | App shell canvas background (ultra-clean airy canvas / obsidian forest)          |
+| `--foreground`           | `oklch(0.16 0.015 150)` (`#121814`)  | `oklch(0.97 0.006 150)` (`#F3F7F4`) | Base text typography                                                             |
+| `--card`                 | `oklch(1 0 0)` (`#FFFFFF`)           | `oklch(0.16 0.018 150)` (`#131D17`) | Surface panels, workspace cards, popovers                                        |
+| `--card-foreground`      | `oklch(0.16 0.015 150)`              | `oklch(0.97 0.006 150)`             | Card content text                                                                |
+| `--muted`                | `oklch(0.955 0.01 150)`              | `oklch(0.20 0.02 150)`              | Inset containers, table headers, inactive tab list                               |
+| `--muted-foreground`     | `oklch(0.48 0.025 150)` (`#526257`)  | `oklch(0.70 0.025 150)`             | Secondary labels, descriptions, metadata                                         |
+| `--border`               | `oklch(0.935 0.006 150)` (`#E4E8E5`) | `oklch(0.26 0.02 150 / 75%)`        | Delicate soft dividing line and container border                                 |
+| `--ring`                 | `oklch(0.44 0.145 152)`              | `oklch(0.72 0.18 152)`              | Keyboard focus ring & selection outline                                          |
 
-## Colors
+### B. Flow Diagram Semantic Colors
 
-The palette uses 2 validated color tokens across 2 theme profiles. Semantic roles stay attached to observed usage so generation agents can choose accents without inventing new color meaning.
+Flow block types are cleanly distinguished using semantic tones harmonious with the Forest Emerald palette:
 
-### Dark Theme
+| Block Type                 | Variable            | Color Value            | Description       |
+| -------------------------- | ------------------- | ---------------------- | ----------------- |
+| **Sequential (SEQ)**       | `--color-flow-seq`  | `oklch(0.48 0.12 155)` | Forest Pine Green |
+| **Exclusive Choice (XOR)** | `--color-flow-xor`  | `oklch(0.70 0.15 75)`  | Warm Golden Amber |
+| **Parallel (AND)**         | `--color-flow-and`  | `oklch(0.62 0.12 185)` | Fresh Teal Mint   |
+| **Loop (LOOP)**            | `--color-flow-loop` | `oklch(0.62 0.14 25)`  | Soft Coral Rose   |
 
-### Interactive
+### C. Status Badge Semantic Tones
 
-- **Local-accent** (#ffffff): Frequency rank #1 (5 occurrences); token importance localAccent: localized usage with limited global footprint. Role: border. {authored: rgb(255, 255, 255), space: rgb}
+| Status                    | Background (Light) | Text (Light) | Background (Dark)          | Text (Dark) |
+| ------------------------- | ------------------ | ------------ | -------------------------- | ----------- |
+| **Completed / Success**   | `#E8F5E9`          | `#1B5436`    | `rgba(16, 185, 129, 0.15)` | `#6EE7B7`   |
+| **In Progress / Warning** | `#FEF3C7`          | `#B45309`    | `rgba(245, 158, 11, 0.15)` | `#FCD34D`   |
+| **Pending / Review**      | `#FEE2E2`          | `#B91C1C`    | `rgba(239, 68, 68, 0.15)`  | `#FCA5A5`   |
 
-### Light Theme
+---
 
-### Interactive
+## 2. Geometry & Corner Radii
 
-- **Local-accent** (#ffffff): Frequency rank #1 (5 occurrences); token importance localAccent: localized usage with limited global footprint. Role: border. {authored: rgb(255, 255, 255), space: rgb}
+The design system embraces modern, friendly pill and soft-card curvatures:
 
-## Typography
+| Token                      | Value    | Tailwind Class   | Usage                                            |
+| -------------------------- | -------- | ---------------- | ------------------------------------------------ |
+| `--radius-sm`              | `8px`    | `rounded-lg`     | Small tags, compact badges, inner table controls |
+| `--radius` / `--radius-lg` | `12px`   | `rounded-xl`     | Buttons, inputs, tab triggers, dialogs           |
+| `--radius-card`            | `18px`   | `rounded-2xl`    | Block cards, timesheet card, metric stats        |
+| `--radius-surface`         | `22px`   | `rounded-[22px]` | Workspace panels, floating sidebar, drawer       |
+| Full Pill                  | `9999px` | `rounded-full`   | Status badges, icon buttons, counter tags        |
 
-Typography uses Mona Sans across extracted hierarchy roles. Keep hierarchy mapped to these token rows before adding decorative type styles.
+---
 
-Uses Mona Sans throughout for a uniform feel. Weight range spans regular, medium. Sizes range from 12px to 24px.
+## 3. Typography Scale
 
-### Type Scale Evidence
+Typography uses **Mona Sans** across all roles with high legibility and balanced proportions:
 
-| Role              | Font      | Size | Weight | Line Height | Letter Spacing | Stack / Features                                                    | Notes           |
-| ----------------- | --------- | ---- | ------ | ----------- | -------------- | ------------------------------------------------------------------- | --------------- |
-| Frequency rank #1 | Mona Sans | 16px | 400    | 24px        | normal         | Mona Sans, Mona Sans Fallback, ui-sans-serif, sans-serif, system-ui | Extracted token |
-| Frequency rank #2 | Mona Sans | 12px | 400    | 16px        | normal         | Mona Sans, Mona Sans Fallback, ui-sans-serif, sans-serif, system-ui | Extracted token |
-| Frequency rank #3 | Mona Sans | 14px | 400    | 20px        | normal         | Mona Sans, Mona Sans Fallback, ui-sans-serif, sans-serif, system-ui | Extracted token |
-| Frequency rank #4 | Mona Sans | 14px | 500    | 20px        | normal         | Mona Sans, Mona Sans Fallback, ui-sans-serif, sans-serif, system-ui | Extracted token |
-| Frequency rank #5 | Mona Sans | 24px | 400    | 32px        | normal         | Mona Sans, Mona Sans Fallback, ui-sans-serif, sans-serif, system-ui | Extracted token |
+| Role                       | Font Family      | Size            | Weight           | Line Height |
+| -------------------------- | ---------------- | --------------- | ---------------- | ----------- |
+| **Heading 1 / Page Title** | Mona Sans        | `24px` - `28px` | `600` (SemiBold) | `32px`      |
+| **Heading 2 / Section**    | Mona Sans        | `18px` - `20px` | `600` (SemiBold) | `26px`      |
+| **Card / Title**           | Mona Sans        | `14px` - `16px` | `600` (SemiBold) | `22px`      |
+| **Body / Standard**        | Mona Sans        | `13px` - `14px` | `400` / `500`    | `20px`      |
+| **Caption / Helper**       | Mona Sans        | `11px` - `12px` | `400` / `500`    | `16px`      |
+| **Mono Values / Metrics**  | GeistMono / Mono | `12px` - `14px` | `500` / `600`    | `18px`      |
 
-## Layout
+---
 
-Layout rhythm is inferred from spacing tokens and responsive breakpoint evidence.
+## 4. Elevation & Shadows
 
-### Spacing System
+Depth is kept clean and diffused without harsh black dropshadows:
 
-| Token    | Value | Px  | Notes                   |
-| -------- | ----- | --- | ----------------------- |
-| space-10 | 4px   | 4   | Extracted spacing token |
-| space-6  | 5px   | 5   | Extracted spacing token |
-| space-3  | 8px   | 8   | Extracted spacing token |
-| space-1  | 10px  | 10  | Extracted spacing token |
-| space-9  | 12px  | 12  | Extracted spacing token |
-| space-2  | 16px  | 16  | Extracted spacing token |
-| space-5  | 20px  | 20  | Extracted spacing token |
-| space-8  | 24px  | 24  | Extracted spacing token |
-| space-4  | 32px  | 32  | Extracted spacing token |
-| space-7  | 48px  | 48  | Extracted spacing token |
+- **Surface Card**: `shadow-xs` (`0 1px 2px 0 rgba(0, 0, 0, 0.03)`).
+- **Floating Panel / Sidebar**: `shadow-xs` with `border border-border/70`.
+- **Active / Hover State**: Subtle elevation lift with `shadow-sm` or `ring-2 ring-primary/20`.
 
-## Elevation & Depth
+---
 
-Keep depth flat unless validated shadow or interaction evidence appears in the extraction payload. Do not invent shadows beyond this evidence boundary.
+## 5. Implementation Rules for Contributors
 
-### Shadow Evidence
-
-| Shadow Token | Layers | Details                     |
-| ------------ | ------ | --------------------------- |
-| n/a          | 0      | No validated shadow payload |
-
-### Interaction Signals
-
-| Theme | Signal         | Evidence                                                                           |
-| ----- | -------------- | ---------------------------------------------------------------------------------- |
-| Light | outline-style  | solid                                                                              |
-| Light | outline-color  | oklab(0.256199 -0.00000248849 0.00000599027 / 0.5) ; lab(93.0162 -0.30759 2.57244) |
-| Light | outline-width  | 3px ; 1px                                                                          |
-| Light | outline-offset | 0px ; -1px                                                                         |
-| Dark  | outline-style  | solid                                                                              |
-| Dark  | outline-color  | oklab(0.256199 -0.00000248849 0.00000599027 / 0.5) ; lab(93.0162 -0.30759 2.57244) |
-| Dark  | outline-width  | 3px ; 1px                                                                          |
-| Dark  | outline-offset | 0px ; -1px                                                                         |
-
-## Shapes
-
-Shape language maps directly to rounded tokens. Keep component corners consistent with the role mapping below before introducing bespoke geometry.
-
-### Radius Roles
-
-| Token    | Value | Px  | Role Mapping         |
-| -------- | ----- | --- | -------------------- |
-| radius-3 | 10px  | 10  | Control corner       |
-| radius-4 | 20px  | 20  | Card corner          |
-| radius-2 | 22px  | 22  | Large surface corner |
-| radius-1 | 24px  | 24  | Large surface corner |
-
-### Geometry Evidence
-
-| Radius Token | Shape | Units |
-| ------------ | ----- | ----- |
-| radius-1     | 24px  | px    |
-| radius-2     | 22px  | px    |
-| radius-3     | 10px  | px    |
-| radius-4     | 20px  | px    |
-
-## Components
-
-(none detected)
-
-## Do's and Don'ts
-
-Guardrails tie generation choices back to validated tokens, component patterns, and evidence-backed hierarchy.
-
-| Do                                                                            | Don't                                                      |
-| ----------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Do maintain consistent spacing using the base grid                            | Don't make unsupported claims about absent visual features |
-| Do maintain WCAG AA contrast ratios (4.5:1 for normal text)                   | Don't mix rounded and sharp corners in the same view       |
-| Do use the primary color only for the single most important action per screen |                                                            |
-| Do verify evidence before writing new design-system guidance                  |                                                            |
-
-## Responsive Evidence
-
-### Breakpoints
-
-| Name         | Width    | Key Changes                         |
-| ------------ | -------- | ----------------------------------- |
-| Mobile       | <= 400px | (max-width: 400px)                  |
-| Mobile       | <= 480px | (max-width: 480px)                  |
-| Mobile       | <= 600px | (max-width: 600px)                  |
-| Breakpoint 4 | <= 768px | (max-width: 768px)                  |
-| Breakpoint 5 | Unknown  | (hover: none) and (pointer: coarse) |
-
-## Agent Prompt Guide
-
-### Example Component Prompts
-
-- Create button component using validated primary color role and spacing tokens.
-- Create card component with mapped radius role and evidence-backed elevation.
-- Create form input component using inferred typography hierarchy and border roles.
-
-### Iteration Guide
-
-1. Start with extracted palette and typography roles only.
-2. Map spacing and radius directly from token tables before visual polish.
-3. Apply component patterns one section at a time and compare against source intent.
-4. Keep elevation claims tied to explicit evidence in output.
-5. Iterate with smallest diffs and re-check section hierarchy after each change.
+1. **Always use theme tokens**: Never hardcode colors like `bg-green-600` or `text-zinc-800` when semantic tokens (`bg-primary`, `text-primary-foreground`, `text-foreground`, `bg-card`) exist.
+2. **Card & Surface Backgrounds**: All cards and dialogs must use `bg-card text-card-foreground` over `bg-background`.
+3. **Pill & Button Standards**: Primary call-to-action buttons use `variant="default"` (`bg-primary text-primary-foreground rounded-xl`).
+4. **Interactive Focus**: Ensure all custom interactive controls specify `focus-visible:ring-ring/50 focus-visible:ring-[3px]`.

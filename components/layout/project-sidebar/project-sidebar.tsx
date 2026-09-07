@@ -27,7 +27,7 @@ export function ProjectSidebar() {
       {/* Inline Transition Floating Sidebar */}
       <aside
         className={cn(
-          "shrink-0 rounded-xl border border-border/70 bg-card shadow-sm flex flex-col h-[calc(100svh-1.5rem)] my-3 ml-3 sticky top-3 z-20 transition-all duration-300 ease-in-out overflow-hidden",
+          "shrink-0 rounded-2xl border border-border/70 bg-card shadow-xs flex flex-col h-[calc(100svh-1.5rem)] my-3 ml-3 sticky top-3 z-20 transition-all duration-300 ease-in-out overflow-hidden",
           collapsed ? "w-16" : "w-72",
         )}
       >

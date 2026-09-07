@@ -26,5 +26,13 @@
   "share": "Chia sẻ",
   "dataTable": "Bảng dữ liệu",
   "vault": "Lưu trữ",
-  "apps": "Ứng dụng"
+  "apps": "Ứng dụng",
+  "menu": "MENU",
+  "general": "CHUNG",
+  "dashboard": "Tổng quan",
+  "promoTitle": "Simulation Studio",
+  "promoDesc": "Công cụ tính toán chu kỳ & chi phí",
+  "promoBtn": "Khám phá",
+  "settings": "Cài đặt",
+  "help": "Trợ giúp"
 }
