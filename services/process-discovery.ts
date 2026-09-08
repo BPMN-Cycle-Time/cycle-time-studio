@@ -250,14 +250,6 @@ export async function discoverBpmnFromEventLog(
     return nodeId;
   };
 
-  const endEventNodes = new Map<string, string>();
-  const getOrCreateEndNode = (name: string): string => {
-    if (endEventNodes.has(name)) return endEventNodes.get(name)!;
-    const id = builder.addNode("End", "endEvent", name);
-    endEventNodes.set(name, id);
-    return id;
-  };
-
   // Analyze transition frequencies across traces
   const transitionFreqs = new Map<string, number>();
   const startCounts = new Map<string, number>();
@@ -331,7 +323,10 @@ export async function discoverBpmnFromEventLog(
     };
   };
 
-  const followLinearBranch = (startK: string, startNode: string, endLabel: string): Block[] => {
+  const followLinearBranch = (
+    startK: string,
+    startNode: string,
+  ): { subBlocks: Block[]; lastNodeId: string } => {
     const subBlocks: Block[] = [makeSeqBlock(startK)];
     let curr: string | null = startK;
     let currNode = startNode;
@@ -349,9 +344,7 @@ export async function discoverBpmnFromEventLog(
         break;
       }
     }
-    const endNode = getOrCreateEndNode(endLabel);
-    builder.addFlow(currNode, endNode);
-    return subBlocks;
+    return { subBlocks, lastNodeId: currNode };
   };
 
   const blocks: Block[] = [];
@@ -367,10 +360,16 @@ export async function discoverBpmnFromEventLog(
     const gw1Id = builder.addNode("GwSplit", "exclusiveGateway", gw1Label);
     builder.addFlow(lastNodeId, gw1Id);
 
+    const joinGwId = builder.addNode("GwJoin", "exclusiveGateway");
+
     if (cancelTarget) {
       const cancelNodeId = getOrCreateTaskNode(cancelTarget);
       builder.addFlow(gw1Id, cancelNodeId, "Het hang");
-      const cancelSubBlocks = followLinearBranch(cancelTarget, cancelNodeId, "Ket thuc - Huy don");
+      const { subBlocks: cancelSubBlocks, lastNodeId: lastCancelNodeId } = followLinearBranch(
+        cancelTarget,
+        cancelNodeId,
+      );
+      builder.addFlow(lastCancelNodeId, joinGwId);
 
       const normalNodeId = getOrCreateTaskNode(normalTarget);
       builder.addFlow(gw1Id, normalNodeId, "Co hang");
@@ -379,25 +378,9 @@ export async function discoverBpmnFromEventLog(
       const loopInfo = loopInfoMap.get(normalTarget);
 
       if (loopInfo) {
-        const gw2Id = builder.addNode("GwQuality", "exclusiveGateway", "Chat luong dat?");
-        builder.addFlow(normalNodeId, gw2Id);
-
-        const forwardTargets: string[] = Array.from(
-          outDegreeMap.get(normalTarget)?.keys() || [],
-        ).filter((k) => k !== loopInfo.qualityKey);
-        const fallbackTarget =
-          Array.from(taskMap.keys()).find((k) => k !== normalTarget && k !== loopInfo.qualityKey) ||
-          normalTarget;
-        const deliveryTarget = forwardTargets[0] || fallbackTarget;
-        const deliveryNodeId = getOrCreateTaskNode(deliveryTarget);
-        builder.addFlow(gw2Id, deliveryNodeId, "Dat chat luong");
-
-        const endSuccessNode = getOrCreateEndNode("Ket thuc - Giao hang thanh cong");
-        builder.addFlow(deliveryNodeId, endSuccessNode);
-
+        // Step 1: Normal step (e.g. Dong goi) flows to Quality check step
         const qualityNodeId = getOrCreateTaskNode(loopInfo.qualityKey);
-        builder.addFlow(gw2Id, qualityNodeId, "Loi chat luong");
-        builder.addFlow(qualityNodeId, normalNodeId, "Lam lai");
+        builder.addFlow(normalNodeId, qualityNodeId);
 
         const loopProb = Math.max(
           20,
@@ -406,6 +389,32 @@ export async function discoverBpmnFromEventLog(
             Math.round((loopInfo.casesWithRework / Math.max(1, loopInfo.totalCases)) * 100),
           ),
         );
+
+        // Step 2: Quality check loops back directly to Dong goi with rework probability
+        builder.addFlow(qualityNodeId, normalNodeId, `Repeat (${loopProb}%)`);
+
+        // Step 3: Passed -> forward to Delivery / next steps after quality check
+        const qualityOuts = Array.from(outDegreeMap.get(loopInfo.qualityKey)?.keys() || []);
+        const forwardTargets: string[] = qualityOuts.filter((k) => k !== normalTarget);
+
+        const normalOuts = Array.from(outDegreeMap.get(normalTarget)?.keys() || []);
+        const alternateForward = normalOuts.filter((k) => k !== loopInfo.qualityKey);
+
+        const deliveryTarget =
+          forwardTargets[0] ||
+          alternateForward[0] ||
+          Array.from(endCounts.keys()).find(
+            (k) => k !== normalTarget && !isCancellationText(taskMap.get(k)?.name || k),
+          ) ||
+          normalTarget;
+
+        const deliveryNodeId = getOrCreateTaskNode(deliveryTarget);
+        builder.addFlow(qualityNodeId, deliveryNodeId);
+        const { subBlocks: deliverySubBlocks, lastNodeId: lastDeliveryNodeId } = followLinearBranch(
+          deliveryTarget,
+          deliveryNodeId,
+        );
+        builder.addFlow(lastDeliveryNodeId, joinGwId);
 
         normalSubBlocks.push({
           id: freshId("loop"),
@@ -416,14 +425,14 @@ export async function discoverBpmnFromEventLog(
           loopP: loopProb,
         });
 
-        normalSubBlocks.push(makeSeqBlock(deliveryTarget));
+        normalSubBlocks.push(...deliverySubBlocks);
       } else {
-        const followed = followLinearBranch(
+        const { subBlocks: followed, lastNodeId: lastNormalNodeId } = followLinearBranch(
           normalTarget,
           normalNodeId,
-          "Ket thuc - Giao hang thanh cong",
         );
         normalSubBlocks.push(...followed);
+        builder.addFlow(lastNormalNodeId, joinGwId);
       }
 
       const branches: Branch[] = [
@@ -450,8 +459,11 @@ export async function discoverBpmnFromEventLog(
         branches,
       });
     }
+
+    const endNode = builder.addNode("End", "endEvent", "Ket thuc");
+    builder.addFlow(joinGwId, endNode);
   } else {
-    const endNode = getOrCreateEndNode("Ket thuc");
+    const endNode = builder.addNode("End", "endEvent", "Ket thuc");
     builder.addFlow(lastNodeId, endNode);
   }
 

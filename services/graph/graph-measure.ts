@@ -5,7 +5,7 @@ export const TASK_H = 50;
 export const GAP = 30;
 export const GW = 32;
 export const GW_GAP = 26;
-export const BRANCH_VGAP = 20;
+export const BRANCH_VGAP = 50;
 export const LABEL_H = 17;
 export const LOOP_H = 34;
 export const PAD = 26;
@@ -73,7 +73,7 @@ export function measureProcessModelBlock(b: Block): BlockMeasurement {
       block: b,
       body,
       w: body.w,
-      h: LOOP_H + body.h,
+      h: LOOP_H + body.h + LOOP_H,
       center: LOOP_H + body.center,
     };
   }

@@ -41,8 +41,7 @@ export function BlockInspector({
   const tBtn = useTranslations("common.buttons");
   const tDia = useTranslations("diagram");
 
-  const [insertBeforeType, setInsertBeforeType] = useState<BlockType>(BlockType.SEQ);
-  const [insertAfterType, setInsertAfterType] = useState<BlockType>(BlockType.SEQ);
+  const [insertType, setInsertType] = useState<BlockType>(BlockType.SEQ);
 
   const isComposite = b.mode === BlockMode.COMPOSITE;
 
@@ -129,36 +128,28 @@ export function BlockInspector({
       </div>
 
       {/* Action Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 pt-2 border-t text-xs">
-        {/* Insert Before */}
-        <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center gap-2 pt-3 border-t text-xs">
+        {/* Insert Step Controls */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <AppSelect
-            value={insertBeforeType}
-            onValueChange={setInsertBeforeType}
+            value={insertType}
+            onValueChange={(val) => setInsertType(val as BlockType)}
             options={blockTypeOptions}
+            triggerClassName="w-44 h-8 text-xs shrink-0"
           />
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs"
-            onClick={() => onAddBlock(insertBeforeType, index - 1)}
+            className="h-8 text-xs shrink-0 whitespace-nowrap"
+            onClick={() => onAddBlock(insertType, index - 1)}
           >
             <ArrowUp className="size-3.5 mr-1" /> {tBtn("insertBefore")}
           </Button>
-        </div>
-
-        {/* Insert After */}
-        <div className="flex items-center gap-1">
-          <AppSelect
-            value={insertAfterType}
-            onValueChange={setInsertAfterType}
-            options={blockTypeOptions}
-          />
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs"
-            onClick={() => onAddBlock(insertAfterType, index)}
+            className="h-8 text-xs shrink-0 whitespace-nowrap"
+            onClick={() => onAddBlock(insertType, index)}
           >
             <ArrowDown className="size-3.5 mr-1" /> {tBtn("insertAfter")}
           </Button>
@@ -169,7 +160,7 @@ export function BlockInspector({
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs"
+            className="h-8 text-xs shrink-0 whitespace-nowrap"
             onClick={() => onAddBranch(b.id)}
           >
             <GitBranch className="size-3.5 mr-1" /> {tBtn("addBranch")}
@@ -181,7 +172,7 @@ export function BlockInspector({
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs"
+            className="h-8 text-xs shrink-0 whitespace-nowrap"
             onClick={() => onToggleLoopMode(b.id)}
           >
             <Layers className="size-3.5 mr-1" />
@@ -193,7 +184,7 @@ export function BlockInspector({
         <Button
           variant="destructive"
           size="sm"
-          className="h-8 text-xs ml-auto"
+          className="h-8 text-xs ml-auto shrink-0 whitespace-nowrap"
           onClick={() => {
             onRemoveBlock(b.id);
             onClose();

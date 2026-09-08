@@ -20,6 +20,7 @@ import { ExportGraphDialog } from "../export-graph-dialog";
 import { DiagramViewport } from "../diagram-viewport";
 import { DiagramGuidelines, type ActiveGuideline } from "../diagram-guidelines";
 import { ProcessModelFlowRenderer } from "./process-model-svg-renderer";
+import { getItemKey, getItemExitKey } from "./process-model-helpers";
 import { ProcessModelStartEndpoint, ProcessModelEndEndpoint } from "./process-model-endpoints";
 import { Checkbox, AppLabel, Card, Button } from "@/components/ui";
 import "./process-model-panel.css";
@@ -53,6 +54,7 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
     startDy: number;
     startX: number;
     startY: number;
+    axis?: "x" | "y" | "both";
     hasMoved: boolean;
   } | null>(null);
 
@@ -99,9 +101,16 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
   );
 
   const handleEdgePointerDown = useCallback(
-    (e: React.PointerEvent, edgeKey: string, defaultPos: { x: number; y: number }) => {
+    (
+      e: React.PointerEvent,
+      edgeKey: string,
+      defaultPos: { x: number; y: number },
+      axis: "x" | "y" | "both" = "both",
+    ) => {
       e.stopPropagation();
-      const currentPos = customEdgeBends[edgeKey] || defaultPos;
+      const existing = customEdgeBends[edgeKey];
+      const startX = axis === "y" ? (existing?.x ?? defaultPos.x) : defaultPos.x;
+      const startY = axis === "x" ? (existing?.y ?? defaultPos.y) : defaultPos.y;
       dragRef.current = {
         targetType: "edge",
         id: edgeKey,
@@ -109,8 +118,9 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
         startClientY: e.clientY,
         startDx: 0,
         startDy: 0,
-        startX: currentPos.x,
-        startY: currentPos.y,
+        startX,
+        startY,
+        axis,
         hasMoved: false,
       };
       try {
@@ -136,8 +146,15 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
       }
 
       if (dragRef.current.targetType === "edge") {
-        const newX = Math.max(10, Math.round(dragRef.current.startX + dX));
-        const newY = Math.max(10, Math.round(dragRef.current.startY + dY));
+        const axis = dragRef.current.axis || "both";
+        const newX =
+          axis === "y"
+            ? dragRef.current.startX
+            : Math.max(10, Math.round(dragRef.current.startX + dX));
+        const newY =
+          axis === "x"
+            ? dragRef.current.startY
+            : Math.max(10, Math.round(dragRef.current.startY + dY));
         const targetId = dragRef.current.id;
 
         setCustomEdgeBends((prev) => ({
@@ -252,8 +269,6 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
   const above = Math.max(layout.center, 20);
   const below = Math.max(layout.h - layout.center, 20);
   const centerY = PAD + above;
-  let maxW = PAD;
-  let maxH = PAD + above + below + PAD;
 
   const startId = graph.key.start ?? "n1";
   const endId = graph.key.end ?? `n${graph.nodes.length}`;
@@ -269,13 +284,7 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
   const flowStartX = PAD + 34 + GAP;
 
   const firstItem = layout.items[0];
-  const firstKey = firstItem
-    ? firstItem.kind === "task"
-      ? `task-${firstItem.block.id}`
-      : firstItem.kind === "gateway"
-        ? `split-gw-${firstItem.block.id}`
-        : `rw-task-${firstItem.block.id}`
-    : null;
+  const firstKey = firstItem ? getItemKey(firstItem) : null;
   const firstOff = firstKey ? customOffsets[firstKey] || { dx: 0, dy: 0 } : { dx: 0, dy: 0 };
 
   const startArrowX1 = PAD + 34 + startOff.dx;
@@ -286,13 +295,7 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
   const flowEndX = flowStartX + layout.w;
 
   const lastItem = layout.items[layout.items.length - 1];
-  const lastKey = lastItem
-    ? lastItem.kind === "task"
-      ? `task-${lastItem.block.id}`
-      : lastItem.kind === "gateway"
-        ? `join-gw-${lastItem.block.id}`
-        : `rw-task-${lastItem.block.id}`
-    : null;
+  const lastKey = lastItem ? getItemExitKey(lastItem) : null;
   const lastOff = lastKey ? customOffsets[lastKey] || { dx: 0, dy: 0 } : { dx: 0, dy: 0 };
 
   const endArrowX1 = flowEndX + lastOff.dx;
@@ -304,16 +307,38 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
   const endCy = centerY + endOff.dy;
 
   const totalContentX = endCx + 17 + PAD;
-  maxW = Math.max(totalContentX, 600);
+  // Account for top-most elements like gateway branch labels and rework loop arcs extending above centerY - above
+  let minX = 0;
+  let maxX = Math.max(totalContentX + PAD, 600);
+  let minY = Math.min(0, centerY - above - 70);
+  let maxY = PAD + above + below + PAD + 60;
 
   Object.values(customOffsets).forEach((off) => {
-    if (Math.abs(off.dy) > 0) {
-      const extraH = Math.abs(off.dy) * 2;
-      if (PAD + above + below + extraH + PAD > maxH) {
-        maxH = PAD + above + below + extraH + PAD;
-      }
+    if (off.dy < 0) {
+      const topY = centerY - above - 70 + off.dy;
+      if (topY < minY) minY = topY;
+    }
+    if (off.dy > 0) {
+      const botY = centerY + below + 60 + off.dy;
+      if (botY > maxY) maxY = botY;
+    }
+    if (off.dx < 0) {
+      const leftX = flowStartX + off.dx - 40;
+      if (leftX < minX) minX = leftX;
+    }
+    if (off.dx > 0) {
+      const rightX = totalContentX + off.dx + 40;
+      if (rightX > maxX) maxX = rightX;
     }
   });
+
+  minY -= 20;
+  minX -= 20;
+  maxX += 20;
+  maxY += 20;
+
+  const totalW = Math.round(maxX - minX);
+  const totalH = Math.round(maxY - minY);
 
   const hasCustomPositions =
     Object.keys(customOffsets).length > 0 || Object.keys(customEdgeBends).length > 0;
@@ -374,15 +399,15 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
 
       <Card className="p-4 gap-4 w-full flex-1 min-h-[480px] flex flex-col overflow-hidden">
         <DiagramViewport
-          contentWidth={maxW}
-          contentHeight={maxH}
+          contentWidth={totalW}
+          contentHeight={totalH}
           className="flex-1 w-full min-h-[440px]"
         >
           <svg
             ref={svgRef}
-            viewBox={`0 0 ${maxW} ${maxH}`}
-            width={maxW}
-            height={maxH}
+            viewBox={`${minX} ${minY} ${totalW} ${totalH}`}
+            width={totalW}
+            height={totalH}
             role="img"
             aria-label="Process Model Diagram"
             onPointerUp={stopDragging}

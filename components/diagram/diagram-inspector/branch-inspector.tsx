@@ -104,7 +104,7 @@ export function BranchInspector({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 text-xs"
+          className="h-8 text-xs shrink-0 whitespace-nowrap"
           onClick={() => onToggleBranchMode(parentBlock.id, branch.id)}
         >
           <Layers className="size-3.5 mr-1" />
@@ -114,7 +114,7 @@ export function BranchInspector({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 text-xs"
+          className="h-8 text-xs shrink-0 whitespace-nowrap"
           onClick={() => onAddBranch(parentBlock.id)}
         >
           <GitBranch className="size-3.5 mr-1" /> {tBtn("addBranch")}
@@ -123,7 +123,7 @@ export function BranchInspector({
         <Button
           variant="destructive"
           size="sm"
-          className="h-8 text-xs ml-auto"
+          className="h-8 text-xs ml-auto shrink-0 whitespace-nowrap"
           disabled={(parentBlock.branches?.length ?? 0) <= 1}
           onClick={() => {
             onRemoveBranch(parentBlock.id, branch.id);

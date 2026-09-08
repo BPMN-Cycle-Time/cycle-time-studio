@@ -47,6 +47,7 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
     startClientY: number;
     startX: number;
     startY: number;
+    axis?: "x" | "y" | "both";
     hasMoved: boolean;
   } | null>(null);
 
@@ -93,16 +94,24 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
   );
 
   const handleEdgePointerDown = useCallback(
-    (e: React.PointerEvent, edgeKey: string, defaultPos: { x: number; y: number }) => {
+    (
+      e: React.PointerEvent,
+      edgeKey: string,
+      defaultPos: { x: number; y: number },
+      axis: "x" | "y" | "both" = "both",
+    ) => {
       e.stopPropagation();
-      const currentPos = customEdgeBends[edgeKey] || defaultPos;
+      const existing = customEdgeBends[edgeKey];
+      const startX = existing?.x ?? defaultPos.x;
+      const startY = existing?.y ?? defaultPos.y;
       dragRef.current = {
         targetType: "edge",
         id: edgeKey,
         startClientX: e.clientX,
         startClientY: e.clientY,
-        startX: currentPos.x,
-        startY: currentPos.y,
+        startX,
+        startY,
+        axis,
         hasMoved: false,
       };
       try {
@@ -128,8 +137,20 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
       }
 
       if (dragRef.current.targetType === "edge") {
-        const newX = Math.max(10, Math.round(dragRef.current.startX + dx));
-        const newY = Math.max(10, Math.round(dragRef.current.startY + dy));
+        const axis = dragRef.current.axis || "both";
+        const isBackEdge = dragRef.current.id.startsWith("back-");
+        const newX =
+          axis === "y"
+            ? dragRef.current.startX
+            : isBackEdge
+              ? Math.round(dragRef.current.startX + dx)
+              : Math.max(10, Math.round(dragRef.current.startX + dx));
+        const newY =
+          axis === "x"
+            ? dragRef.current.startY
+            : isBackEdge
+              ? Math.round(dragRef.current.startY + dy)
+              : Math.max(10, Math.round(dragRef.current.startY + dy));
         const targetId = dragRef.current.id;
 
         setCustomEdgeBends((prev) => ({
@@ -240,6 +261,49 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
     });
   }, [graph]);
 
+  const { minX, minY, svgW, svgH } = useMemo(() => {
+    let minX = 0;
+    let minY = 0;
+    let maxX = layout?.width || 800;
+    let maxY = layout?.height || 500;
+
+    Object.values(customPositions).forEach((p) => {
+      minX = Math.min(minX, p.x - 60);
+      minY = Math.min(minY, p.y - 60);
+      maxX = Math.max(maxX, p.x + 60);
+      maxY = Math.max(maxY, p.y + 60);
+    });
+
+    Object.entries(customEdgeBends).forEach(([k, b]) => {
+      if (k.startsWith("back-")) {
+        const parts = k.split("-");
+        const s = parts[1];
+        const t = parts[2];
+        const sp = s ? customPositions[s] || layout?.xy[s] : undefined;
+        const tp = t ? customPositions[t] || layout?.xy[t] : undefined;
+        const baseNodeY = sp && tp ? (sp.y + tp.y) / 2 : (sp?.y ?? 200);
+        const actualY = baseNodeY + b.y;
+        minY = Math.min(minY, actualY - 60);
+        maxY = Math.max(maxY, actualY + 60);
+      } else {
+        minX = Math.min(minX, b.x - 60);
+        minY = Math.min(minY, b.y - 60);
+        maxX = Math.max(maxX, b.x + 60);
+        maxY = Math.max(maxY, b.y + 60);
+      }
+    });
+
+    const PAD = 40;
+    const calcMinX = minX - PAD;
+    const calcMinY = minY - PAD;
+    return {
+      minX: calcMinX,
+      minY: calcMinY,
+      svgW: Math.max(layout?.width || 800, maxX - calcMinX + PAD),
+      svgH: Math.max(layout?.height || 500, maxY - calcMinY + PAD),
+    };
+  }, [layout?.width, layout?.height, layout?.xy, customPositions, customEdgeBends]);
+
   if (blocks.length === 0 || !layout) {
     return (
       <div className="flex-1 flex flex-col min-h-0">
@@ -297,15 +361,15 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
 
       <Card className="p-4 gap-4 w-full flex-1 min-h-[480px] flex flex-col overflow-hidden">
         <DiagramViewport
-          contentWidth={layout.width}
-          contentHeight={layout.height}
+          contentWidth={svgW}
+          contentHeight={svgH}
           className="flex-1 w-full min-h-[420px]"
         >
           <svg
             ref={svgRef}
-            viewBox={`0 0 ${layout.width} ${layout.height}`}
-            width={layout.width}
-            height={layout.height}
+            viewBox={`${minX} ${minY} ${svgW} ${svgH}`}
+            width={svgW}
+            height={svgH}
             role="img"
             aria-label="Process Graph Diagram"
             onPointerUp={() => stopDragging()}

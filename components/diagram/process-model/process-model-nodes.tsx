@@ -168,3 +168,41 @@ export function renderGatewayDiamond(
     </g>
   );
 }
+
+export function renderBranchBadge(
+  branchId: string,
+  labelX: number,
+  labelY: number,
+  caption: string,
+  strokeColor: string,
+  isXor: boolean,
+): ReactNode {
+  const badgeW = caption.length * 6.6 + 14;
+  const badgeH = 17;
+  return (
+    <g key={`caption-${branchId}`} className="branch-label-badge">
+      <rect
+        x={labelX}
+        y={labelY - 13}
+        width={badgeW}
+        height={badgeH}
+        rx={4}
+        fill="var(--card, #ffffff)"
+        stroke={strokeColor}
+        strokeWidth={1}
+        opacity={0.96}
+      />
+      <text
+        x={labelX + badgeW / 2}
+        y={labelY - 1}
+        textAnchor="middle"
+        fontSize={10.5}
+        fontWeight={600}
+        fill={strokeColor}
+        fontFamily={isXor ? "ui-monospace, monospace" : "inherit"}
+      >
+        {caption}
+      </text>
+    </g>
+  );
+}
