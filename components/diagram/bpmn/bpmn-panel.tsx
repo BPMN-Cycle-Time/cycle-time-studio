@@ -156,6 +156,23 @@ export function BpmnPanel({
     return () => ro.disconnect();
   }, [fitAndCenterDiagram]);
 
+  // Synchronize external changes to storedBpmnXml (e.g. from event log discovery or project load)
+  useEffect(() => {
+    if (!modelerRef.current || !storedBpmnXml) return;
+    if (storedBpmnXml === lastXmlRef.current) return;
+    lastXmlRef.current = storedBpmnXml;
+    modelerRef.current
+      .importXML(storedBpmnXml)
+      .then(() => {
+        if (modelerRef.current) {
+          fitAndCenterDiagram(modelerRef.current);
+        }
+      })
+      .catch(() => {
+        // ignore
+      });
+  }, [storedBpmnXml, fitAndCenterDiagram]);
+
   const handleGenerateFromFlow = useCallback(async () => {
     if (!modelerRef.current || blocks.length === 0) return;
     setBusy(true);

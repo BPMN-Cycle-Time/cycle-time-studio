@@ -63,7 +63,12 @@ export function ProjectContainer({ id }: ProjectContainerProps) {
                 onExpandRightPanel={handleExpandRightPanel}
               />
 
-              <DiagramPanel blocks={project.blocks} unit={project.unit} activeTab={activeTab} />
+              <DiagramPanel
+                blocks={project.blocks}
+                unit={project.unit}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
             </div>
           </div>
 

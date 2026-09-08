@@ -33,17 +33,29 @@ export function slugify(text?: string, defaultFallback = "project"): string {
 }
 
 /**
- * Strips probability annotations or flow markers from a task/activity/branch name,
- * e.g. "No - 0.3" -> "No", "Yes - 0.7" -> "Yes", "Reject (30%)" -> "Reject".
+ * Strips task code prefixes (e.g. "T01 - ", "T06: ", "T-01 - ", "Task 01 - ", "T06. ")
+ * as well as probability annotations or flow markers from a task/activity/branch name.
  */
 export function cleanTaskName(rawName?: string): string {
   if (!rawName) return "";
   let name = rawName.trim();
+
+  // Strip leading task code prefixes like "T06 - ", "T01: ", "T-1 - ", "Task 02: ", "T06. "
+  name = name.replace(/^(?:Task[-_\s]*\d+|T-?\d+)\s*[-:._/]\s*/i, "");
+  // Also strip leading code if followed by whitespace and letters, e.g. "T06 Bao khach"
+  name = name.replace(/^(?:Task[-_\s]*\d+|T-?\d+)\s+(?=[A-Za-z\u00C0-\u024F\u1EA0-\u1EF9])/i, "");
+
+  // Strip trailing rework suffixes, e.g. " (lai)", " (lại)", " (rework)"
+  name = name.replace(/\s*\((?:lai|lại|rework|re-?)\)\s*$/i, "");
+
+  // Strip trailing probability annotations or flow markers,
+  // e.g. "No - 0.3" -> "No", "Yes - 0.7" -> "Yes", "Reject (30%)" -> "Reject".
   name = name.replace(
     /\s*[-:=~]\s*(?:p\s*=\s*)?(?:0(?:\.\d+)?|1(?:\.0+)?|\d+(?:\.\d+)?%)\s*$/i,
     "",
   );
   name = name.replace(/\s*\((?:p\s*=\s*)?(?:0(?:\.\d+)?|1(?:\.0+)?|\d+(?:\.\d+)?%)\)\s*$/i, "");
+
   return name.trim() || rawName.trim();
 }
 

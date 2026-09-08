@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search } from "lucide-react";
+import Link from "next/link";
+import { Search, Workflow } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { ThemeToggle } from "./theme-toggle";
@@ -37,30 +38,42 @@ export function DashboardTopbar({ searchQuery = "", onSearchChange }: DashboardT
   }, []);
 
   return (
-    <header className="flex items-center justify-between gap-3 py-2 px-2.5 shrink-0 rounded-2xl bg-card border border-border/70 shadow-xs mt-3 mx-3 z-10">
-      {/* Donezo-style Pill Search Bar */}
-      <div className="flex-1 max-w-md">
-        <AppInput
-          ref={inputRef}
-          value={internalQuery}
-          onChange={(e) => handleQueryChange(e.target.value)}
-          placeholder={t("searchPlaceholder")}
-          prefix={<Search className="size-3.5 text-muted-foreground" />}
-          suffix={
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-muted text-[10px] font-mono font-medium text-muted-foreground border border-border/60">
-              ⌘F
-            </kbd>
-          }
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              inputRef.current?.blur();
+    <header className="grid grid-cols-[1fr_minmax(auto,460px)_1fr] items-center gap-4 py-2 px-3.5 shrink-0 rounded-2xl bg-card border border-border/70 shadow-xs mt-3 mx-3 z-10">
+      {/* Left: Project / Brand Name */}
+      <div className="flex items-center justify-start min-w-0">
+        <Link href="/" className="flex items-center gap-2 select-none group">
+          <Workflow className="size-4 text-primary shrink-0" />
+          <span className="font-bold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
+            BPMN
+          </span>
+        </Link>
+      </div>
+
+      {/* Center: Exactly Centered Search Bar */}
+      <div className="flex items-center justify-center w-full">
+        <div className="w-full max-w-md">
+          <AppInput
+            ref={inputRef}
+            value={internalQuery}
+            onChange={(e) => handleQueryChange(e.target.value)}
+            placeholder={t("searchPlaceholder")}
+            prefix={<Search className="size-3.5 text-muted-foreground" />}
+            suffix={
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-muted text-[10px] font-mono font-medium text-muted-foreground border border-border/60">
+                ⌘F
+              </kbd>
             }
-          }}
-        />
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                inputRef.current?.blur();
+              }
+            }}
+          />
+        </div>
       </div>
 
       {/* Right Utility Actions: Language, Theme */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center justify-end gap-2 shrink-0">
         <LocaleSwitcher />
         <ThemeToggle />
       </div>

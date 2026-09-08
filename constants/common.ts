@@ -3,6 +3,7 @@
 export const APP_NAME = "Cycle Time Studio";
 export const DEFAULT_UNIT = "hours";
 export const TIME_UNITS = ["seconds", "minutes", "hours", "days", "weeks"] as const;
+export const DEFAULT_PROJECTS_PAGE_SIZE = 10;
 
 export const DEFAULT_CURRENCY = "USD";
 export const CURRENCIES = [

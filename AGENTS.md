@@ -17,6 +17,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - [Project Rules](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/RULES.md): Coding guidelines, strict i18n rules, UI/UX interaction standards.
 - [Workflow Guide](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/WORKFLOW.md): Step-by-step development, verification, and commit protocols.
 - [Design Tokens & Guidelines](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/DESIGN_TOKENS.md): Extracted typography, radius, spacing, color roles, and CSS rules.
+- [Pagination Guide](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/PAGINATION.md): Client-side pagination architecture, formulas, rendering performance, and i18n standards.
 
 ## 2. Core Directives for AI Agents
 

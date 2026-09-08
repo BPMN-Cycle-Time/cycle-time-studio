@@ -191,3 +191,9 @@ The UI uses a **3-column responsive flex layout** with zero blocking modal overl
 1. **Left Sidebar (`ProjectSidebar`)**: Inline sliding navigation rail (`w-14` collapsed $\leftrightarrow$ `w-64` expanded).
 2. **Middle Canvas (`DiagramPanel`)**: Main work area housing BPMN Modeler and React Flow Graph.
 3. **Right Drawer (`ProjectParametersDrawer`)**: Inline resizable parameters panel (`0px` collapsed $\leftrightarrow$ `320px..768px` expanded) with interactive width drag handle.
+
+---
+
+## 7. Pagination Architecture
+
+For large data sets (Recent Projects, Data Tables, Event Logs), Cycle Time Studio implements a 10-record-per-page client-side pagination architecture with render-phase state adjustment and strict i18n synchronization. See [Pagination Guide](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/PAGINATION.md) for formulas, state diagrams, and reference components.

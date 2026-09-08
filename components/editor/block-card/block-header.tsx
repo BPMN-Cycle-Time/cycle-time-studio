@@ -77,17 +77,17 @@ export function BlockHeader({ block, index, nested }: BlockHeaderProps) {
       <div className="flex items-center gap-1.5 flex-1 min-w-[100px]">
         <div
           className={cn(
-            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-mono font-bold border shrink-0 transition-colors shadow-2xs",
+            "inline-flex items-center justify-center gap-1 px-2 h-8 rounded-lg text-[11px] font-mono font-bold border shrink-0 transition-colors shadow-2xs",
             meta.tagBg,
           )}
           title={tTypes(block.type)}
         >
-          <TypeIcon className="size-3 shrink-0" />
+          <TypeIcon className="size-3.5 shrink-0" />
           <span>{index + 1}</span>
         </div>
 
         <Input
-          className="flex-1 min-w-0 font-semibold border-transparent hover:border-input focus-visible:border-input shadow-none px-1.5 h-7 text-xs sm:text-sm"
+          className="flex-1 min-w-0 font-semibold border-transparent hover:border-input focus-visible:border-input shadow-none px-2 h-8 text-xs sm:text-sm rounded-lg"
           value={block.label}
           onChange={(e) => updateBlock(block.id, { label: e.target.value })}
           placeholder={tEd("blockNamePlaceholder")}
@@ -101,7 +101,7 @@ export function BlockHeader({ block, index, nested }: BlockHeaderProps) {
           onValueChange={handleTypeChange}
           options={blockTypeOptions}
           triggerClassName={cn(
-            "font-medium h-7 text-xs shrink-0 max-w-[150px] border transition-colors shadow-2xs",
+            "font-medium h-8 text-xs shrink-0 max-w-[160px] border transition-colors shadow-2xs rounded-lg",
             meta.tagBg,
           )}
         />
@@ -109,7 +109,7 @@ export function BlockHeader({ block, index, nested }: BlockHeaderProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:text-destructive size-7 shrink-0"
+          className="text-muted-foreground hover:text-destructive size-8 shrink-0 rounded-lg"
           onClick={() => removeBlock(block.id)}
           aria-label={tEd("removeStep")}
         >

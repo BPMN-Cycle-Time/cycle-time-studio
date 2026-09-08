@@ -6,3 +6,4 @@ export * from "./conformance-case-row";
 export * from "./discovered-bpmn-dialog";
 export * from "./task-benchmark-table";
 export * from "./sla-benchmark-view";
+export * from "./event-log-header";

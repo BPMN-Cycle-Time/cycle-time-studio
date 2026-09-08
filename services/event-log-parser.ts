@@ -1,5 +1,9 @@
 import * as XLSX from "xlsx";
 import type { EventLogItem } from "@/types";
+import { cleanTaskName } from "@/utils/formats";
+import { normalizeColName, parseFlexibleDate, ALIAS_GROUPS } from "./event-log-helpers";
+
+export { normalizeColName, parseFlexibleDate, ALIAS_GROUPS };
 
 let idCounter = 0;
 function uniqueId(): string {
@@ -7,134 +11,93 @@ function uniqueId(): string {
   return `evt_${idCounter}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
+export interface ParseEventLogResult {
+  items: EventLogItem[];
+  availableSheets?: string[];
+  selectedSheet?: string;
+}
+
 /**
- * Parses raw CSV content into EventLogItem array.
- * Supports auto-detecting delimiters (comma, semicolon, tab) and column aliases.
+ * Parses a 2D array of rows (from CSV or Excel) into EventLogItem array.
+ * Scans the first 10 rows to detect the true header row.
  */
-export function parseEventLogCsv(csvContent: string): EventLogItem[] {
-  const lines = csvContent
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
+export function parseEventLogRows(
+  rawRows: (string | number | undefined | null)[][],
+): EventLogItem[] {
+  if (!rawRows || rawRows.length < 2) return [];
 
-  if (lines.length < 2) return [];
+  // Find header row among first 10 rows
+  let headerRowIdx = -1;
+  let maxMatches = 0;
 
-  // Auto-detect delimiter from first row
-  const firstLine = lines[0]!;
-  let delimiter = ",";
-  const commaCount = (firstLine.match(/,/g) || []).length;
-  const semiCount = (firstLine.match(/;/g) || []).length;
-  const tabCount = (firstLine.match(/\t/g) || []).length;
-
-  if (semiCount > commaCount && semiCount > tabCount) delimiter = ";";
-  else if (tabCount > commaCount && tabCount > semiCount) delimiter = "\t";
-
-  const parseRow = (line: string): string[] => {
-    const result: string[] = [];
-    let current = "";
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (char === delimiter && !inQuotes) {
-        result.push(current.trim());
-        current = "";
-      } else {
-        current += char;
-      }
+  for (let r = 0; r < Math.min(10, rawRows.length); r++) {
+    const rowNorm = (rawRows[r] || []).map((c) => normalizeColName(String(c ?? "")));
+    let matches = 0;
+    for (const group of Object.values(ALIAS_GROUPS)) {
+      if (rowNorm.some((col) => group.includes(col))) matches++;
     }
-    result.push(current.trim());
-    return result;
-  };
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      headerRowIdx = r;
+    }
+  }
 
-  const headers = parseRow(firstLine).map((h) => h.toLowerCase().replace(/["\s_-]/g, ""));
+  if (headerRowIdx === -1 || maxMatches === 0) return [];
 
-  // Column mapping index resolvers
+  const headers = (rawRows[headerRowIdx] || []).map((c) => normalizeColName(String(c ?? "")));
+
   const findColIndex = (...aliases: string[]): number => {
-    const cleanAliases = aliases.map((a) => a.toLowerCase().replace(/["\s_-]/g, ""));
+    const cleanAliases = aliases.map(normalizeColName);
+    for (const alias of cleanAliases) {
+      const idx = headers.indexOf(alias);
+      if (idx !== -1) return idx;
+    }
     return headers.findIndex((h) => cleanAliases.includes(h));
   };
 
-  const caseIdx = findColIndex("caseid", "case", "traceid", "trace", "id", "caseno");
-  const actIdx = findColIndex(
-    "activity",
-    "conceptname",
-    "task",
-    "action",
-    "event",
-    "step",
-    "taskname",
-    "tentask",
-  );
-  const resIdx = findColIndex(
-    "resource",
-    "orgresource",
-    "user",
-    "role",
-    "performer",
-    "executor",
-    "personsname",
-    "person",
-    "nguoithuchien",
-  );
-  const startIdx = findColIndex(
-    "starttimestamp",
-    "start",
-    "starttime",
-    "timestamp",
-    "date",
-    "thoigianbatdau",
-  );
-  const endIdx = findColIndex("completetimestamp", "complete", "endtime", "end", "thoigianketthuc");
-  const durIdx = findColIndex(
-    "duration",
-    "leadtime",
-    "time",
-    "thoigianthucte",
-    "thoigianthuctephut",
-    "actualduration",
-  );
-  const costIdx = findColIndex("cost", "price", "expense", "amount", "chiphi");
-  const taskIdx = findColIndex("taskid", "taskcode", "task_id", "matask");
-  const benchmarkIdx = findColIndex(
-    "benchmarkduration",
-    "benchmark",
-    "dinhmuc",
-    "dinhmucphut",
-    "sla",
-    "standardtime",
-    "targetduration",
-  );
-  const slaStatusIdx = findColIndex("slastatus", "ketqua", "trangthai", "result", "status");
+  const caseIdx = findColIndex(...ALIAS_GROUPS.case);
+  const actIdx = findColIndex(...ALIAS_GROUPS.act);
+  const resIdx = findColIndex(...ALIAS_GROUPS.res);
+  const startIdx = findColIndex(...ALIAS_GROUPS.start);
+  const endIdx = findColIndex(...ALIAS_GROUPS.end);
+  const durIdx = findColIndex(...ALIAS_GROUPS.dur);
+  const costIdx = findColIndex(...ALIAS_GROUPS.cost);
+  const taskIdx = findColIndex(...ALIAS_GROUPS.task);
+  const benchmarkIdx = findColIndex(...ALIAS_GROUPS.benchmark);
+  const slaStatusIdx = findColIndex(...ALIAS_GROUPS.status);
 
   const items: EventLogItem[] = [];
   const now = Date.now();
 
-  for (let i = 1; i < lines.length; i++) {
-    const row = parseRow(lines[i]!);
-    if (row.length === 0 || (row.length === 1 && !row[0])) continue;
+  for (let i = headerRowIdx + 1; i < rawRows.length; i++) {
+    const row = (rawRows[i] || []).map((c) => String(c ?? "").trim());
+    if (row.length === 0 || row.every((c) => c === "")) continue;
 
-    const caseId = caseIdx !== -1 && row[caseIdx] ? row[caseIdx]! : `Case_${i}`;
-    const activity = actIdx !== -1 && row[actIdx] ? row[actIdx]! : `Activity_${i}`;
+    const rowNum = i - headerRowIdx;
+    const caseId = caseIdx !== -1 && row[caseIdx] ? row[caseIdx]! : `Case_${rowNum}`;
+    const rawAct = actIdx !== -1 && row[actIdx] ? row[actIdx]! : `Activity_${rowNum}`;
     const resource = resIdx !== -1 && row[resIdx] ? row[resIdx]! : "Unassigned";
+
+    let taskId = taskIdx !== -1 && row[taskIdx] ? row[taskIdx]! : undefined;
+    const activity = cleanTaskName(rawAct);
+
+    if (!taskId) {
+      const codeMatch = rawAct.match(/^(?:Task[-_\s]*\d+|T-?\d+)/i);
+      if (codeMatch) {
+        taskId = codeMatch[0].trim();
+      }
+    }
 
     let startIso = new Date(now + i * 60000).toISOString();
     if (startIdx !== -1 && row[startIdx]) {
-      const d = new Date(row[startIdx]!);
-      if (!isNaN(d.getTime())) startIso = d.toISOString();
+      const parsed = parseFlexibleDate(row[startIdx]!);
+      if (parsed) startIso = parsed;
     }
 
     let endIso = startIso;
     if (endIdx !== -1 && row[endIdx]) {
-      const d = new Date(row[endIdx]!);
-      if (!isNaN(d.getTime())) endIso = d.toISOString();
+      const parsed = parseFlexibleDate(row[endIdx]!);
+      if (parsed) endIso = parsed;
     }
 
     let duration = 1;
@@ -152,7 +115,7 @@ export function parseEventLogCsv(csvContent: string): EventLogItem[] {
       if (!isNaN(parsed) && parsed >= 0) cost = parsed;
     }
 
-    const taskId = taskIdx !== -1 && row[taskIdx] ? row[taskIdx]! : undefined;
+    // taskId already extracted above
 
     let benchmarkDuration: number | undefined;
     if (benchmarkIdx !== -1 && row[benchmarkIdx]) {
@@ -202,13 +165,62 @@ export function parseEventLogCsv(csvContent: string): EventLogItem[] {
 }
 
 /**
+ * Parses raw CSV content into EventLogItem array.
+ */
+export function parseEventLogCsv(csvContent: string): EventLogItem[] {
+  const lines = csvContent
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  if (lines.length < 2) return [];
+
+  // Auto-detect delimiter from first row
+  const firstLine = lines[0]!;
+  let delimiter = ",";
+  const commaCount = (firstLine.match(/,/g) || []).length;
+  const semiCount = (firstLine.match(/;/g) || []).length;
+  const tabCount = (firstLine.match(/\t/g) || []).length;
+
+  if (semiCount > commaCount && semiCount > tabCount) delimiter = ";";
+  else if (tabCount > commaCount && tabCount > semiCount) delimiter = "\t";
+
+  const parseRow = (line: string): string[] => {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === delimiter && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
+  const rawRows = lines.map(parseRow);
+  return parseEventLogRows(rawRows);
+}
+
+/**
  * Parses IEEE XES XML text into standard EventLogItem array.
  */
 export function parseEventLogXes(xesXml: string): EventLogItem[] {
   const items: EventLogItem[] = [];
   if (!xesXml.includes("<trace")) return items;
 
-  // Regex-based robust parser for browser XML string (no heavy external DOM dependency)
   const traceRegex = /<trace[\s\S]*?<\/trace>/gi;
   const eventRegex = /<event[\s\S]*?<\/event>/gi;
   const attrRegex = /<(string|date|float|int)\s+key="([^"]+)"\s+value="([^"]*)"\s*\/?>/gi;
@@ -219,7 +231,6 @@ export function parseEventLogXes(xesXml: string): EventLogItem[] {
   while ((traceMatch = traceRegex.exec(xesXml)) !== null) {
     const traceBlock = traceMatch[0];
 
-    // Extract Case ID
     let caseId = `Case_${caseCounter}`;
     const traceHeader = traceBlock.slice(
       0,
@@ -233,7 +244,6 @@ export function parseEventLogXes(xesXml: string): EventLogItem[] {
       }
     }
 
-    // Extract Events
     let eventMatch: RegExpExecArray | null;
     while ((eventMatch = eventRegex.exec(traceBlock)) !== null) {
       const eventBlock = eventMatch[0];
@@ -248,7 +258,7 @@ export function parseEventLogXes(xesXml: string): EventLogItem[] {
         const key = eventAttrMatch[2];
         const val = eventAttrMatch[3] || "";
 
-        if (key === "concept:name") activity = val;
+        if (key === "concept:name") activity = cleanTaskName(val);
         else if (key === "org:resource") resource = val;
         else if (key === "time:timestamp") timestamp = val;
         else if (key === "duration") {
@@ -280,39 +290,88 @@ export function parseEventLogXes(xesXml: string): EventLogItem[] {
 
 /**
  * Universal file reader & parser for uploaded event logs.
+ * Supports multi-sheet Excel (.xlsx, .xls) with smart sheet scoring and custom sheet selection.
  */
-export async function parseEventLogFile(file: File): Promise<EventLogItem[]> {
+export async function parseEventLogFile(
+  file: File,
+  targetSheet?: string,
+): Promise<ParseEventLogResult> {
   const name = file.name.toLowerCase();
 
   // Support Excel (.xlsx, .xls) files directly
   if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
     const buffer = await file.arrayBuffer();
-    const wb = XLSX.read(buffer, { type: "array" });
-    const firstSheetName = wb.SheetNames[0];
-    if (firstSheetName) {
-      const sheet = wb.Sheets[firstSheetName];
-      if (sheet) {
-        const csv = XLSX.utils.sheet_to_csv(sheet);
-        return parseEventLogCsv(csv);
+    const wb = XLSX.read(buffer, {
+      type: "array",
+      cellDates: true,
+      dateNF: "yyyy-mm-dd hh:mm:ss",
+    });
+    const availableSheets = wb.SheetNames;
+
+    // Explicit sheet requested
+    if (targetSheet && wb.Sheets[targetSheet]) {
+      const sheet = wb.Sheets[targetSheet]!;
+      const rawRows = XLSX.utils.sheet_to_json<string[]>(sheet, {
+        header: 1,
+        raw: false,
+        defval: "",
+      });
+      const items = parseEventLogRows(rawRows);
+      return { items, availableSheets, selectedSheet: targetSheet };
+    }
+
+    // Smart automatic sheet selection
+    let bestSheet = availableSheets[0] || "";
+    let bestScore = -1;
+    let bestItems: EventLogItem[] = [];
+
+    for (const sheetName of availableSheets) {
+      const sheet = wb.Sheets[sheetName];
+      if (!sheet) continue;
+      const rawRows = XLSX.utils.sheet_to_json<string[]>(sheet, {
+        header: 1,
+        raw: false,
+        defval: "",
+      });
+      const items = parseEventLogRows(rawRows);
+      const assignedCount = items.filter((it) => it.resource !== "Unassigned").length;
+      const distinctCases = new Set(items.map((it) => it.caseId)).size;
+
+      // Score based on rows, assigned resources, distinct cases, and sheet naming
+      let score = items.length * 2 + assignedCount * 15 + distinctCases * 5;
+      if (/log|event|nhat\s*ky|du\s*lieu|data|trace|case/i.test(sheetName)) {
+        score += 50;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestSheet = sheetName;
+        bestItems = items;
       }
     }
+
+    return {
+      items: bestItems,
+      availableSheets,
+      selectedSheet: bestSheet,
+    };
   }
 
   const text = await file.text();
 
   if (name.endsWith(".xes") || name.endsWith(".xml")) {
     const xesParsed = parseEventLogXes(text);
-    if (xesParsed.length > 0) return xesParsed;
+    if (xesParsed.length > 0) return { items: xesParsed, availableSheets: [] };
   }
 
   if (name.endsWith(".json")) {
     try {
       const data = JSON.parse(text);
       if (Array.isArray(data)) {
-        return data.map((d) => ({
+        const items = data.map((d) => ({
           id: d.id || uniqueId(),
           caseId: String(d.caseId || d.case_id || "Case_1"),
-          activity: String(d.activity || d.task || "Activity"),
+          activity: cleanTaskName(String(d.activity || d.task || "Activity")),
           resource: String(d.resource || d.role || "Unassigned"),
           startTimestamp: String(d.startTimestamp || d.start || new Date().toISOString()),
           completeTimestamp: String(d.completeTimestamp || d.end || new Date().toISOString()),
@@ -323,6 +382,7 @@ export async function parseEventLogFile(file: File): Promise<EventLogItem[]> {
             typeof d.benchmarkDuration === "number" ? d.benchmarkDuration : undefined,
           slaStatus: d.slaStatus === "met" || d.slaStatus === "delayed" ? d.slaStatus : undefined,
         }));
+        return { items, availableSheets: [] };
       }
     } catch {
       // fallback to CSV if JSON parse fails
@@ -330,5 +390,5 @@ export async function parseEventLogFile(file: File): Promise<EventLogItem[]> {
   }
 
   // Default: Parse as CSV
-  return parseEventLogCsv(text);
+  return { items: parseEventLogCsv(text), availableSheets: [] };
 }

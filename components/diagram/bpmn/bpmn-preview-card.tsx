@@ -16,7 +16,7 @@ export function BpmnPreviewCard({ preview, unit, onApply, onDiscard }: BpmnPrevi
   const tBtn = useTranslations("common.buttons");
 
   return (
-    <AppCard variant="subtle" className="mt-4" contentClassName="px-4">
+    <AppCard variant="subtle" contentClassName="px-4">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-xs capitalize tracking-wide text-muted-foreground">
           {tDia("previewTitle", { count: preview.blocks.length })}

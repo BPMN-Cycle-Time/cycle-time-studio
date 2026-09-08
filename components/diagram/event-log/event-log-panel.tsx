@@ -2,22 +2,7 @@
 
 import { useMemo, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import {
-  FileSpreadsheet,
-  FileCode,
-  RefreshCw,
-  Users,
-  Activity,
-  Layers,
-  Clock,
-  Coins,
-  ShieldCheck,
-  Table2,
-  X,
-  Percent,
-  CheckCircle2,
-  AlertTriangle,
-} from "lucide-react";
+import { Users, Activity, Layers, Clock, Coins, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { Block, Task, EventLogItem } from "@/types";
 import {
   generateEventLog,
@@ -26,37 +11,52 @@ import {
   exportEventLogToXes,
 } from "@/services/event-log";
 import { enrichEventsWithSla } from "@/services/sla-benchmark";
-import {
-  AppCard,
-  Button,
-  DataTable,
-  Badge,
-  AppSelect,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  type TableColumn,
-} from "@/components/ui";
-import { UploadEventLogDialog } from "./upload-event-log-dialog";
+import { AppCard, DataTable, Badge, AppSelect, type TableColumn } from "@/components/ui";
 import { ConformanceAnalysisView } from "./conformance-analysis-view";
-import { DiscoveredBpmnDialog } from "./discovered-bpmn-dialog";
 import { SlaBenchmarkView } from "./sla-benchmark-view";
 import { KpiStatCard } from "./kpi-stat-card";
+import { EventLogHeader } from "./event-log-header";
+
+import type { DiagramTab } from "@/components/layout";
 
 interface EventLogPanelProps {
   blocks: Block[];
   tasks?: Task[];
   unit: string;
   currency?: string;
+  uploadedEvents?: EventLogItem[] | null;
+  onUploadEvents?: (events: EventLogItem[] | null) => void;
+  onSwitchDiagramTab?: (tab: DiagramTab) => void;
 }
 
-export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogPanelProps) {
+export function EventLogPanel({
+  blocks,
+  tasks,
+  unit,
+  currency = "$",
+  uploadedEvents: externalUploadedEvents,
+  onUploadEvents,
+  onSwitchDiagramTab,
+}: EventLogPanelProps) {
   const tDiag = useTranslations("diagram");
   const [caseCount, setCaseCount] = useState<number>(20);
   const [seed, setSeed] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<"data" | "sla" | "conformance">("data");
   const [slaFilter, setSlaFilter] = useState<"all" | "met" | "delayed">("all");
-  const [uploadedEvents, setUploadedEvents] = useState<EventLogItem[] | null>(null);
+  const [internalUploaded, setInternalUploaded] = useState<EventLogItem[] | null>(null);
+
+  const uploadedEvents =
+    externalUploadedEvents !== undefined ? externalUploadedEvents : internalUploaded;
+  const setUploadedEvents = useCallback(
+    (events: EventLogItem[] | null) => {
+      if (onUploadEvents) {
+        onUploadEvents(events);
+      } else {
+        setInternalUploaded(events);
+      }
+    },
+    [onUploadEvents],
+  );
 
   const caseOptions = useMemo(
     () => [
@@ -97,28 +97,32 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
         label: tDiag("totalEvents"),
         value: summary.totalEvents.toLocaleString(),
         icon: Layers,
-        iconColorClassName: "bg-indigo-500/10 text-indigo-500",
+        tag: tDiag("kpiTagEvents"),
+        accentColor: "indigo" as const,
       },
       {
         id: "total-cases",
         label: tDiag("totalCases"),
         value: summary.totalCases,
         icon: Activity,
-        iconColorClassName: "bg-emerald-500/10 text-emerald-500",
+        tag: tDiag("kpiTagCases"),
+        accentColor: "emerald" as const,
       },
       {
         id: "distinct-activities",
         label: tDiag("distinctActivities"),
         value: summary.distinctActivities,
         icon: Layers,
-        iconColorClassName: "bg-amber-500/10 text-amber-500",
+        tag: tDiag("kpiTagActivities"),
+        accentColor: "amber" as const,
       },
       {
         id: "distinct-resources",
         label: tDiag("distinctResources"),
         value: summary.distinctResources,
         icon: Users,
-        iconColorClassName: "bg-violet-500/10 text-violet-500",
+        tag: tDiag("kpiTagResources"),
+        accentColor: "violet" as const,
       },
       {
         id: "avg-duration",
@@ -126,14 +130,16 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
         value: summary.avgCaseDuration,
         unit,
         icon: Clock,
-        iconColorClassName: "bg-sky-500/10 text-sky-500",
+        tag: tDiag("kpiTagDuration"),
+        accentColor: "sky" as const,
       },
       {
         id: "avg-cost",
         label: tDiag("avgCaseCost"),
         value: `${currency}${summary.avgCaseCost.toLocaleString()}`,
         icon: Coins,
-        iconColorClassName: "bg-amber-500/10 text-amber-500",
+        tag: tDiag("kpiTagCost"),
+        accentColor: "rose" as const,
       },
     ],
     [tDiag, summary, unit, currency],
@@ -142,11 +148,11 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
   const handleRegenerate = useCallback(() => {
     setUploadedEvents(null);
     setSeed((s) => s + 1);
-  }, []);
+  }, [setUploadedEvents]);
 
   const handleResetToSimulated = useCallback(() => {
     setUploadedEvents(null);
-  }, []);
+  }, [setUploadedEvents]);
 
   const handleDownloadCsv = useCallback(() => {
     if (enrichedEvents.length === 0) return;
@@ -294,114 +300,23 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
 
   return (
     <div className="flex flex-col gap-3.5 w-full h-full pb-6 @container">
-      {/* Header & Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-card border border-border/70 p-3 px-3.5 rounded-xl shadow-xs">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-              <Activity className="w-4 h-4 text-primary" />
-              {tDiag("eventLogTitle")}
-            </h2>
-            {uploadedEvents ? (
-              <Badge
-                variant="secondary"
-                className="text-xs bg-primary/10 text-primary border border-primary/20 flex items-center gap-1"
-              >
-                <span>{tDiag("sourceUploadedFile")}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleResetToSimulated}
-                  className="h-4 w-4 p-0 text-primary hover:text-destructive hover:bg-transparent"
-                  title={tDiag("resetToSimulated")}
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-xs text-muted-foreground">
-                {tDiag("sourceSimulatedBpmn")}
-              </Badge>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">{tDiag("eventLogDesc")}</p>
-        </div>
-
-        {/* Action Controls & Sub-tabs */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Sub-tabs: Data vs SLA vs Conformance */}
-          <Tabs
-            value={activeTab}
-            onValueChange={(val) => setActiveTab(val as "data" | "sla" | "conformance")}
-          >
-            <TabsList className="h-8">
-              <TabsTrigger value="data" className="text-xs px-2.5 h-6">
-                <Table2 className="w-3 h-3 mr-1.5" />
-                {tDiag("tabEventLogData")}
-              </TabsTrigger>
-              <TabsTrigger value="sla" className="text-xs px-2.5 h-6">
-                <Percent className="w-3 h-3 mr-1.5" />
-                {tDiag("tabSlaEvaluation")}
-              </TabsTrigger>
-              <TabsTrigger value="conformance" className="text-xs px-2.5 h-6">
-                <ShieldCheck className="w-3 h-3 mr-1.5" />
-                {tDiag("tabConformanceChecking")}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <UploadEventLogDialog onImport={(items) => setUploadedEvents(items)} />
-
-          {!uploadedEvents && (
-            <>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span>{tDiag("caseCount")}:</span>
-                <div className="w-28">
-                  <AppSelect
-                    value={String(caseCount)}
-                    onValueChange={(val) => setCaseCount(Number(val))}
-                    options={caseOptions}
-                  />
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRegenerate}
-                className="text-xs flex items-center gap-1.5"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                {tDiag("generateEventLog")}
-              </Button>
-            </>
-          )}
-
-          <DiscoveredBpmnDialog events={events} />
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownloadCsv}
-            disabled={events.length === 0}
-            className="text-xs flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            {tDiag("exportCsv")}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownloadXes}
-            disabled={events.length === 0}
-            className="text-xs flex items-center gap-1.5 text-blue-600 dark:text-blue-400"
-          >
-            <FileCode className="w-3.5 h-3.5" />
-            {tDiag("exportXes")}
-          </Button>
-        </div>
-      </div>
+      {/* Redesigned 2-tier Header & Dedicated Data Source Bar */}
+      <EventLogHeader
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isUploaded={Boolean(uploadedEvents)}
+        uploadedEventCount={uploadedEvents?.length ?? 0}
+        caseCount={caseCount}
+        onCaseCountChange={setCaseCount}
+        caseOptions={caseOptions}
+        onRegenerate={handleRegenerate}
+        onResetToSimulated={handleResetToSimulated}
+        onImportEvents={setUploadedEvents}
+        events={events}
+        onExportCsv={handleDownloadCsv}
+        onExportXes={handleDownloadXes}
+        onSwitchDiagramTab={onSwitchDiagramTab}
+      />
 
       {activeTab === "conformance" ? (
         <ConformanceAnalysisView
@@ -410,6 +325,7 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
           tasks={tasks}
           unit={unit}
           currency={currency}
+          onSwitchDiagramTab={onSwitchDiagramTab}
         />
       ) : activeTab === "sla" ? (
         <SlaBenchmarkView events={enrichedEvents} blocks={blocks} tasks={tasks} unit={unit} />
@@ -459,6 +375,9 @@ export function EventLogPanel({ blocks, tasks, unit, currency = "$" }: EventLogP
           )}
         </>
       )}
+
+      {/* Safe bottom spacing so table footer and pagination never touch screen edge */}
+      <div className="h-1 shrink-0 w-full" aria-hidden="true" />
     </div>
   );
 }

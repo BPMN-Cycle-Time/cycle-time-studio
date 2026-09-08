@@ -8,6 +8,7 @@ import { parseEventLogFile } from "@/services/event-log-parser";
 import {
   Button,
   Badge,
+  AppSelect,
   Dialog,
   DialogTrigger,
   DialogContent,
@@ -33,6 +34,9 @@ export function UploadEventLogDialog({ onImport, trigger }: UploadEventLogDialog
   const [parsedEvents, setParsedEvents] = useState<EventLogItem[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [fileSize, setFileSize] = useState<string>("");
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [availableSheets, setAvailableSheets] = useState<string[]>([]);
+  const [selectedSheet, setSelectedSheet] = useState<string>("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,21 +46,28 @@ export function UploadEventLogDialog({ onImport, trigger }: UploadEventLogDialog
     setFileSize("");
     setError(null);
     setBusy(false);
+    setCurrentFile(null);
+    setAvailableSheets([]);
+    setSelectedSheet("");
   };
 
-  const processFile = async (file: File) => {
+  const processFile = async (file: File, targetSheet?: string) => {
     setBusy(true);
     setError(null);
     setFileName(file.name);
     setFileSize(`${(file.size / 1024).toFixed(1)} KB`);
+    setCurrentFile(file);
 
     try {
-      const items = await parseEventLogFile(file);
-      if (items.length === 0) {
+      const res = await parseEventLogFile(file, targetSheet);
+      setAvailableSheets(res.availableSheets || []);
+      setSelectedSheet(res.selectedSheet || "");
+
+      if (res.items.length === 0) {
         setError(tDiag("emptyLogFileError"));
         setParsedEvents([]);
       } else {
-        setParsedEvents(items);
+        setParsedEvents(res.items);
       }
     } catch (err) {
       setError((err as Error).message || tDiag("uploadFileParseError"));
@@ -140,7 +151,7 @@ export function UploadEventLogDialog({ onImport, trigger }: UploadEventLogDialog
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xes,.xml,.json"
+              accept=".xlsx,.xls,.csv,.xes,.xml,.json"
               onChange={handleFileChange}
               className="hidden"
             />
@@ -150,7 +161,7 @@ export function UploadEventLogDialog({ onImport, trigger }: UploadEventLogDialog
               </div>
               <p className="text-sm font-medium text-foreground">{tDiag("dropzonePrompt")}</p>
               <p className="text-xs text-muted-foreground">
-                {tDiag("supportedFormats")} (.csv, .xes, .json)
+                {tDiag("supportedFormats")} (.xlsx, .xls, .csv, .xes, .json)
               </p>
             </div>
           </div>
@@ -160,6 +171,25 @@ export function UploadEventLogDialog({ onImport, trigger }: UploadEventLogDialog
             <div className="flex items-center gap-2 p-3 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {/* Sheet Selector if file has multiple sheets */}
+          {availableSheets.length > 1 && (
+            <div className="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-border/70 bg-muted/20">
+              <div className="flex items-center gap-2 shrink-0">
+                <FileSpreadsheet className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium text-foreground">{tDiag("selectSheet")}:</span>
+              </div>
+              <div className="w-56">
+                <AppSelect
+                  value={selectedSheet}
+                  onValueChange={(sheet) => {
+                    if (currentFile) processFile(currentFile, sheet);
+                  }}
+                  options={availableSheets.map((s) => ({ value: s, label: s }))}
+                />
+              </div>
             </div>
           )}
 

@@ -20,3 +20,4 @@ export * from "./sheet";
 export * from "./table";
 export * from "./data-table";
 export * from "./checkbox";
+export * from "./pagination";

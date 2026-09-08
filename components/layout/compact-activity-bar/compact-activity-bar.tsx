@@ -13,9 +13,10 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 
-import { AppTooltip } from "@/components/ui";
+import { AppTooltip, Input } from "@/components/ui";
 import { useLocalStorageState } from "@/hooks";
 import { STORAGE_KEYS } from "@/constants";
+import { useEditorStore } from "@/store/useEditorStore";
 import { cn } from "@/utils";
 
 export type DiagramTab = "model" | "graph" | "bpmn" | "eventLog" | "socialNetwork";
@@ -41,6 +42,8 @@ const NAV_ITEMS: NavItem[] = [
 
 export function CompactActivityBar({ activeTab, onTabChange }: CompactActivityBarProps) {
   const t = useTranslations("diagram");
+  const tSidebar = useTranslations("Sidebar");
+  const { project, setName } = useEditorStore();
   const [collapsed, setCollapsed] = useLocalStorageState(
     STORAGE_KEYS.ACTIVITY_BAR_COLLAPSED,
     false,
@@ -53,17 +56,21 @@ export function CompactActivityBar({ activeTab, onTabChange }: CompactActivityBa
         collapsed ? "w-16 items-center" : "w-56 items-stretch",
       )}
     >
-      {/* Top: Logo / Brand row */}
+      {/* Top: Project Name & Collapse button */}
       <div
         className={cn(
           "flex items-center mb-3",
-          collapsed ? "justify-center px-1" : "justify-between px-3 gap-2",
+          collapsed ? "justify-center px-1" : "justify-between px-2.5 gap-1.5",
         )}
       >
         {!collapsed && (
-          <span className="font-bold text-sm tracking-tight text-foreground truncate pl-0.5">
-            Views
-          </span>
+          <Input
+            value={project?.name ?? ""}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={tSidebar("projectName")}
+            className="h-8 font-bold text-sm tracking-tight text-foreground border-transparent hover:border-input focus-visible:border-primary shadow-none px-2 min-w-0 flex-1 transition-colors rounded-lg"
+            title={project?.name}
+          />
         )}
         <AppTooltip
           content={collapsed ? t("activityBarExpandTooltip") : t("activityBarCollapseTooltip")}

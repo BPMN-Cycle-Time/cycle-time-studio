@@ -23,7 +23,7 @@ export function SocialMetricsGuide() {
   const tDiag = useTranslations("diagram");
 
   return (
-    <AppCard className="bg-card/80 flex flex-col gap-3 shadow-xs">
+    <AppCard className="bg-card/80 flex flex-col gap-3 shadow-xs mb-3">
       <div className="flex items-center gap-1.5 border-b border-border/50 pb-2.5">
         <BookOpen className="w-3.5 h-3.5 text-primary" />
         <h4 className="text-xs font-semibold capitalize tracking-wider text-muted-foreground">

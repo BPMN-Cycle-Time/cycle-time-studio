@@ -2,20 +2,13 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Share2, ArrowRightLeft, Users2, Filter, RefreshCw, BarChart3, Table2 } from "lucide-react";
-import type { Block, Task, SocialMetricType } from "@/types";
+import { BarChart3, Table2 } from "lucide-react";
+import type { Block, Task, SocialMetricType, EventLogItem } from "@/types";
 import { generateEventLog } from "@/services/event-log";
 import { buildSocialNetwork } from "@/services/social-network";
-import {
-  Card,
-  CardContent,
-  Button,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/ui";
+import { Card, CardContent, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
 import { DiagramViewport } from "../diagram-viewport";
+import { SocialNetworkHeader } from "./social-network-header";
 import { SocialNetworkEdges } from "./social-network-edges";
 import { SocialMatrixTable } from "./social-matrix-table";
 import { SocialEvaluationTable } from "./social-evaluation-table";
@@ -26,12 +19,20 @@ interface SocialNetworkPanelProps {
   blocks: Block[];
   tasks?: Task[];
   unit: string;
+  uploadedEvents?: EventLogItem[] | null;
+  onUploadEvents?: (events: EventLogItem[] | null) => void;
 }
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 560;
 
-export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelProps) {
+export function SocialNetworkPanel({
+  blocks,
+  tasks,
+  unit,
+  uploadedEvents,
+  onUploadEvents,
+}: SocialNetworkPanelProps) {
   const tDiag = useTranslations("diagram");
 
   const [metric, setMetric] = useState<SocialMetricType>("handover");
@@ -40,11 +41,14 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
   const [seed, setSeed] = useState<number>(1);
 
   // Generate synthetic event log for network analysis (50 cases for robust statistics)
-  const events = useMemo(() => {
+  const simulatedEvents = useMemo(() => {
     if (!blocks || blocks.length === 0) return [];
     void seed;
     return generateEventLog(blocks, tasks, unit, { caseCount: 50 });
   }, [blocks, tasks, unit, seed]);
+
+  const events = uploadedEvents ?? simulatedEvents;
+  const isUploaded = Boolean(uploadedEvents && uploadedEvents.length > 0);
 
   // Construct baseline network graph (unfiltered to derive dynamic thresholds & edge counts)
   const baseNetwork = useMemo(() => {
@@ -97,77 +101,20 @@ export function SocialNetworkPanel({ blocks, tasks, unit }: SocialNetworkPanelPr
   return (
     <div className="flex flex-col gap-3.5 w-full h-full pb-6">
       {/* Header & Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-card border border-border/70 p-3 px-3.5 rounded-xl shadow-xs">
-        <div className="flex flex-col gap-0.5">
-          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Share2 className="w-4 h-4 text-primary" />
-            {tDiag("socialNetworkTitle")}
-          </h2>
-          <p className="text-xs text-muted-foreground">{tDiag("socialNetworkDesc")}</p>
-        </div>
-
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Metric Selector Tabs */}
-          <Tabs
-            value={metric}
-            onValueChange={(val) => setMetric(val as SocialMetricType)}
-            className="shrink-0"
-          >
-            <TabsList className="h-8">
-              <TabsTrigger value="handover" className="text-xs px-2.5 h-6">
-                <ArrowRightLeft className="w-3 h-3 mr-1.5" />
-                {tDiag("metricHandover")}
-              </TabsTrigger>
-              <TabsTrigger value="workingTogether" className="text-xs px-2.5 h-6">
-                <Users2 className="w-3 h-3 mr-1.5" />
-                {tDiag("metricWorkingTogether")}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {/* Min Weight Filter (Dynamic Thresholds) */}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground border border-border/70 rounded-md px-2 py-1 bg-background/50">
-            <Filter className="w-3 h-3 text-muted-foreground shrink-0" />
-            <span>{tDiag("minThreshold")}:</span>
-            <div className="flex items-center gap-1">
-              {availableThresholds.map((thresh) => {
-                const count = thresholdEdgeCounts[thresh] ?? 0;
-                const isSelected = activeThreshold === thresh;
-                return (
-                  <Button
-                    key={thresh}
-                    variant={isSelected ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setMinThreshold(thresh)}
-                    className="h-6 px-1.5 py-0 text-xs font-mono flex items-center gap-1"
-                    title={`Threshold ${thresh}+ (${count} connections)`}
-                  >
-                    <span>{thresh === 1 ? "1" : `≥${thresh}`}</span>
-                    <span
-                      className={`text-[10px] px-1 rounded-full leading-tight ${
-                        isSelected
-                          ? "bg-primary-foreground/20 text-primary-foreground font-semibold"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRegenerate}
-            className="text-xs flex items-center gap-1.5"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            {tDiag("generateEventLog")}
-          </Button>
-        </div>
+      <div className="flex flex-col gap-3 w-full bg-card border border-border/70 p-3.5 rounded-2xl shadow-xs">
+        <SocialNetworkHeader
+          isUploaded={isUploaded}
+          metric={metric}
+          onMetricChange={setMetric}
+          availableThresholds={availableThresholds}
+          thresholdEdgeCounts={thresholdEdgeCounts}
+          activeThreshold={activeThreshold}
+          onThresholdChange={setMinThreshold}
+          onUploadEvents={onUploadEvents}
+          onRegenerate={handleRegenerate}
+          totalNodes={networkData.nodes.length}
+          totalEdges={networkData.edges.length}
+        />
       </div>
 
       {/* Main Content Layout: Full Width Canvas on top, stacked details below */}

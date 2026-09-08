@@ -16,7 +16,6 @@ import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { DiagramInspector } from "../diagram-inspector";
 import { DiagramViewport } from "../diagram-viewport";
 import { DiagramGuidelines, type ActiveGuideline } from "../diagram-guidelines";
-import { DiagramRoutingSwitcher } from "../diagram-routing-switcher";
 import { ImportGraphDialog } from "../import-graph-dialog";
 import { ExportGraphDialog } from "../export-graph-dialog";
 import { GraphSvgRenderer } from "./graph-svg-renderer";
@@ -31,7 +30,7 @@ interface GraphPanelProps {
 export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
   const t = useTranslations("diagram");
   const [exporting, setExporting] = useState(false);
-  const [routingStyle, setRoutingStyle] = useState<EdgeRoutingStyle>(EdgeRoutingStyle.ORTHOGONAL);
+  const routingStyle = EdgeRoutingStyle.ORTHOGONAL;
   const [customPositions, setCustomPositions] = useState<Record<string, { x: number; y: number }>>(
     {},
   );
@@ -269,36 +268,30 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 shrink-0 flex-wrap pt-0.5">
-          <div className="flex items-center gap-3 shrink-0 flex-wrap">
-            <DiagramRoutingSwitcher style={routingStyle} onChange={setRoutingStyle} />
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            {hasCustomPositions && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleResetLayout}
-                className="h-8 text-xs font-medium"
-              >
-                <RotateCcw className="size-3.5 mr-1.5" />
-                {t("resetLayout")}
-              </Button>
-            )}
+        <div className="flex items-center justify-end gap-2 shrink-0 flex-wrap pt-0.5">
+          {hasCustomPositions && (
             <Button
               variant="outline"
               size="sm"
-              onClick={handleExportPng}
-              disabled={exporting}
+              onClick={handleResetLayout}
               className="h-8 text-xs font-medium"
             >
-              <Download className="size-3.5 mr-1.5" />
-              {t("exportPng")}
+              <RotateCcw className="size-3.5 mr-1.5" />
+              {t("resetLayout")}
             </Button>
-            <ExportGraphDialog graph={graph} />
-            <ImportGraphDialog />
-          </div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPng}
+            disabled={exporting}
+            className="h-8 text-xs font-medium"
+          >
+            <Download className="size-3.5 mr-1.5" />
+            {t("exportPng")}
+          </Button>
+          <ExportGraphDialog graph={graph} />
+          <ImportGraphDialog />
         </div>
       </div>
 

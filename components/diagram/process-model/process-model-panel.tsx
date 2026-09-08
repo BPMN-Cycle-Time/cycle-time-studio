@@ -19,7 +19,6 @@ import { ImportGraphDialog } from "../import-graph-dialog";
 import { ExportGraphDialog } from "../export-graph-dialog";
 import { DiagramViewport } from "../diagram-viewport";
 import { DiagramGuidelines, type ActiveGuideline } from "../diagram-guidelines";
-import { DiagramRoutingSwitcher } from "../diagram-routing-switcher";
 import { ProcessModelFlowRenderer } from "./process-model-svg-renderer";
 import { ProcessModelStartEndpoint, ProcessModelEndEndpoint } from "./process-model-endpoints";
 import { Checkbox, AppLabel, Card, Button } from "@/components/ui";
@@ -35,7 +34,7 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
   const t = useTranslations("diagram");
   const [showIds, setShowIds] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [routingStyle, setRoutingStyle] = useState<EdgeRoutingStyle>(EdgeRoutingStyle.ORTHOGONAL);
+  const routingStyle = EdgeRoutingStyle.ORTHOGONAL;
   const [customOffsets, setCustomOffsets] = useState<Record<string, { dx: number; dy: number }>>(
     {},
   );
@@ -334,18 +333,15 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
         </div>
 
         <div className="flex items-center justify-between gap-3 shrink-0 flex-wrap pt-0.5">
-          <div className="flex items-center gap-3 shrink-0 flex-wrap">
-            <DiagramRoutingSwitcher style={routingStyle} onChange={setRoutingStyle} />
-            <div className="flex items-center gap-2 ml-1">
-              <Checkbox
-                id="show-ids"
-                checked={showIds}
-                onCheckedChange={(c) => setShowIds(c === true)}
-              />
-              <AppLabel htmlFor="show-ids" className="text-xs cursor-pointer select-none">
-                {t("showNodeIds")}
-              </AppLabel>
-            </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="show-ids"
+              checked={showIds}
+              onCheckedChange={(c) => setShowIds(c === true)}
+            />
+            <AppLabel htmlFor="show-ids" className="text-xs cursor-pointer select-none">
+              {t("showNodeIds")}
+            </AppLabel>
           </div>
 
           <div className="flex items-center gap-2 shrink-0 flex-wrap">

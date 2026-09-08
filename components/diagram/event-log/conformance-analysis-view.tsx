@@ -15,6 +15,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui";
+import type { DiagramTab } from "@/components/layout";
 import { DiscoveredBpmnDialog } from "./discovered-bpmn-dialog";
 import { CaseRowItem } from "./conformance-case-row";
 import { KpiStatCard } from "./kpi-stat-card";
@@ -25,6 +26,7 @@ interface ConformanceAnalysisViewProps {
   tasks?: Task[];
   unit: string;
   currency: string;
+  onSwitchDiagramTab?: (tab: DiagramTab) => void;
 }
 
 export function ConformanceAnalysisView({
@@ -33,6 +35,7 @@ export function ConformanceAnalysisView({
   tasks,
   unit,
   currency,
+  onSwitchDiagramTab,
 }: ConformanceAnalysisViewProps) {
   const tDiag = useTranslations("diagram");
 
@@ -96,78 +99,72 @@ export function ConformanceAnalysisView({
     setExpandedCaseId((prev) => (prev === caseId ? null : caseId));
   };
 
-  const fitnessColor =
-    analysis.overallFitnessScore >= 85
-      ? "text-emerald-600 dark:text-emerald-400"
-      : analysis.overallFitnessScore >= 70
-        ? "text-amber-600 dark:text-amber-400"
-        : "text-rose-600 dark:text-rose-400";
-
   const kpiCards = useMemo(
     () => [
       {
         id: "fitness",
         label: tDiag("overallFitnessScore"),
         value: `${analysis.overallFitnessScore}%`,
-        valueColorClassName: fitnessColor,
         description: `${analysis.conformantCases} / ${analysis.totalCases} ${tDiag("conformantCasesLabel")}`,
+        tag: tDiag("kpiTagFitness"),
         icon: ShieldCheck,
-        iconColorClassName: "bg-emerald-500/10 text-emerald-500",
+        accentColor: "emerald" as const,
       },
       {
         id: "skipped",
         label: tDiag("skippedActivities"),
         value: analysis.violationCounts.skipped_activity,
-        valueColorClassName: "text-rose-600 dark:text-rose-400",
         description: tDiag("skippedActivitiesDesc"),
+        tag: tDiag("tagSkipped"),
         icon: XCircle,
-        iconColorClassName: "bg-rose-500/10 text-rose-500",
+        accentColor: "rose" as const,
       },
       {
         id: "out-of-order",
         label: tDiag("outOfOrderActivities"),
         value: analysis.violationCounts.out_of_order,
-        valueColorClassName: "text-amber-600 dark:text-amber-400",
         description: tDiag("outOfOrderDesc"),
+        tag: tDiag("tagOrder"),
         icon: Clock,
-        iconColorClassName: "bg-amber-500/10 text-amber-500",
+        accentColor: "amber" as const,
       },
       {
         id: "wrong-resource",
         label: tDiag("wrongResourceViolations"),
         value: analysis.violationCounts.wrong_resource,
-        valueColorClassName: "text-violet-600 dark:text-violet-400",
         description: tDiag("wrongResourceDesc"),
+        tag: tDiag("tagResource"),
         icon: UserX,
-        iconColorClassName: "bg-violet-500/10 text-violet-500",
+        accentColor: "violet" as const,
       },
       {
         id: "unexpected",
         label: tDiag("unexpectedActivities"),
         value: analysis.violationCounts.unexpected_activity,
-        valueColorClassName: "text-blue-600 dark:text-blue-400",
         description: tDiag("unexpectedActivitiesDesc"),
+        tag: tDiag("tagUnexpected"),
         icon: FileWarning,
-        iconColorClassName: "bg-blue-500/10 text-blue-500",
+        accentColor: "sky" as const,
       },
       {
         id: "variants",
         label: tDiag("traceVariants"),
         value: analysis.variants.length,
         description: `${analysis.nonConformantCases} ${tDiag("nonConformantCasesLabel")}`,
+        tag: tDiag("kpiTagVariants"),
         icon: Layers,
-        iconColorClassName: "bg-indigo-500/10 text-indigo-500",
+        accentColor: "indigo" as const,
       },
     ],
-    [analysis, tDiag, fitnessColor],
+    [analysis, tDiag],
   );
 
   return (
     <div className="flex flex-col gap-4 w-full @container">
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 @[540px]:grid-cols-3 gap-3.5">
+      {/* KPI Cards Grid - Styled consistently like Event Log Data KPI cards */}
+      <div className="grid grid-cols-2 @[480px]:grid-cols-3 @[1100px]:grid-cols-6 gap-2.5">
         {kpiCards.map((kpi) => (
-          <KpiStatCard key={kpi.id} {...kpi} className="p-4" />
+          <KpiStatCard key={kpi.id} {...kpi} />
         ))}
       </div>
 
@@ -185,7 +182,7 @@ export function ConformanceAnalysisView({
           </div>
 
           {/* Status Filter */}
-          <div className="w-36 shrink-0">
+          <div className="w-40 shrink-0">
             <AppSelect
               value={statusFilter}
               onValueChange={(val) => setStatusFilter(val as "all" | "conformant" | "violation")}
@@ -195,7 +192,7 @@ export function ConformanceAnalysisView({
           </div>
 
           {/* Type Filter */}
-          <div className="w-44 shrink-0">
+          <div className="w-48 shrink-0">
             <AppSelect
               value={violationTypeFilter}
               onValueChange={(val) => setViolationTypeFilter(val)}
@@ -207,7 +204,7 @@ export function ConformanceAnalysisView({
 
         {/* Generate BPMN from Log */}
         <div className="shrink-0">
-          <DiscoveredBpmnDialog events={events} />
+          <DiscoveredBpmnDialog events={events} onSwitchDiagramTab={onSwitchDiagramTab} />
         </div>
       </div>
 

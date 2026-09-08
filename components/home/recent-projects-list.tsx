@@ -1,25 +1,47 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { Copy, ArrowUpRight, Workflow } from "lucide-react";
 import { useProjectsIndex } from "@/store/useProjectsIndex";
+import { usePagination } from "@/hooks";
 import type { ProjectSummary } from "@/types";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
+import { DEFAULT_PROJECTS_PAGE_SIZE } from "@/constants";
 
 interface RecentProjectsListProps {
   projects: ProjectSummary[];
   searchFilter?: string;
+  pageSize?: number;
 }
 
-export function RecentProjectsList({ projects, searchFilter = "" }: RecentProjectsListProps) {
+export function RecentProjectsList({
+  projects,
+  searchFilter = "",
+  pageSize = DEFAULT_PROJECTS_PAGE_SIZE,
+}: RecentProjectsListProps) {
   const format = useFormatter();
   const t = useTranslations("Home");
   const { duplicateProject } = useProjectsIndex();
 
-  const filteredProjects = projects.filter((p) =>
-    p.name.toLowerCase().includes(searchFilter.toLowerCase()),
-  );
+  // Filter projects by search query
+  const filteredProjects = useMemo(() => {
+    return projects.filter((p) => p.name.toLowerCase().includes(searchFilter.toLowerCase()));
+  }, [projects, searchFilter]);
+
+  // Reusable pagination hook with automatic search filter reset
+  const {
+    currentPage,
+    totalItems,
+    paginatedItems: paginatedProjects,
+    setPage,
+  } = usePagination({
+    items: filteredProjects,
+    pageSize,
+    resetDependency: searchFilter,
+  });
 
   return (
     <div className="rounded-2xl bg-card border border-border/80 p-5 shadow-xs flex flex-col gap-4">
@@ -30,14 +52,14 @@ export function RecentProjectsList({ projects, searchFilter = "" }: RecentProjec
             {t("recentProjects")}
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {filteredProjects.length} {t("totalProjects").toLowerCase()}
+            {totalItems} {t("totalProjects").toLowerCase()}
           </p>
         </div>
       </div>
 
       {/* Project Items List */}
       <div className="flex flex-col gap-2.5">
-        {filteredProjects.map((p) => (
+        {paginatedProjects.map((p) => (
           <div
             key={p.id}
             className="group flex items-center gap-3.5 p-3.5 rounded-xl border border-border/60 hover:border-primary/30 bg-background/50 hover:bg-card hover:shadow-xs transition-all duration-150"
@@ -89,6 +111,14 @@ export function RecentProjectsList({ projects, searchFilter = "" }: RecentProjec
           </div>
         ))}
       </div>
+
+      {/* Reusable Pagination UI Component */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={totalItems}
+        pageSize={pageSize}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

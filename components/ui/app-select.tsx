@@ -70,7 +70,7 @@ export function AppSelect<T extends string = string>({
       <SelectTrigger
         id={id}
         size={size}
-        className={cn("text-xs font-medium shrink-0", triggerClassName)}
+        className={cn("w-full text-xs font-medium shrink-0", triggerClassName)}
         aria-label={ariaLabel}
       >
         <SelectValue placeholder={placeholder} />

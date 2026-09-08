@@ -28,7 +28,7 @@ export function BpmnToolbar({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="flex items-center gap-2 mb-3 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap">
       <Button
         variant="outline"
         size="sm"
