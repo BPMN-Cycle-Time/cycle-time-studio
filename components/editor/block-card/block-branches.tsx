@@ -93,7 +93,7 @@ export function BlockBranches({ block, unit, tasks = [], nested }: BlockBranches
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-7 text-muted-foreground hover:text-destructive shrink-0"
+                      className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 shrink-0"
                       onClick={() => removeBranch(block.id, br.id)}
                       disabled={branches.length <= 1}
                     >
@@ -148,7 +148,7 @@ export function BlockBranches({ block, unit, tasks = [], nested }: BlockBranches
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-7 text-muted-foreground hover:text-destructive shrink-0"
+                      className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 shrink-0"
                       onClick={() => removeBranch(block.id, br.id)}
                       disabled={branches.length <= 1}
                     >

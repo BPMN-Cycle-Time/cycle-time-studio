@@ -181,7 +181,7 @@ export function TimeSheetCard({
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground hover:text-destructive"
+              className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
               onClick={() => removeTask(row.id)}
               aria-label={tEd("removeStep")}
             >

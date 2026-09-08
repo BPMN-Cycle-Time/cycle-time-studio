@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { BarChart3, Table2 } from "lucide-react";
 import type { Block, Task, SocialMetricType, EventLogItem } from "@/types";
 import { generateEventLog } from "@/services/event-log";
 import { buildSocialNetwork } from "@/services/social-network";
+import { exportSvgToPng, slugify } from "@/utils";
+import { useEditorStore } from "@/store/useEditorStore";
 import { Card, CardContent, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
 import { DiagramViewport } from "../diagram-viewport";
 import { SocialNetworkHeader } from "./social-network-header";
@@ -39,6 +41,10 @@ export function SocialNetworkPanel({
   const [minThreshold, setMinThreshold] = useState<number>(1);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [seed, setSeed] = useState<number>(1);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const svgRef = useRef<SVGSVGElement>(null);
+  const projectName = useEditorStore((s) => s.project?.name);
 
   // Generate synthetic event log for network analysis (50 cases for robust statistics)
   const simulatedEvents = useMemo(() => {
@@ -84,6 +90,18 @@ export function SocialNetworkPanel({
     setSeed((s) => s + 1);
   }, []);
 
+  const handleExportPng = useCallback(async () => {
+    if (!svgRef.current) return;
+    setIsExporting(true);
+    try {
+      const metricName = metric === "handover" ? "handover" : "working-together";
+      const fileName = `${slugify(projectName || "project")}-social-network-${metricName}.png`;
+      await exportSvgToPng(svgRef.current, fileName);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [metric, projectName]);
+
   // Node position map for fast edge lookup
   const nodeMap = useMemo(() => {
     const map = new Map<string, { x: number; y: number; label: string; color: string }>();
@@ -114,6 +132,8 @@ export function SocialNetworkPanel({
           onRegenerate={handleRegenerate}
           totalNodes={networkData.nodes.length}
           totalEdges={networkData.edges.length}
+          onExportPng={handleExportPng}
+          isExporting={isExporting}
         />
       </div>
 
@@ -127,8 +147,12 @@ export function SocialNetworkPanel({
             className="w-full h-full flex-1"
           >
             <svg
+              ref={svgRef}
+              viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
+              role="img"
+              aria-label="Social Network Diagram"
               className="select-none overflow-visible"
               onClick={() => setSelectedNodeId(null)}
             >

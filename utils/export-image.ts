@@ -72,28 +72,38 @@ export function prepareSvgForExport(svgInput: SVGSVGElement | string): {
     }
 
     // Inline colors & vector styles
-    if (computed.fill && computed.fill !== "rgba(0, 0, 0, 0)" && computed.fill !== "transparent") {
-      cl.setAttribute("fill", computed.fill);
+    const effectiveFill =
+      computed.fill === "currentColor" || orig.getAttribute("fill") === "currentColor"
+        ? computed.color
+        : computed.fill;
+
+    if (effectiveFill && effectiveFill !== "rgba(0, 0, 0, 0)" && effectiveFill !== "transparent") {
+      cl.setAttribute("fill", effectiveFill);
     } else if (
       orig.getAttribute("fill") === "none" ||
-      computed.fill === "rgba(0, 0, 0, 0)" ||
-      computed.fill === "transparent"
+      effectiveFill === "rgba(0, 0, 0, 0)" ||
+      effectiveFill === "transparent"
     ) {
       cl.setAttribute("fill", "none");
     }
 
+    const effectiveStroke =
+      computed.stroke === "currentColor" || orig.getAttribute("stroke") === "currentColor"
+        ? computed.color
+        : computed.stroke;
+
     if (
-      computed.stroke &&
-      computed.stroke !== "none" &&
-      computed.stroke !== "rgba(0, 0, 0, 0)" &&
-      computed.stroke !== "transparent"
+      effectiveStroke &&
+      effectiveStroke !== "none" &&
+      effectiveStroke !== "rgba(0, 0, 0, 0)" &&
+      effectiveStroke !== "transparent"
     ) {
-      cl.setAttribute("stroke", computed.stroke);
+      cl.setAttribute("stroke", effectiveStroke);
     } else if (
       orig.getAttribute("stroke") === "none" ||
       orig.getAttribute("stroke") === "transparent" ||
-      computed.stroke === "rgba(0, 0, 0, 0)" ||
-      computed.stroke === "transparent"
+      effectiveStroke === "rgba(0, 0, 0, 0)" ||
+      effectiveStroke === "transparent"
     ) {
       cl.setAttribute("stroke", "none");
     }
@@ -192,9 +202,16 @@ export async function exportSvgToPng(
   svgInput: SVGSVGElement | string,
   fileName = "diagram.png",
   scale = 2,
-  backgroundColor = "#ffffff",
+  backgroundColor?: string,
 ): Promise<void> {
   const { svgString, width, height } = prepareSvgForExport(svgInput);
+
+  let effectiveBg = backgroundColor;
+  if (!effectiveBg && typeof window !== "undefined") {
+    const isDark = document.documentElement.classList.contains("dark");
+    effectiveBg = isDark ? "#131D17" : "#ffffff";
+  }
+  if (!effectiveBg) effectiveBg = "#ffffff";
 
   const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
   const blobUrl = URL.createObjectURL(svgBlob);
@@ -216,8 +233,8 @@ export async function exportSvgToPng(
         }
 
         // Fill background
-        if (backgroundColor) {
-          ctx.fillStyle = backgroundColor;
+        if (effectiveBg) {
+          ctx.fillStyle = effectiveBg;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 

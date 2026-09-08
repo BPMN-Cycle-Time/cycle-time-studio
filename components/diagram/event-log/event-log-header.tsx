@@ -249,7 +249,7 @@ export function EventLogHeader({
                 variant="ghost"
                 size="sm"
                 onClick={onResetToSimulated}
-                className="h-7 text-xs text-muted-foreground hover:text-destructive gap-1 px-2"
+                className="h-7 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 dark:hover:bg-destructive/20 dark:hover:border-destructive/40 border border-transparent gap-1 px-2.5 rounded-lg transition-colors font-medium"
                 title={tDiag("resetToSimulated")}
               >
                 <X className="w-3.5 h-3.5" />

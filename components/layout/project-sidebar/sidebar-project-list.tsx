@@ -151,7 +151,7 @@ export function SidebarProjectList({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-6 shrink-0 opacity-0 group-hover:opacity-100 rounded-lg text-muted-foreground hover:text-destructive transition-opacity"
+                  className="size-6 shrink-0 opacity-0 group-hover:opacity-100 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 transition-all"
                   onClick={() => onDeleteProject({ id: project.id, name: project.name })}
                   aria-label={t("deleteProject", { name: project.name })}
                 >

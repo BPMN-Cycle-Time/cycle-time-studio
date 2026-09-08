@@ -109,7 +109,7 @@ export function BlockHeader({ block, index, nested }: BlockHeaderProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:text-destructive size-8 shrink-0 rounded-lg"
+          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 size-8 shrink-0 rounded-lg"
           onClick={() => removeBlock(block.id)}
           aria-label={tEd("removeStep")}
         >

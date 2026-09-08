@@ -12,6 +12,7 @@ import {
   Database,
   Sparkles,
   Upload,
+  Download,
 } from "lucide-react";
 import type { EventLogItem, SocialMetricType } from "@/types";
 import { Button, Badge, Tabs, TabsList, TabsTrigger } from "@/components/ui";
@@ -29,6 +30,8 @@ export interface SocialNetworkHeaderProps {
   onRegenerate: () => void;
   totalNodes: number;
   totalEdges: number;
+  onExportPng?: () => void;
+  isExporting?: boolean;
 }
 
 export function SocialNetworkHeader({
@@ -43,6 +46,8 @@ export function SocialNetworkHeader({
   onRegenerate,
   totalNodes,
   totalEdges,
+  onExportPng,
+  isExporting,
 }: SocialNetworkHeaderProps) {
   const tDiag = useTranslations("diagram");
 
@@ -229,7 +234,7 @@ export function SocialNetworkHeader({
                   variant="ghost"
                   size="sm"
                   onClick={() => onUploadEvents(null)}
-                  className="h-7 text-xs text-muted-foreground hover:text-destructive gap-1 px-2"
+                  className="h-7 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 dark:hover:bg-destructive/20 dark:hover:border-destructive/40 border border-transparent gap-1 px-2.5 rounded-lg transition-colors font-medium"
                   title={tDiag("resetToSimulated")}
                 >
                   <X className="w-3.5 h-3.5" />
@@ -237,6 +242,19 @@ export function SocialNetworkHeader({
                 </Button>
               )}
             </div>
+          )}
+
+          {onExportPng && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExportPng}
+              disabled={isExporting || totalNodes === 0}
+              className="h-8 text-xs flex items-center gap-1.5 bg-background shadow-xs hover:border-primary/50 font-medium"
+            >
+              <Download className="w-3.5 h-3.5 text-primary" />
+              <span>{tDiag("exportPng")}</span>
+            </Button>
           )}
         </div>
       </div>
