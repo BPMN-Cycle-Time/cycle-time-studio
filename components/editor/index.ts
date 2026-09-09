@@ -6,3 +6,5 @@ export * from "./project-totals-card";
 export * from "./process-flow-section";
 export * from "./project-parameters-drawer";
 export * from "./time-sheet-card";
+export * from "./flow-canvas";
+export * from "./add-block-dropdown";

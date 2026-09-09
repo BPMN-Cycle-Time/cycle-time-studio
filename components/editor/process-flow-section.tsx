@@ -2,23 +2,14 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Plus, ArrowDown, Workflow, ChevronDown } from "lucide-react";
+import { Plus, ArrowDown, Workflow, Maximize2 } from "lucide-react";
 import { BlockType, type Block } from "@/types";
 import { useEditorStore, SelectionKind } from "@/store/useEditorStore";
 import { BlockCard } from "./block-card";
-import {
-  Button,
-  AppSelect,
-  type SelectOption,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui";
-import { BLOCK_TYPES, TYPE_META } from "@/constants";
-import { cn } from "@/utils";
+import { FlowCanvasDialog } from "./flow-canvas";
+import { AddBlockDropdown } from "./add-block-dropdown";
+import { Button, AppSelect, type SelectOption } from "@/components/ui";
+import { BLOCK_TYPES } from "@/constants";
 
 interface ProcessFlowSectionProps {
   blocks: Block[];
@@ -40,6 +31,7 @@ export function ProcessFlowSection({
   const addBlock = useEditorStore((s) => s.addBlock);
   const addNestedBlock = useEditorStore((s) => s.addNestedBlock);
   const [nestedNewType, setNestedNewType] = useState<BlockType>(BlockType.SEQ);
+  const [isCanvasOpen, setIsCanvasOpen] = useState(false);
 
   const blockTypeOptions: SelectOption<BlockType>[] = useMemo(
     () =>
@@ -65,9 +57,21 @@ export function ProcessFlowSection({
   return (
     <section className={nested ? "w-full" : ""}>
       {!nested && (
-        <h2 className="text-xs uppercase tracking-wide text-muted-foreground mb-3 font-semibold">
-          {tEd("processFlow")}
-        </h2>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <h2 className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
+            {tEd("processFlow")}
+          </h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCanvasOpen(true)}
+            className="h-7 px-2.5 text-xs gap-1.5 font-medium hover:text-primary transition-all shadow-2xs"
+            title={tEd("visualCanvasDesc")}
+          >
+            <Maximize2 className="size-3 text-purple-500" />
+            <span>{tEd("visualCanvas")}</span>
+          </Button>
+        </div>
       )}
 
       {blocks.length === 0 ? (
@@ -76,6 +80,17 @@ export function ProcessFlowSection({
           <p className="text-xs text-muted-foreground">
             {nested ? tEd("noStepsYet") : tEd("addStepNotice")}
           </p>
+          {!nested && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCanvasOpen(true)}
+              className="h-7 text-xs gap-1.5 mt-1"
+            >
+              <Maximize2 className="size-3 text-purple-500" />
+              {tEd("visualCanvas")}
+            </Button>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-0">
@@ -112,36 +127,17 @@ export function ProcessFlowSection({
         </div>
       ) : (
         <div className="mt-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full">
-                <Plus className="size-3.5" />
-                {tEd("addTask")}
-                <ChevronDown className="size-3.5 ml-auto opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-52">
-              <DropdownMenuLabel>{tEd("processFlow")}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {BLOCK_TYPES.map((t) => {
-                const typeMeta = TYPE_META[t.value];
-                const Icon = t.icon;
-                return (
-                  <DropdownMenuItem
-                    key={t.value}
-                    onClick={() => handleAddBlock(t.value)}
-                    className="gap-2.5"
-                  >
-                    <div className={cn("size-2 rounded-full shrink-0", typeMeta.dot)} />
-                    <Icon className="size-3.5 text-muted-foreground" />
-                    <span>{tTypes(t.value)}</span>
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <AddBlockDropdown
+            onAddBlock={handleAddBlock}
+            buttonVariant="outline"
+            fullWidth
+            align="start"
+          />
         </div>
       )}
+
+      {/* Fullscreen Visual Flow Studio Canvas Dialog */}
+      {!nested && <FlowCanvasDialog open={isCanvasOpen} onOpenChange={setIsCanvasOpen} />}
     </section>
   );
 }

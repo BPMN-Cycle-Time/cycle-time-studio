@@ -62,5 +62,24 @@
     "colSource": "Source",
     "colTail": "Tail",
     "colLabel": "Label"
-  }
+  },
+  "visualCanvas": "Flow Canvas",
+  "visualCanvasTitle": "Visual Process Flow Studio",
+  "visualCanvasDesc": "Interactive visual canvas to inspect, connect, drag, and configure process steps.",
+  "autoLayout": "Auto Layout",
+  "fitView": "Fit View",
+  "tabConfig": "Config",
+  "tabDetails": "Result",
+  "advancedConfig": "Advanced configurations",
+  "duplicateStep": "Duplicate step",
+  "branchWithProb": "Branch ({p}%)",
+  "branchWithIndex": "Branch #{index}",
+  "branchesCount": "Branches ({count})",
+  "branchProbability": "Branch Probability",
+  "probability": "Probability",
+  "blockIdLabel": "Block ID:",
+  "formulaLabel": "Formula:",
+  "repeatLabel": "Repeat {p}%",
+  "subProcess": "Sub-process",
+  "defaultProcessFlow": "Process Flow"
 }

@@ -62,5 +62,24 @@
     "colSource": "Nguồn",
     "colTail": "Đích",
     "colLabel": "Nhãn"
-  }
+  },
+  "visualCanvas": "Sơ đồ Luồng",
+  "visualCanvasTitle": "Studio Thiết kế Luồng Quy trình",
+  "visualCanvasDesc": "Không gian trực quan tương tác giúp kết nối, kéo thả và cấu hình các bước trong quy trình.",
+  "autoLayout": "Tự động sắp xếp",
+  "fitView": "Vừa khung nhìn",
+  "tabConfig": "Cấu hình",
+  "tabDetails": "Kết quả",
+  "advancedConfig": "Cấu hình nâng cao",
+  "duplicateStep": "Nhân bản bước",
+  "branchWithProb": "Nhánh ({p}%)",
+  "branchWithIndex": "Nhánh #{index}",
+  "branchesCount": "Số nhánh ({count})",
+  "branchProbability": "Xác suất rẽ nhánh",
+  "probability": "Xác suất",
+  "blockIdLabel": "Mã Block:",
+  "formulaLabel": "Công thức:",
+  "repeatLabel": "Lặp lại {p}%",
+  "subProcess": "Luồng con",
+  "defaultProcessFlow": "Luồng quy trình"
 }
