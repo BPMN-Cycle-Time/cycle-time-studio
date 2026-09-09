@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { BarChart3, Table2 } from "lucide-react";
-import type { Block, Task, SocialMetricType, EventLogItem } from "@/types";
+import type { Block, Task, SocialMetricType, EventLogItem, EventLogDataSource } from "@/types";
 import { generateEventLog } from "@/services/event-log";
 import { buildSocialNetwork } from "@/services/social-network";
 import { exportSvgToPng, slugify } from "@/utils";
@@ -22,7 +22,9 @@ interface SocialNetworkPanelProps {
   tasks?: Task[];
   unit: string;
   uploadedEvents?: EventLogItem[] | null;
+  dataSource?: EventLogDataSource;
   onUploadEvents?: (events: EventLogItem[] | null) => void;
+  onDataSourceChange?: (source: EventLogDataSource) => void;
 }
 
 const CANVAS_WIDTH = 800;
@@ -33,7 +35,9 @@ export function SocialNetworkPanel({
   tasks,
   unit,
   uploadedEvents,
+  dataSource = "simulated",
   onUploadEvents,
+  onDataSourceChange,
 }: SocialNetworkPanelProps) {
   const tDiag = useTranslations("diagram");
 
@@ -53,8 +57,9 @@ export function SocialNetworkPanel({
     return generateEventLog(blocks, tasks, unit, { caseCount: 50 });
   }, [blocks, tasks, unit, seed]);
 
-  const events = uploadedEvents ?? simulatedEvents;
-  const isUploaded = Boolean(uploadedEvents && uploadedEvents.length > 0);
+  const hasUploadedFile = Boolean(uploadedEvents && uploadedEvents.length > 0);
+  const isImportedActive = dataSource === "imported" && hasUploadedFile;
+  const events = isImportedActive ? (uploadedEvents as EventLogItem[]) : simulatedEvents;
 
   // Construct baseline network graph (unfiltered to derive dynamic thresholds & edge counts)
   const baseNetwork = useMemo(() => {
@@ -121,7 +126,8 @@ export function SocialNetworkPanel({
       {/* Header & Controls */}
       <div className="flex flex-col gap-3 w-full bg-card border border-border/70 p-3.5 rounded-2xl shadow-xs">
         <SocialNetworkHeader
-          isUploaded={isUploaded}
+          isUploaded={isImportedActive}
+          hasUploadedFile={hasUploadedFile}
           metric={metric}
           onMetricChange={setMetric}
           availableThresholds={availableThresholds}
@@ -129,6 +135,7 @@ export function SocialNetworkPanel({
           activeThreshold={activeThreshold}
           onThresholdChange={setMinThreshold}
           onUploadEvents={onUploadEvents}
+          onDataSourceChange={onDataSourceChange}
           onRegenerate={handleRegenerate}
           totalNodes={networkData.nodes.length}
           totalEdges={networkData.edges.length}

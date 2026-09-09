@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   Workflow,
@@ -9,6 +11,7 @@ import {
   ScrollText,
   Network,
   LayoutDashboard,
+  Trash2,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -17,6 +20,8 @@ import { AppTooltip, Input } from "@/components/ui";
 import { useLocalStorageState } from "@/hooks";
 import { STORAGE_KEYS } from "@/constants";
 import { useEditorStore } from "@/store/useEditorStore";
+import { useProjectsIndex } from "@/store/useProjectsIndex";
+import { DeleteProjectDialog } from "../project-sidebar/delete-project-dialog";
 import { cn } from "@/utils";
 
 export type DiagramTab = "model" | "graph" | "bpmn" | "eventLog" | "socialNetwork";
@@ -41,13 +46,16 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function CompactActivityBar({ activeTab, onTabChange }: CompactActivityBarProps) {
+  const router = useRouter();
   const t = useTranslations("diagram");
   const tSidebar = useTranslations("Sidebar");
   const { project, setName } = useEditorStore();
+  const { deleteProject } = useProjectsIndex();
   const [collapsed, setCollapsed] = useLocalStorageState(
     STORAGE_KEYS.ACTIVITY_BAR_COLLAPSED,
     false,
   );
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
 
   return (
     <aside
@@ -79,7 +87,7 @@ export function CompactActivityBar({ activeTab, onTabChange }: CompactActivityBa
           <button
             type="button"
             onClick={() => setCollapsed(!collapsed)}
-            className="shrink-0 size-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="shrink-0 size-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 cursor-pointer"
             aria-label={collapsed ? t("activityBarExpandTooltip") : t("activityBarCollapseTooltip")}
           >
             {collapsed ? (
@@ -103,7 +111,7 @@ export function CompactActivityBar({ activeTab, onTabChange }: CompactActivityBa
               type="button"
               onClick={() => onTabChange(value)}
               className={cn(
-                "relative flex items-center gap-2.5 rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+                "relative flex items-center gap-2.5 rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 cursor-pointer",
                 collapsed ? "size-9 justify-center" : "w-full h-9 px-2.5 justify-start",
                 isActive
                   ? "bg-primary/10 text-primary"
@@ -134,13 +142,13 @@ export function CompactActivityBar({ activeTab, onTabChange }: CompactActivityBa
       {/* Divider */}
       <div className={cn("h-px bg-border/60 my-2", collapsed ? "w-8 mx-auto" : "mx-2")} />
 
-      {/* Home link */}
-      <div className={cn(collapsed ? "flex justify-center px-1" : "px-2")}>
+      {/* Bottom actions: Home link & Delete project */}
+      <div className={cn("flex flex-col gap-1", collapsed ? "items-center px-1" : "px-2")}>
         {collapsed ? (
           <AppTooltip content={t("activityBarHomeTooltip")} side="right">
             <Link
               href="/"
-              className="size-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="size-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 cursor-pointer"
               aria-label={t("activityBarHomeTooltip")}
             >
               <LayoutDashboard className="size-4" />
@@ -149,14 +157,48 @@ export function CompactActivityBar({ activeTab, onTabChange }: CompactActivityBa
         ) : (
           <Link
             href="/"
-            className="flex items-center gap-2.5 h-9 px-2.5 w-full rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="flex items-center gap-2.5 h-9 px-2.5 w-full rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 cursor-pointer"
             aria-label={t("activityBarHomeTooltip")}
           >
             <LayoutDashboard className="size-4 shrink-0" />
             <span className="text-xs font-medium truncate">{t("activityBarHomeTooltip")}</span>
           </Link>
         )}
+
+        {project &&
+          (collapsed ? (
+            <AppTooltip content={tSidebar("delete")} side="right">
+              <button
+                type="button"
+                onClick={() => setPendingDelete({ id: project.id, name: project.name })}
+                className="size-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 cursor-pointer"
+                aria-label={tSidebar("delete")}
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </AppTooltip>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setPendingDelete({ id: project.id, name: project.name })}
+              className="flex items-center gap-2.5 h-9 px-2.5 w-full rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 cursor-pointer"
+              aria-label={tSidebar("delete")}
+            >
+              <Trash2 className="size-4 shrink-0" />
+              <span className="text-xs font-medium truncate">{tSidebar("delete")}</span>
+            </button>
+          ))}
       </div>
+
+      <DeleteProjectDialog
+        project={pendingDelete}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+        onDeleteProject={(id) => {
+          deleteProject(id);
+          setPendingDelete(null);
+          router.push("/");
+        }}
+      />
     </aside>
   );
 }

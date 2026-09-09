@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { temporal } from "zundo";
-import type { Block, Branch, Project, Task } from "@/types";
+import type { Block, Branch, Project, Task, EventLogItem, EventLogDataSource } from "@/types";
 import { BlockMode, BlockType } from "@/types";
 import { loadProject } from "./useProjectsIndex";
 import {
@@ -46,6 +46,9 @@ export interface EditorState {
   addTask: (name: string, time?: number) => void;
   updateTask: (id: string, patch: Partial<Task>) => void;
   removeTask: (id: string) => void;
+
+  setUploadedEvents: (events: EventLogItem[] | null) => void;
+  setEventLogDataSource: (source: EventLogDataSource) => void;
 
   select: (kind: SelectionKind | null, id: string | null) => void;
 }
@@ -335,6 +338,29 @@ export const useEditorStore = create<EditorState>()(
         const tasks = s.project.tasks.filter((t) => t.id !== id);
         const project = { ...s.project, tasks };
         set({ project, selectedId: null, selectedKind: null });
+        persistNow(project);
+      },
+
+      setUploadedEvents: (events) => {
+        const s = get();
+        if (!s.project) return;
+        const project: Project = {
+          ...s.project,
+          uploadedEvents: events,
+          eventLogDataSource: events && events.length > 0 ? "imported" : "simulated",
+        };
+        set({ project });
+        persistNow(project);
+      },
+
+      setEventLogDataSource: (source) => {
+        const s = get();
+        if (!s.project) return;
+        const project: Project = {
+          ...s.project,
+          eventLogDataSource: source,
+        };
+        set({ project });
         persistNow(project);
       },
 

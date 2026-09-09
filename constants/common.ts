@@ -1,6 +1,6 @@
 // App-wide common constants.
 
-export const APP_NAME = "Cycle Time Studio";
+export const APP_NAME = "BPMN";
 export const DEFAULT_UNIT = "hours";
 export const TIME_UNITS = ["seconds", "minutes", "hours", "days", "weeks"] as const;
 export const DEFAULT_PROJECTS_PAGE_SIZE = 10;

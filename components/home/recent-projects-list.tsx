@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
-import { Copy, ArrowUpRight, Workflow } from "lucide-react";
+import { Copy, ArrowUpRight, Workflow, Trash2 } from "lucide-react";
 import { useProjectsIndex } from "@/store/useProjectsIndex";
 import { usePagination } from "@/hooks";
 import type { ProjectSummary } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
+import { DeleteProjectDialog } from "@/components/layout";
 import { DEFAULT_PROJECTS_PAGE_SIZE } from "@/constants";
 
 interface RecentProjectsListProps {
@@ -24,7 +25,8 @@ export function RecentProjectsList({
 }: RecentProjectsListProps) {
   const format = useFormatter();
   const t = useTranslations("Home");
-  const { duplicateProject } = useProjectsIndex();
+  const { duplicateProject, deleteProject } = useProjectsIndex();
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
 
   // Filter projects by search query
   const filteredProjects = useMemo(() => {
@@ -98,6 +100,17 @@ export function RecentProjectsList({
               </Button>
 
               <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                onClick={() => setPendingDelete({ id: p.id, name: p.name })}
+                title={t("delete")}
+                aria-label={t("delete")}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+
+              <Button
                 size="icon"
                 variant="outline"
                 className="size-8 rounded-full text-muted-foreground group-hover:text-primary group-hover:border-primary/40"
@@ -118,6 +131,15 @@ export function RecentProjectsList({
         totalItems={totalItems}
         pageSize={pageSize}
         onPageChange={setPage}
+      />
+
+      <DeleteProjectDialog
+        project={pendingDelete}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+        onDeleteProject={(id) => {
+          deleteProject(id);
+          setPendingDelete(null);
+        }}
       />
     </div>
   );

@@ -57,6 +57,8 @@ export function GraphSvgRenderer({
       />
       <GraphNodeRenderer
         nodes={graph.nodes}
+        edges={graph.edges}
+        customEdgeBends={customEdgeBends}
         getNodePos={getNodePos}
         selectedId={selectedId}
         draggingTargetId={draggingTargetId}

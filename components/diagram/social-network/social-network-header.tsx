@@ -14,12 +14,13 @@ import {
   Upload,
   Download,
 } from "lucide-react";
-import type { EventLogItem, SocialMetricType } from "@/types";
+import type { EventLogItem, SocialMetricType, EventLogDataSource } from "@/types";
 import { Button, Badge, Tabs, TabsList, TabsTrigger } from "@/components/ui";
 import { UploadEventLogDialog } from "../event-log/upload-event-log-dialog";
 
 export interface SocialNetworkHeaderProps {
   isUploaded: boolean;
+  hasUploadedFile?: boolean;
   metric: SocialMetricType;
   onMetricChange: (m: SocialMetricType) => void;
   availableThresholds: number[];
@@ -27,6 +28,7 @@ export interface SocialNetworkHeaderProps {
   activeThreshold: number;
   onThresholdChange: (thresh: number) => void;
   onUploadEvents?: (events: EventLogItem[] | null) => void;
+  onDataSourceChange?: (source: EventLogDataSource) => void;
   onRegenerate: () => void;
   totalNodes: number;
   totalEdges: number;
@@ -36,6 +38,7 @@ export interface SocialNetworkHeaderProps {
 
 export function SocialNetworkHeader({
   isUploaded,
+  hasUploadedFile = false,
   metric,
   onMetricChange,
   availableThresholds,
@@ -43,6 +46,7 @@ export function SocialNetworkHeader({
   activeThreshold,
   onThresholdChange,
   onUploadEvents,
+  onDataSourceChange,
   onRegenerate,
   totalNodes,
   totalEdges,
@@ -158,7 +162,7 @@ export function SocialNetworkHeader({
           <div className="inline-flex rounded-lg p-0.5 bg-background border border-border/80 shadow-2xs">
             <button
               type="button"
-              onClick={() => onUploadEvents?.(null)}
+              onClick={() => onDataSourceChange?.("simulated")}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
                 !isUploaded
                   ? "bg-primary text-primary-foreground shadow-xs"
@@ -170,7 +174,21 @@ export function SocialNetworkHeader({
               <span>{tDiag("modeSimulated")}</span>
             </button>
 
-            {onUploadEvents && (
+            {hasUploadedFile ? (
+              <button
+                type="button"
+                onClick={() => onDataSourceChange?.("imported")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                  isUploaded
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+                title={tDiag("modeUploadedDesc")}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>{tDiag("modeUploaded")}</span>
+              </button>
+            ) : onUploadEvents ? (
               <UploadEventLogDialog
                 onImport={(items) => onUploadEvents(items)}
                 trigger={
@@ -188,7 +206,7 @@ export function SocialNetworkHeader({
                   </button>
                 }
               />
-            )}
+            ) : null}
           </div>
         </div>
 

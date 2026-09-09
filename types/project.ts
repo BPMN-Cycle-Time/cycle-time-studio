@@ -1,7 +1,8 @@
-// Project domain models for Cycle Time Studio.
-
 import type { Block } from "./block";
 import type { Task } from "./task";
+import type { EventLogItem } from "./event-log";
+
+export type EventLogDataSource = "simulated" | "imported";
 
 export interface Project {
   id: string;
@@ -11,6 +12,8 @@ export interface Project {
   tasks: Task[];
   blocks: Block[];
   bpmnXml?: string;
+  uploadedEvents?: EventLogItem[] | null;
+  eventLogDataSource?: EventLogDataSource;
   createdAt: number;
   updatedAt: number;
 }

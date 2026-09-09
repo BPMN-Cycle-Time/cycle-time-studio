@@ -25,12 +25,15 @@ export interface EventLogHeaderProps {
   activeTab: "data" | "sla" | "conformance";
   onTabChange: (tab: "data" | "sla" | "conformance") => void;
   isUploaded: boolean;
+  hasUploadedFile?: boolean;
   uploadedEventCount: number;
   caseCount: number;
   onCaseCountChange: (count: number) => void;
   caseOptions: { label: string; value: string }[];
   onRegenerate: () => void;
   onResetToSimulated: () => void;
+  onSelectUploaded?: () => void;
+  onClearUploadedFile?: () => void;
   onImportEvents: (events: EventLogItem[]) => void;
   events: EventLogItem[];
   onExportCsv: () => void;
@@ -42,12 +45,15 @@ export function EventLogHeader({
   activeTab,
   onTabChange,
   isUploaded,
+  hasUploadedFile = false,
   uploadedEventCount,
   caseCount,
   onCaseCountChange,
   caseOptions,
   onRegenerate,
   onResetToSimulated,
+  onSelectUploaded,
+  onClearUploadedFile,
   onImportEvents,
   events,
   onExportCsv,
@@ -179,23 +185,39 @@ export function EventLogHeader({
               <span>{tDiag("modeSimulated")}</span>
             </button>
 
-            <UploadEventLogDialog
-              onImport={onImportEvents}
-              trigger={
-                <button
-                  type="button"
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                    isUploaded
-                      ? "bg-primary text-primary-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                  title={tDiag("modeUploadedDesc")}
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{tDiag("modeUploaded")}</span>
-                </button>
-              }
-            />
+            {hasUploadedFile ? (
+              <button
+                type="button"
+                onClick={onSelectUploaded}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                  isUploaded
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+                title={tDiag("modeUploadedDesc")}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>{tDiag("modeUploaded")}</span>
+              </button>
+            ) : (
+              <UploadEventLogDialog
+                onImport={onImportEvents}
+                trigger={
+                  <button
+                    type="button"
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                      isUploaded
+                        ? "bg-primary text-primary-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    }`}
+                    title={tDiag("modeUploadedDesc")}
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{tDiag("modeUploaded")}</span>
+                  </button>
+                }
+              />
+            )}
           </div>
         </div>
 
@@ -248,9 +270,9 @@ export function EventLogHeader({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onResetToSimulated}
+                onClick={onClearUploadedFile ?? onResetToSimulated}
                 className="h-7 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 dark:hover:bg-destructive/20 dark:hover:border-destructive/40 border border-transparent gap-1 px-2.5 rounded-lg transition-colors font-medium"
-                title={tDiag("resetToSimulated")}
+                title={tDiag("clearUploadedFile")}
               >
                 <X className="w-3.5 h-3.5" />
                 <span>{tDiag("clearUploadedFile")}</span>

@@ -2,10 +2,7 @@
 
 import type { ReactNode } from "react";
 import { GN_R, EdgeRoutingStyle, buildCustomPath } from "@/services/graph";
-import {
-  buildManhattanPath,
-  buildRoundedOrthogonalPath,
-} from "../process-model/process-model-helpers";
+import { buildRoundedOrthogonalPath } from "../process-model/process-model-helpers";
 import type { ProcessGraphRoutedEdge } from "@/types";
 
 export interface GraphForwardEdgesProps {
@@ -32,85 +29,198 @@ export function GraphForwardEdges({
   const elements: ReactNode[] = [];
 
   routed.forEach((r, idx) => {
-    const rawPts = r.path
-      .map((id) => getNodePos(id))
-      .filter(
-        (p): p is { x: number; y: number } =>
-          !!p && typeof p.x === "number" && typeof p.y === "number",
-      );
-    if (rawPts.length < 2) return;
-    const a = rawPts[0]!;
-    const z = rawPts[rawPts.length - 1]!;
-    const edgeKey = `fwd-${r.edge.s}-${r.edge.t}-${idx}`;
+    const a = getNodePos(r.edge.s);
+    const z = getNodePos(r.edge.t);
+    if (!a || !z) return;
 
-    const srcKey = `${edgeKey}-s0`;
-    const tgtKey = `${edgeKey}-s2`;
-    const midKey = edgeKey;
+    // Canonical edgeKey based on source and target
+    const edgeKey = `fwd-${r.edge.s}-${r.edge.t}`;
+    const legacyKey = `fwd-${r.edge.s}-${r.edge.t}-${idx}`;
+    const userBend = customEdgeBends?.[edgeKey] ?? customEdgeBends?.[legacyKey];
 
-    const userBend = customEdgeBends?.[midKey];
-    const bendS0 = customEdgeBends?.[srcKey];
-    const bendS2 = customEdgeBends?.[tgtKey];
+    const dx = z.x - a.x;
+    const dy = z.y - a.y;
 
     const defaultMidX = (a.x + z.x) / 2;
     const defaultMidY = (a.y + z.y) / 2;
-    const midX = userBend ? userBend.x : defaultMidX;
-    const midY = userBend ? userBend.y : defaultMidY;
-
-    const userY = bendS0?.y ?? bendS2?.y ?? userBend?.y;
+    const midX = userBend?.x != null ? userBend.x : defaultMidX;
+    const midY = userBend?.y != null ? userBend.y : defaultMidY;
+    const userY = userBend?.y;
 
     let d: string;
-    let isUShape = false;
-    let uShapeY = midY;
-    const isStepped = Math.abs(a.y - z.y) > 4;
+    let waypoints: Array<{ x: number; y: number }> = [];
+    const segInfo: Array<{ key: string; axis: "x" | "y" }> = [];
 
     if (routingStyle === EdgeRoutingStyle.ORTHOGONAL) {
-      if (userY != null && userY > Math.max(a.y, z.y) + GN_R + 6) {
-        isUShape = true;
-        uShapeY = userY;
-        const exitX = bendS0?.x ?? a.x;
-        const entryX = bendS2?.x ?? z.x;
-        const waypoints = [
-          { x: exitX, y: a.y + GN_R },
-          { x: exitX, y: userY },
-          { x: entryX, y: userY },
-          { x: entryX, y: z.y + GN_R + 3 },
-        ];
-        d = buildRoundedOrthogonalPath(waypoints, 8);
-      } else if (userY != null && userY < Math.min(a.y, z.y) - GN_R - 6) {
-        isUShape = true;
-        uShapeY = userY;
-        const exitX = bendS0?.x ?? a.x;
-        const entryX = bendS2?.x ?? z.x;
-        const waypoints = [
-          { x: exitX, y: a.y - GN_R },
-          { x: exitX, y: userY },
-          { x: entryX, y: userY },
-          { x: entryX, y: z.y - GN_R - 3 },
-        ];
-        d = buildRoundedOrthogonalPath(waypoints, 8);
-      } else {
-        const sx = a.x + GN_R;
-        const sy = a.y;
-        const ex = z.x - (GN_R + 4);
-        const ey = z.y;
-        if (!isStepped && Math.abs(sy - ey) <= 4) {
-          d = `M ${sx} ${sy} L ${ex} ${ey}`;
+      // 1. Vertical stack: Target directly above source (e.g. n1 at bottom, n2 above)
+      if (dy < -GN_R * 1.2 && Math.abs(dx) < GN_R * 1.5) {
+        const startX = a.x;
+        const startY = a.y - GN_R;
+        const endX = z.x;
+        const endY = z.y + GN_R + 3;
+
+        if (Math.abs(dx) <= 2 && userBend?.x == null) {
+          waypoints = [
+            { x: startX, y: startY },
+            { x: endX, y: endY },
+          ];
+          segInfo.push({ key: edgeKey, axis: "x" });
         } else {
-          d = buildManhattanPath(sx, sy, midX, ex, ey, 8);
+          const elbowY = userY != null ? userY : (startY + endY) / 2;
+          waypoints = [
+            { x: startX, y: startY },
+            { x: startX, y: elbowY },
+            { x: endX, y: elbowY },
+            { x: endX, y: endY },
+          ];
+          segInfo.push(
+            { key: edgeKey, axis: "x" },
+            { key: edgeKey, axis: "y" },
+            { key: edgeKey, axis: "x" },
+          );
         }
       }
-    } else {
-      const dx1 = midX - a.x;
-      const dy1 = midY - a.y;
-      const len1 = Math.hypot(dx1, dy1) || 1;
-      const sx = a.x + (dx1 / len1) * GN_R;
-      const sy = a.y + (dy1 / len1) * GN_R;
+      // 2. Vertical stack: Target directly below source
+      else if (dy > GN_R * 1.2 && Math.abs(dx) < GN_R * 1.5) {
+        const startX = a.x;
+        const startY = a.y + GN_R;
+        const endX = z.x;
+        const endY = z.y - (GN_R + 3);
 
-      const dx2 = z.x - midX;
-      const dy2 = z.y - midY;
-      const len2 = Math.hypot(dx2, dy2) || 1;
-      const ex = z.x - (dx2 / len2) * (GN_R + 4);
-      const ey = z.y - (dy2 / len2) * (GN_R + 4);
+        if (Math.abs(dx) <= 2 && userBend?.x == null) {
+          waypoints = [
+            { x: startX, y: startY },
+            { x: endX, y: endY },
+          ];
+          segInfo.push({ key: edgeKey, axis: "x" });
+        } else {
+          const elbowY = userY != null ? userY : (startY + endY) / 2;
+          waypoints = [
+            { x: startX, y: startY },
+            { x: startX, y: elbowY },
+            { x: endX, y: elbowY },
+            { x: endX, y: endY },
+          ];
+          segInfo.push(
+            { key: edgeKey, axis: "x" },
+            { key: edgeKey, axis: "y" },
+            { key: edgeKey, axis: "x" },
+          );
+        }
+      }
+      // 3. Target is Forward (dx > 0)
+      else if (dx > 0) {
+        // If user dragged horizontal line below target/source
+        if (userY != null && userY > Math.max(a.y, z.y) + GN_R + 4) {
+          const startX = a.x;
+          const startY = a.y + GN_R;
+          const endX = z.x;
+          const endY = z.y + GN_R + 3;
+          waypoints = [
+            { x: startX, y: startY },
+            { x: startX, y: userY },
+            { x: endX, y: userY },
+            { x: endX, y: endY },
+          ];
+          segInfo.push(
+            { key: edgeKey, axis: "x" },
+            { key: edgeKey, axis: "y" },
+            { key: edgeKey, axis: "x" },
+          );
+        }
+        // If user dragged horizontal line above target/source
+        else if (userY != null && userY < Math.min(a.y, z.y) - GN_R - 4) {
+          const startX = a.x;
+          const startY = a.y - GN_R;
+          const endX = z.x;
+          const endY = z.y - (GN_R + 3);
+          waypoints = [
+            { x: startX, y: startY },
+            { x: startX, y: userY },
+            { x: endX, y: userY },
+            { x: endX, y: endY },
+          ];
+          segInfo.push(
+            { key: edgeKey, axis: "x" },
+            { key: edgeKey, axis: "y" },
+            { key: edgeKey, axis: "x" },
+          );
+        }
+        // Standard Left-to-Right
+        else {
+          const startX = a.x + GN_R;
+          const startY = a.y;
+          const endX = z.x - (GN_R + 3);
+          const endY = z.y;
+
+          if (Math.abs(startY - endY) <= 4 && userBend?.x == null) {
+            waypoints = [
+              { x: startX, y: startY },
+              { x: endX, y: endY },
+            ];
+            segInfo.push({ key: edgeKey, axis: "y" });
+          } else {
+            const elbowX = Math.max(startX + 4, Math.min(endX - 4, midX));
+            waypoints = [
+              { x: startX, y: startY },
+              { x: elbowX, y: startY },
+              { x: elbowX, y: endY },
+              { x: endX, y: endY },
+            ];
+            segInfo.push(
+              { key: edgeKey, axis: "y" },
+              { key: edgeKey, axis: "x" },
+              { key: edgeKey, axis: "y" },
+            );
+          }
+        }
+      }
+      // 4. Backward forward edge (Target is behind source)
+      else {
+        const uShapeY = userY != null ? userY : Math.max(a.y, z.y) + GN_R + 24;
+        const startX = a.x;
+        const startY = a.y + GN_R;
+        const endX = z.x;
+        const endY = z.y + GN_R + 3;
+        waypoints = [
+          { x: startX, y: startY },
+          { x: startX, y: uShapeY },
+          { x: endX, y: uShapeY },
+          { x: endX, y: endY },
+        ];
+        segInfo.push(
+          { key: edgeKey, axis: "x" },
+          { key: edgeKey, axis: "y" },
+          { key: edgeKey, axis: "x" },
+        );
+      }
+
+      d = buildRoundedOrthogonalPath(waypoints, 8);
+    } else {
+      let sx: number, sy: number, ex: number, ey: number;
+      if (Math.abs(dx) < GN_R * 1.5 && dy < -GN_R) {
+        sx = a.x;
+        sy = a.y - GN_R;
+        ex = z.x;
+        ey = z.y + GN_R + 3;
+      } else if (Math.abs(dx) < GN_R * 1.5 && dy > GN_R) {
+        sx = a.x;
+        sy = a.y + GN_R;
+        ex = z.x;
+        ey = z.y - (GN_R + 3);
+      } else {
+        const dx1 = midX - a.x;
+        const dy1 = midY - a.y;
+        const len1 = Math.hypot(dx1, dy1) || 1;
+        sx = a.x + (dx1 / len1) * GN_R;
+        sy = a.y + (dy1 / len1) * GN_R;
+
+        const dx2 = z.x - midX;
+        const dy2 = z.y - midY;
+        const len2 = Math.hypot(dx2, dy2) || 1;
+        ex = z.x - (dx2 / len2) * (GN_R + 3);
+        ey = z.y - (dy2 / len2) * (GN_R + 3);
+      }
 
       if (userBend) {
         d = buildCustomPath(
@@ -146,48 +256,58 @@ export function GraphForwardEdges({
       </g>,
     );
 
-    if (isUShape) {
-      const minRailX = Math.min(a.x, z.x);
-      const maxRailX = Math.max(a.x, z.x);
-      const centerRailX = (a.x + z.x) / 2;
+    // Render interactive hit lines for both horizontal and vertical segments
+    for (let sIdx = 0; sIdx < waypoints.length - 1; sIdx++) {
+      const pA = waypoints[sIdx]!;
+      const pB = waypoints[sIdx + 1]!;
+      const isVertical = Math.abs(pA.x - pB.x) < 0.5 && Math.abs(pA.y - pB.y) > 6;
+      const isHorizontal = Math.abs(pA.y - pB.y) < 0.5 && Math.abs(pA.x - pB.x) > 6;
 
-      elements.push(
-        <line
-          key={`edge-ushape-${edgeKey}`}
-          x1={minRailX}
-          y1={uShapeY}
-          x2={maxRailX}
-          y2={uShapeY}
-          stroke="transparent"
-          strokeWidth={18}
-          style={{ cursor: "ns-resize" }}
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => onEdgePointerDown(e, midKey, { x: centerRailX, y: uShapeY }, "y")}
-        />,
-      );
-    } else if (isStepped || userBend) {
-      elements.push(
-        <line
-          key={`edge-hdl-line-${edgeKey}`}
-          x1={midX}
-          y1={Math.min(a.y, z.y)}
-          x2={midX}
-          y2={Math.max(a.y, z.y)}
-          stroke="transparent"
-          strokeWidth={18}
-          style={{ cursor: "ew-resize" }}
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) =>
-            onEdgePointerDown(e, edgeKey, { x: midX, y: (a.y + z.y) / 2 }, isStepped ? "x" : "both")
-          }
-        />,
-      );
+      const info = segInfo[sIdx] || { key: edgeKey, axis: isHorizontal ? "y" : "x" };
+
+      if (isVertical) {
+        const segMinY = Math.min(pA.y, pB.y);
+        const segMaxY = Math.max(pA.y, pB.y);
+        const segMidY = (segMinY + segMaxY) / 2;
+        elements.push(
+          <line
+            key={`fwd-vert-${edgeKey}-${sIdx}`}
+            x1={pA.x}
+            y1={segMinY}
+            x2={pA.x}
+            y2={segMaxY}
+            stroke="transparent"
+            strokeWidth={18}
+            style={{ cursor: "ew-resize" }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => onEdgePointerDown(e, info.key, { x: pA.x, y: segMidY }, "x")}
+          />,
+        );
+      } else if (isHorizontal) {
+        const segMinX = Math.min(pA.x, pB.x);
+        const segMaxX = Math.max(pA.x, pB.x);
+        const segMidX = (segMinX + segMaxX) / 2;
+        elements.push(
+          <line
+            key={`fwd-horiz-${edgeKey}-${sIdx}`}
+            x1={segMinX}
+            y1={pA.y}
+            x2={segMaxX}
+            y2={pA.y}
+            stroke="transparent"
+            strokeWidth={18}
+            style={{ cursor: "ns-resize" }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => onEdgePointerDown(e, info.key, { x: segMidX, y: pA.y }, "y")}
+          />,
+        );
+      }
     }
 
     if (r.edge.label) {
       const badgeW = r.edge.label.length * 6.5 + 14;
       const lblX = midX;
-      const lblY = isUShape ? uShapeY : (a.y + z.y) / 2;
+      const lblY = userY != null ? userY : (a.y + z.y) / 2;
       elements.push(
         <g key={`fwd-lbl-${idx}`} style={{ pointerEvents: "none" }}>
           <rect

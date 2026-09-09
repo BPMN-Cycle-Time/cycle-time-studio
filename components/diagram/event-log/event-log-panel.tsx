@@ -3,7 +3,7 @@
 import { useMemo, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Users, Activity, Layers, Clock, Coins, CheckCircle2, AlertTriangle } from "lucide-react";
-import type { Block, Task, EventLogItem } from "@/types";
+import type { Block, Task, EventLogItem, EventLogDataSource } from "@/types";
 import {
   generateEventLog,
   computeEventLogSummary,
@@ -25,7 +25,9 @@ interface EventLogPanelProps {
   unit: string;
   currency?: string;
   uploadedEvents?: EventLogItem[] | null;
+  dataSource?: EventLogDataSource;
   onUploadEvents?: (events: EventLogItem[] | null) => void;
+  onDataSourceChange?: (source: EventLogDataSource) => void;
   onSwitchDiagramTab?: (tab: DiagramTab) => void;
 }
 
@@ -35,7 +37,9 @@ export function EventLogPanel({
   unit,
   currency = "$",
   uploadedEvents: externalUploadedEvents,
+  dataSource: externalDataSource,
   onUploadEvents,
+  onDataSourceChange,
   onSwitchDiagramTab,
 }: EventLogPanelProps) {
   const tDiag = useTranslations("diagram");
@@ -44,9 +48,12 @@ export function EventLogPanel({
   const [activeTab, setActiveTab] = useState<"data" | "sla" | "conformance">("data");
   const [slaFilter, setSlaFilter] = useState<"all" | "met" | "delayed">("all");
   const [internalUploaded, setInternalUploaded] = useState<EventLogItem[] | null>(null);
+  const [internalDataSource, setInternalDataSource] = useState<EventLogDataSource>("simulated");
 
   const uploadedEvents =
     externalUploadedEvents !== undefined ? externalUploadedEvents : internalUploaded;
+  const dataSource = externalDataSource !== undefined ? externalDataSource : internalDataSource;
+
   const setUploadedEvents = useCallback(
     (events: EventLogItem[] | null) => {
       if (onUploadEvents) {
@@ -54,9 +61,27 @@ export function EventLogPanel({
       } else {
         setInternalUploaded(events);
       }
+      if (events && events.length > 0) {
+        if (onDataSourceChange) onDataSourceChange("imported");
+        else setInternalDataSource("imported");
+      }
     },
-    [onUploadEvents],
+    [onUploadEvents, onDataSourceChange],
   );
+
+  const setDataSource = useCallback(
+    (source: EventLogDataSource) => {
+      if (onDataSourceChange) {
+        onDataSourceChange(source);
+      } else {
+        setInternalDataSource(source);
+      }
+    },
+    [onDataSourceChange],
+  );
+
+  const hasUploadedFile = Boolean(uploadedEvents && uploadedEvents.length > 0);
+  const isImportedActive = dataSource === "imported" && hasUploadedFile;
 
   const caseOptions = useMemo(
     () => [
@@ -75,7 +100,7 @@ export function EventLogPanel({
     return generateEventLog(blocks, tasks, unit, { caseCount });
   }, [blocks, tasks, unit, caseCount, seed]);
 
-  const events = uploadedEvents ?? generatedEvents;
+  const events = isImportedActive ? (uploadedEvents as EventLogItem[]) : generatedEvents;
 
   // Enrich events with SLA benchmark durations and statuses
   const enrichedEvents = useMemo(() => {
@@ -146,13 +171,21 @@ export function EventLogPanel({
   );
 
   const handleRegenerate = useCallback(() => {
-    setUploadedEvents(null);
     setSeed((s) => s + 1);
-  }, [setUploadedEvents]);
+  }, []);
 
   const handleResetToSimulated = useCallback(() => {
+    setDataSource("simulated");
+  }, [setDataSource]);
+
+  const handleSelectUploaded = useCallback(() => {
+    setDataSource("imported");
+  }, [setDataSource]);
+
+  const handleClearUploadedFile = useCallback(() => {
     setUploadedEvents(null);
-  }, [setUploadedEvents]);
+    setDataSource("simulated");
+  }, [setUploadedEvents, setDataSource]);
 
   const handleDownloadCsv = useCallback(() => {
     if (enrichedEvents.length === 0) return;
@@ -304,13 +337,16 @@ export function EventLogPanel({
       <EventLogHeader
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        isUploaded={Boolean(uploadedEvents)}
+        isUploaded={isImportedActive}
+        hasUploadedFile={hasUploadedFile}
         uploadedEventCount={uploadedEvents?.length ?? 0}
         caseCount={caseCount}
         onCaseCountChange={setCaseCount}
         caseOptions={caseOptions}
         onRegenerate={handleRegenerate}
         onResetToSimulated={handleResetToSimulated}
+        onSelectUploaded={handleSelectUploaded}
+        onClearUploadedFile={handleClearUploadedFile}
         onImportEvents={setUploadedEvents}
         events={events}
         onExportCsv={handleDownloadCsv}

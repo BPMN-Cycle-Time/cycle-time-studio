@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="bpmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#bpmGrad)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5.5" y="5.5" width="9" height="9" rx="2.5" />
+    <path d="M10 14.5 v4.5 a 2.5 2.5 0 0 0 2.5 2.5 h3" />
+    <rect x="17.5" y="17.5" width="9" height="9" rx="2.5" />
+    <path d="M15 19.5 l 2.5 2 l -2.5 2" />
+  </g>
+</svg>

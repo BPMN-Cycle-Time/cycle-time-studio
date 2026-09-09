@@ -129,38 +129,49 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
     if (!draggingTargetId) return;
 
     const onWindowPointerMove = (e: PointerEvent) => {
-      if (!dragRef.current) return;
-      const dx = e.clientX - dragRef.current.startClientX;
-      const dy = e.clientY - dragRef.current.startClientY;
+      const drag = dragRef.current;
+      if (!drag) return;
+      const dx = e.clientX - drag.startClientX;
+      const dy = e.clientY - drag.startClientY;
       if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
-        dragRef.current.hasMoved = true;
+        drag.hasMoved = true;
       }
 
-      if (dragRef.current.targetType === "edge") {
-        const axis = dragRef.current.axis || "both";
-        const isBackEdge = dragRef.current.id.startsWith("back-");
-        const newX =
-          axis === "y"
-            ? dragRef.current.startX
-            : isBackEdge
-              ? Math.round(dragRef.current.startX + dx)
-              : Math.max(10, Math.round(dragRef.current.startX + dx));
-        const newY =
-          axis === "x"
-            ? dragRef.current.startY
-            : isBackEdge
-              ? Math.round(dragRef.current.startY + dy)
-              : Math.max(10, Math.round(dragRef.current.startY + dy));
-        const targetId = dragRef.current.id;
+      if (drag.targetType === "edge") {
+        const axis = drag.axis || "both";
+        const isBackEdge = drag.id.startsWith("back-");
+        const targetId = drag.id;
+        const startX = drag.startX;
+        const startY = drag.startY;
 
-        setCustomEdgeBends((prev) => ({
-          ...prev,
-          [targetId]: { x: newX, y: newY },
-        }));
+        setCustomEdgeBends((prev) => {
+          const current = prev[targetId];
+          const calculatedX =
+            axis === "y"
+              ? current?.x
+              : isBackEdge
+                ? Math.round(startX + dx)
+                : Math.max(10, Math.round(startX + dx));
+          const calculatedY =
+            axis === "x"
+              ? current?.y
+              : isBackEdge
+                ? Math.round(startY + dy)
+                : Math.max(10, Math.round(startY + dy));
+
+          return {
+            ...prev,
+            [targetId]: {
+              ...(current || {}),
+              ...(calculatedX !== undefined ? { x: calculatedX } : {}),
+              ...(calculatedY !== undefined ? { y: calculatedY } : {}),
+            },
+          };
+        });
       } else {
-        let rawX = Math.max(10, Math.round(dragRef.current.startX + dx));
-        let rawY = Math.max(10, Math.round(dragRef.current.startY + dy));
-        const targetId = dragRef.current.id;
+        let rawX = Math.max(10, Math.round(drag.startX + dx));
+        let rawY = Math.max(10, Math.round(drag.startY + dy));
+        const targetId = drag.id;
 
         // Magnetic Snapping check against nodes
         let activeX: number | undefined;
@@ -268,13 +279,18 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
     let maxY = layout?.height || 500;
 
     Object.values(customPositions).forEach((p) => {
-      minX = Math.min(minX, p.x - 60);
-      minY = Math.min(minY, p.y - 60);
-      maxX = Math.max(maxX, p.x + 60);
-      maxY = Math.max(maxY, p.y + 60);
+      if (typeof p?.x === "number" && !isNaN(p.x)) {
+        minX = Math.min(minX, p.x - 60);
+        maxX = Math.max(maxX, p.x + 60);
+      }
+      if (typeof p?.y === "number" && !isNaN(p.y)) {
+        minY = Math.min(minY, p.y - 60);
+        maxY = Math.max(maxY, p.y + 60);
+      }
     });
 
     Object.entries(customEdgeBends).forEach(([k, b]) => {
+      if (!b) return;
       if (k.startsWith("back-")) {
         const parts = k.split("-");
         const s = parts[1];
@@ -282,14 +298,20 @@ export function GraphPanel({ blocks, tasks }: GraphPanelProps) {
         const sp = s ? customPositions[s] || layout?.xy[s] : undefined;
         const tp = t ? customPositions[t] || layout?.xy[t] : undefined;
         const baseNodeY = sp && tp ? (sp.y + tp.y) / 2 : (sp?.y ?? 200);
-        const actualY = baseNodeY + b.y;
-        minY = Math.min(minY, actualY - 60);
-        maxY = Math.max(maxY, actualY + 60);
+        if (typeof b.y === "number" && !isNaN(b.y)) {
+          const actualY = baseNodeY + b.y;
+          minY = Math.min(minY, actualY - 60);
+          maxY = Math.max(maxY, actualY + 60);
+        }
       } else {
-        minX = Math.min(minX, b.x - 60);
-        minY = Math.min(minY, b.y - 60);
-        maxX = Math.max(maxX, b.x + 60);
-        maxY = Math.max(maxY, b.y + 60);
+        if (typeof b.x === "number" && !isNaN(b.x)) {
+          minX = Math.min(minX, b.x - 60);
+          maxX = Math.max(maxX, b.x + 60);
+        }
+        if (typeof b.y === "number" && !isNaN(b.y)) {
+          minY = Math.min(minY, b.y - 60);
+          maxY = Math.max(maxY, b.y + 60);
+        }
       }
     });
 

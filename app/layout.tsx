@@ -5,8 +5,16 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cycle Time Studio",
+  title: "BPMN",
   description: "Model your process, understand where the time goes.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
