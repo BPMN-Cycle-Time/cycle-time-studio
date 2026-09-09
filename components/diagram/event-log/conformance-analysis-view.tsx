@@ -2,22 +2,24 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { ShieldCheck, FileWarning, XCircle, Layers, UserX, Clock, Search } from "lucide-react";
-import type { Block, Task, EventLogItem } from "@/types";
-import { analyzeConformance } from "@/services/conformance";
 import {
-  Input,
-  AppSelect,
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/components/ui";
+  ShieldCheck,
+  FileWarning,
+  XCircle,
+  Layers,
+  UserX,
+  Clock,
+  CheckCircle2,
+  ShieldAlert,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
+import type { Block, Task, EventLogItem, CaseConformanceResult } from "@/types";
+import { analyzeConformance } from "@/services/conformance";
+import { Badge, Button, AppSelect, DataTable, type TableColumn } from "@/components/ui";
 import type { DiagramTab } from "@/components/layout";
 import { DiscoveredBpmnDialog } from "./discovered-bpmn-dialog";
-import { CaseRowItem } from "./conformance-case-row";
+import { CaseTimelineExpanded, ViolationBadge } from "./conformance-case-row";
 import { KpiStatCard } from "./kpi-stat-card";
 
 interface ConformanceAnalysisViewProps {
@@ -39,7 +41,6 @@ export function ConformanceAnalysisView({
 }: ConformanceAnalysisViewProps) {
   const tDiag = useTranslations("diagram");
 
-  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "conformant" | "violation">("all");
   const [violationTypeFilter, setViolationTypeFilter] = useState<string>("all");
   const [expandedCaseId, setExpandedCaseId] = useState<string | null>(null);
@@ -69,18 +70,9 @@ export function ConformanceAnalysisView({
     [tDiag],
   );
 
-  // Filtered cases
-  const filteredCases = useMemo(() => {
+  // Filter cases by status and violation type
+  const statusFilteredCases = useMemo(() => {
     return analysis.caseResults.filter((item) => {
-      // Search
-      if (search.trim()) {
-        const q = search.toLowerCase();
-        const matchId = item.caseId.toLowerCase().includes(q);
-        const matchAct = item.executedActivities.some((a) => a.toLowerCase().includes(q));
-        const matchViol = item.violations.some((v) => v.message.toLowerCase().includes(q));
-        if (!matchId && !matchAct && !matchViol) return false;
-      }
-
       // Status
       if (statusFilter === "conformant" && !item.isConformant) return false;
       if (statusFilter === "violation" && item.isConformant) return false;
@@ -93,7 +85,7 @@ export function ConformanceAnalysisView({
 
       return true;
     });
-  }, [analysis.caseResults, search, statusFilter, violationTypeFilter]);
+  }, [analysis.caseResults, statusFilter, violationTypeFilter]);
 
   const toggleExpand = (caseId: string) => {
     setExpandedCaseId((prev) => (prev === caseId ? null : caseId));
@@ -159,9 +151,142 @@ export function ConformanceAnalysisView({
     [analysis, tDiag],
   );
 
+  const columns: TableColumn<CaseConformanceResult>[] = useMemo(
+    () => [
+      {
+        key: "index",
+        header: "#",
+        sortable: false,
+        className: "w-10 text-center text-muted-foreground font-mono text-[11px]",
+        headerClassName: "w-10 text-center",
+        render: (_row, idx) => (idx != null ? idx + 1 : "-"),
+      },
+      {
+        key: "caseId",
+        header: tDiag("colCaseId"),
+        sortable: true,
+        sortValue: (row) => row.caseId,
+        className: "w-28 font-semibold font-mono text-foreground",
+      },
+      {
+        key: "status",
+        header: tDiag("colStatus"),
+        sortable: true,
+        sortValue: (row) => (row.isConformant ? 1 : 0),
+        csvValue: (row) =>
+          row.isConformant
+            ? tDiag("statusConformant")
+            : `${row.violations.length} ${tDiag("violationsCountLabel")}`,
+        className: "w-32",
+        render: (item) =>
+          item.isConformant ? (
+            <Badge
+              variant="outline"
+              className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[11px] gap-1 font-medium"
+            >
+              <CheckCircle2 className="w-3 h-3" />
+              {tDiag("statusConformant")}
+            </Badge>
+          ) : (
+            <Badge
+              variant="outline"
+              className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 text-[11px] gap-1 font-medium"
+            >
+              <ShieldAlert className="w-3 h-3" />
+              {item.violations.length} {tDiag("violationsCountLabel")}
+            </Badge>
+          ),
+      },
+      {
+        key: "fitnessScore",
+        header: tDiag("colFitness"),
+        sortable: true,
+        sortValue: (row) => row.fitnessScore,
+        csvValue: (row) => `${row.fitnessScore}%`,
+        className: "w-28 font-mono font-semibold",
+        render: (item) => (
+          <span
+            className={
+              item.fitnessScore >= 90
+                ? "text-emerald-600 dark:text-emerald-400"
+                : item.fitnessScore >= 70
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-rose-600 dark:text-rose-400"
+            }
+          >
+            {item.fitnessScore}%
+          </span>
+        ),
+      },
+      {
+        key: "violations",
+        header: tDiag("colViolationsDetail"),
+        sortable: false,
+        csvValue: (row) =>
+          row.violations.length === 0
+            ? tDiag("fullComplianceMsg")
+            : row.violations.map((v) => v.message).join("; "),
+        render: (item) => (
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {item.violations.length === 0 ? (
+              <span className="text-muted-foreground italic text-xs">
+                {tDiag("fullComplianceMsg")}
+              </span>
+            ) : (
+              item.violations
+                .slice(0, 3)
+                .map((v) => <ViolationBadge key={v.id} violation={v} tDiag={tDiag} />)
+            )}
+            {item.violations.length > 3 && (
+              <Badge variant="secondary" className="text-[10px] font-mono">
+                +{item.violations.length - 3} {tDiag("more")}
+              </Badge>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: "totalDuration",
+        header: tDiag("colDuration"),
+        sortable: true,
+        sortValue: (row) => row.totalDuration,
+        csvValue: (row) => `${row.totalDuration} ${unit}`,
+        className: "w-24 text-right font-mono text-muted-foreground",
+        headerClassName: "text-right justify-end",
+        render: (item) => `${item.totalDuration} ${unit}`,
+      },
+      {
+        key: "action",
+        header: tDiag("colAction"),
+        sortable: false,
+        csvExport: false,
+        className: "w-16 text-center",
+        headerClassName: "text-center justify-center",
+        render: (item) => (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 text-muted-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpand(item.caseId);
+            }}
+          >
+            {expandedCaseId === item.caseId ? (
+              <ChevronDown className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5" />
+            )}
+          </Button>
+        ),
+      },
+    ],
+    [tDiag, unit, expandedCaseId],
+  );
+
   return (
     <div className="flex flex-col gap-4 w-full @container">
-      {/* KPI Cards Grid - Styled consistently like Event Log Data KPI cards */}
+      {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 @[480px]:grid-cols-3 @[1100px]:grid-cols-6 gap-2.5">
         {kpiCards.map((kpi) => (
           <KpiStatCard key={kpi.id} {...kpi} />
@@ -170,17 +295,7 @@ export function ConformanceAnalysisView({
 
       {/* Action Toolbar & Filters */}
       <div className="w-full flex flex-wrap items-center justify-between gap-3 bg-card border border-border/70 p-3 px-3.5 rounded-xl shadow-xs">
-        <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={tDiag("searchCaseOrViolation")}
-              className="h-8 text-xs pl-8 pr-3 bg-background/70"
-            />
-          </div>
-
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Status Filter */}
           <div className="w-40 shrink-0">
             <AppSelect
@@ -208,44 +323,27 @@ export function ConformanceAnalysisView({
         </div>
       </div>
 
-      {/* Case Violations Table using standard shadcn Table components */}
-      <div className="rounded-xl border border-border/70 overflow-hidden bg-card shadow-xs">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b border-border/70 bg-muted/30 text-muted-foreground font-semibold hover:bg-muted/30">
-              <TableHead className="w-10 text-center">#</TableHead>
-              <TableHead className="w-28">{tDiag("colCaseId")}</TableHead>
-              <TableHead className="w-32">{tDiag("colStatus")}</TableHead>
-              <TableHead className="w-28">{tDiag("colFitness")}</TableHead>
-              <TableHead>{tDiag("colViolationsDetail")}</TableHead>
-              <TableHead className="w-24 text-right">{tDiag("colDuration")}</TableHead>
-              <TableHead className="w-20 text-center">{tDiag("colAction")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="divide-y divide-border/60">
-            {filteredCases.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
-                  {tDiag("noCasesMatchingFilter")}
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredCases.map((c, idx) => (
-                <CaseRowItem
-                  key={c.caseId}
-                  item={c}
-                  index={idx + 1}
-                  isExpanded={expandedCaseId === c.caseId}
-                  onToggle={() => toggleExpand(c.caseId)}
-                  unit={unit}
-                  currency={currency}
-                  tDiag={tDiag}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Conformance Cases DataTable with Pagination, Sorting, Search & Expandable Timelines */}
+      <DataTable<CaseConformanceResult>
+        data={statusFilteredCases}
+        columns={columns}
+        searchPlaceholder={tDiag("searchCaseOrViolation")}
+        customFilter={(item, q) => {
+          const matchId = item.caseId.toLowerCase().includes(q);
+          const matchAct = item.executedActivities.some((a) => a.toLowerCase().includes(q));
+          const matchViol = item.violations.some((v) => v.message.toLowerCase().includes(q));
+          return matchId || matchAct || matchViol;
+        }}
+        getRowId={(item) => item.caseId}
+        isRowExpanded={(item) => expandedCaseId === item.caseId}
+        onRowClick={(item) => toggleExpand(item.caseId)}
+        renderSubRow={(item) => (
+          <CaseTimelineExpanded item={item} currency={currency} tDiag={tDiag} />
+        )}
+        emptyMessage={tDiag("noCasesMatchingFilter")}
+        defaultPageSize={10}
+        pageSizeOptions={[10, 20, 50, 100]}
+      />
     </div>
   );
 }

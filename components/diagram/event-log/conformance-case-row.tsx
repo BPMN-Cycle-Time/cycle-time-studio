@@ -112,64 +112,8 @@ export function CaseRowItem({
       {/* Expanded Step Timeline */}
       {isExpanded && (
         <TableRow>
-          <TableCell colSpan={7} className="p-4 bg-muted/10 border-b border-border/70">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs font-semibold text-foreground">
-                <span className="flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-primary" />
-                  {tDiag("traceStepTimeline")} ({item.steps.length} {tDiag("stepsCount")})
-                </span>
-                <span className="text-muted-foreground font-normal">
-                  {tDiag("totalCost")}: {currency}
-                  {item.totalCost.toLocaleString()}
-                </span>
-              </div>
-
-              {/* Step Pills Chain */}
-              <div className="flex items-center gap-2 overflow-x-auto py-2 px-1">
-                {item.steps.map((st, i) => (
-                  <div key={i} className="flex items-center gap-2 shrink-0">
-                    <div
-                      className={`p-2 rounded-lg border text-xs min-w-[140px] max-w-[200px] shadow-2xs ${
-                        st.status === "conformant"
-                          ? "bg-card border-border/70"
-                          : st.status === "skipped"
-                            ? "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300"
-                            : st.status === "out_of_order"
-                              ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300"
-                              : st.status === "wrong_resource"
-                                ? "bg-violet-500/10 border-violet-500/30 text-violet-700 dark:text-violet-300"
-                                : "bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="text-[10px] font-mono text-muted-foreground">
-                          #{i + 1}
-                        </span>
-                        <StepStatusIndicator status={st.status} tDiag={tDiag} />
-                      </div>
-                      <div
-                        className="font-semibold text-xs truncate"
-                        title={cleanTaskName(st.activity)}
-                      >
-                        {cleanTaskName(st.activity)}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground truncate mt-0.5">
-                        👤 {st.resource}
-                      </div>
-                      {st.violationMessage && (
-                        <div className="text-[10px] text-destructive mt-1 font-medium leading-tight">
-                          ⚠️ {st.violationMessage}
-                        </div>
-                      )}
-                    </div>
-                    {i < item.steps.length - 1 && (
-                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+          <TableCell colSpan={7} className="p-0">
+            <CaseTimelineExpanded item={item} currency={currency} tDiag={tDiag} />
           </TableCell>
         </TableRow>
       )}
@@ -177,7 +121,72 @@ export function CaseRowItem({
   );
 }
 
-function StepStatusIndicator({
+export function CaseTimelineExpanded({
+  item,
+  currency,
+  tDiag,
+}: {
+  item: CaseConformanceResult;
+  currency: string;
+  tDiag: (k: string) => string;
+}) {
+  return (
+    <div className="p-4 bg-muted/10 border-b border-border/70 space-y-3">
+      <div className="flex items-center justify-between text-xs font-semibold text-foreground">
+        <span className="flex items-center gap-1.5">
+          <Layers className="w-3.5 h-3.5 text-primary" />
+          {tDiag("traceStepTimeline")} ({item.steps.length} {tDiag("stepsCount")})
+        </span>
+        <span className="text-muted-foreground font-normal">
+          {tDiag("totalCost")}: {currency}
+          {item.totalCost.toLocaleString()}
+        </span>
+      </div>
+
+      {/* Step Pills Chain */}
+      <div className="flex items-center gap-2 overflow-x-auto py-2 px-1">
+        {item.steps.map((st, i) => (
+          <div key={i} className="flex items-center gap-2 shrink-0">
+            <div
+              className={`p-2 rounded-lg border text-xs min-w-[140px] max-w-[200px] shadow-2xs ${
+                st.status === "conformant"
+                  ? "bg-card border-border/70"
+                  : st.status === "skipped"
+                    ? "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300"
+                    : st.status === "out_of_order"
+                      ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300"
+                      : st.status === "wrong_resource"
+                        ? "bg-violet-500/10 border-violet-500/30 text-violet-700 dark:text-violet-300"
+                        : "bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-1 mb-1">
+                <span className="text-[10px] font-mono text-muted-foreground">#{i + 1}</span>
+                <StepStatusIndicator status={st.status} tDiag={tDiag} />
+              </div>
+              <div className="font-semibold text-xs truncate" title={cleanTaskName(st.activity)}>
+                {cleanTaskName(st.activity)}
+              </div>
+              <div className="text-[11px] text-muted-foreground truncate mt-0.5">
+                👤 {st.resource}
+              </div>
+              {st.violationMessage && (
+                <div className="text-[10px] text-destructive mt-1 font-medium leading-tight">
+                  ⚠️ {st.violationMessage}
+                </div>
+              )}
+            </div>
+            {i < item.steps.length - 1 && (
+              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function StepStatusIndicator({
   status,
   tDiag,
 }: {
@@ -199,7 +208,7 @@ function StepStatusIndicator({
   return <span className="text-[10px] text-blue-500 font-bold">? {tDiag("tagUnexpected")}</span>;
 }
 
-function ViolationBadge({
+export function ViolationBadge({
   violation,
   tDiag,
 }: {

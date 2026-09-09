@@ -12,7 +12,10 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 export interface TableColumn<T> {
   key: string;
   header: string;
-  render?: (row: T) => React.ReactNode;
+  render?: (row: T, index?: number) => React.ReactNode;
+  sortValue?: (row: T) => string | number | boolean | null | undefined;
+  csvValue?: (row: T) => string | number | boolean | null | undefined;
+  csvExport?: boolean;
   sortable?: boolean;
   className?: string;
   headerClassName?: string;
@@ -27,6 +30,18 @@ export interface DataTableProps<T> {
   pageSizeOptions?: number[];
   defaultPageSize?: number;
   showPagination?: boolean;
+  showSearch?: boolean;
+  showCopyCsv?: boolean;
+  toolbarLeft?: React.ReactNode;
+  toolbarRight?: React.ReactNode;
+  renderFooter?: () => React.ReactNode;
+  renderSubRow?: (row: T, index: number) => React.ReactNode;
+  isRowExpanded?: (row: T, index: number) => boolean;
+  onRowClick?: (row: T, index: number) => void;
+  rowClassName?: (row: T, index: number) => string | undefined;
+  getRowId?: (row: T, index: number) => string | number;
+  customFilter?: (row: T, query: string) => boolean;
+  emptyMessage?: React.ReactNode;
 }
 
 const DEFAULT_PAGE_SIZES = [10, 20, 50, 100];
@@ -39,6 +54,18 @@ export function DataTable<T extends object>({
   pageSizeOptions = DEFAULT_PAGE_SIZES,
   defaultPageSize = 10,
   showPagination = true,
+  showSearch = true,
+  showCopyCsv = true,
+  toolbarLeft,
+  toolbarRight,
+  renderFooter,
+  renderSubRow,
+  isRowExpanded,
+  onRowClick,
+  rowClassName,
+  getRowId,
+  customFilter,
+  emptyMessage,
 }: DataTableProps<T>) {
   const tBtn = useTranslations("common.buttons");
   const tStatus = useTranslations("common.status");
@@ -60,6 +87,11 @@ export function DataTable<T extends object>({
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return data;
     const query = searchQuery.toLowerCase();
+
+    if (customFilter) {
+      return data.filter((row) => customFilter(row, query));
+    }
+
     const keysToSearch = searchKeys ?? columns.map((col) => col.key);
 
     return data.filter((row) =>
@@ -68,18 +100,33 @@ export function DataTable<T extends object>({
         return val != null && String(val).toLowerCase().includes(query);
       }),
     );
-  }, [data, searchQuery, searchKeys, columns]);
+  }, [data, searchQuery, searchKeys, columns, customFilter]);
 
   // 2. Sorting
   const sortedData = useMemo(() => {
     if (!sortKey) return filteredData;
+    const targetCol = columns.find((col) => col.key === sortKey);
 
     return [...filteredData].sort((a, b) => {
-      const aVal = (a as Record<string, unknown>)[sortKey];
-      const bVal = (b as Record<string, unknown>)[sortKey];
+      const aVal = targetCol?.sortValue
+        ? targetCol.sortValue(a)
+        : (a as Record<string, unknown>)[sortKey];
+      const bVal = targetCol?.sortValue
+        ? targetCol.sortValue(b)
+        : (b as Record<string, unknown>)[sortKey];
 
       if (aVal == null) return 1;
       if (bVal == null) return -1;
+
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
+      }
+
+      if (typeof aVal === "boolean" && typeof bVal === "boolean") {
+        const aNum = aVal ? 1 : 0;
+        const bNum = bVal ? 1 : 0;
+        return sortOrder === "asc" ? aNum - bNum : bNum - aNum;
+      }
 
       const aStr = String(aVal);
       const bStr = String(bVal);
@@ -90,7 +137,7 @@ export function DataTable<T extends object>({
       });
       return sortOrder === "asc" ? comparison : -comparison;
     });
-  }, [filteredData, sortKey, sortOrder]);
+  }, [filteredData, sortKey, sortOrder, columns]);
 
   // 3. Pagination calculation
   const totalRows = sortedData.length;
@@ -117,12 +164,15 @@ export function DataTable<T extends object>({
 
   // 4. CSV Copy Generation
   const csvContent = useMemo(() => {
-    const headers = columns.map((col) => col.header).join(",");
+    const exportColumns = columns.filter((col) => col.key !== "action" && col.csvExport !== false);
+    const headers = exportColumns.map((col) => col.header).join(",");
     const rows = filteredData
       .map((row) =>
-        columns
+        exportColumns
           .map((col) => {
-            const val = (row as Record<string, unknown>)[col.key];
+            const val = col.csvValue
+              ? col.csvValue(row)
+              : (row as Record<string, unknown>)[col.key];
             const cellString = val == null ? "" : String(val);
             return /[",\n]/.test(cellString) ? `"${cellString.replace(/"/g, '""')}"` : cellString;
           })
@@ -141,39 +191,49 @@ export function DataTable<T extends object>({
 
   return (
     <div className="flex flex-col gap-3 w-full">
-      {/* Controls: Search & Copy CSV */}
-      <div className="flex items-center gap-2 justify-between">
-        <AppInput
-          prefix={<Search className="h-3.5 w-3.5" />}
-          placeholder={searchPlaceholder || tInputs("search")}
-          value={searchQuery}
-          onChange={handleSearchChange}
-          wrapperClassName="flex-1"
-          inputClassName="bg-muted/50 focus:bg-background"
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCopy}
-          className={cn(
-            "h-8 px-3 text-xs font-medium gap-1.5 transition-all",
-            copied &&
-              "text-emerald-600 dark:text-emerald-500 border-emerald-200 dark:border-emerald-950 bg-emerald-50/50 dark:bg-emerald-950/20",
-          )}
-        >
-          {copied ? (
-            <>
-              <Check className="h-3.5 w-3.5" />
-              {tBtn("copiedCsv")}
-            </>
-          ) : (
-            <>
-              <Copy className="h-3.5 w-3.5" />
-              {tBtn("copyCsv")}
-            </>
-          )}
-        </Button>
-      </div>
+      {/* Controls: Search, Custom Toolbar & Copy CSV */}
+      {(showSearch || showCopyCsv || toolbarLeft || toolbarRight) && (
+        <div className="flex flex-wrap items-center gap-2 justify-between">
+          {toolbarLeft && <div className="flex items-center gap-2">{toolbarLeft}</div>}
+          <div className="flex items-center gap-2 flex-1 justify-end min-w-[200px]">
+            {showSearch && (
+              <AppInput
+                prefix={<Search className="h-3.5 w-3.5" />}
+                placeholder={searchPlaceholder || tInputs("search")}
+                value={searchQuery}
+                onChange={handleSearchChange}
+                wrapperClassName={cn("flex-1", toolbarLeft ? "max-w-xs" : "")}
+                inputClassName="bg-muted/50 focus:bg-background"
+              />
+            )}
+            {toolbarRight}
+            {showCopyCsv && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopy}
+                className={cn(
+                  "h-8 px-3 text-xs font-medium gap-1.5 transition-all shrink-0",
+                  copied &&
+                    "text-emerald-600 dark:text-emerald-500 border-emerald-200 dark:border-emerald-950 bg-emerald-50/50 dark:bg-emerald-950/20",
+                )}
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" />
+                    {tBtn("copiedCsv")}
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    {tBtn("copyCsv")}
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Table Container */}
       <div className="border rounded-lg bg-card overflow-hidden isolate">
@@ -216,41 +276,66 @@ export function DataTable<T extends object>({
                   colSpan={columns.length}
                   className="p-8 text-center text-muted-foreground font-medium"
                 >
-                  {tStatus("noRecords")}
+                  {emptyMessage ?? tStatus("noRecords")}
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedData.map((row, idx) => (
-                <TableRow
-                  key={((row as Record<string, unknown>).id as string | number) ?? idx}
-                  className="group/row hover:bg-muted/30 transition-colors"
-                >
-                  {columns.map((col) => (
-                    <TableCell
-                      key={col.key}
+              paginatedData.map((row, idx) => {
+                const globalIndex = safePageIndex * pageSize + idx;
+                const isExpanded = isRowExpanded ? isRowExpanded(row, globalIndex) : false;
+                const rowKey = getRowId
+                  ? getRowId(row, globalIndex)
+                  : (((row as Record<string, unknown>).id as string | number) ?? globalIndex);
+
+                return (
+                  <React.Fragment key={rowKey}>
+                    <TableRow
+                      onClick={() => onRowClick?.(row, globalIndex)}
                       className={cn(
-                        (col.sticky === "left" || col.sticky === true) &&
-                          "sticky left-0 z-10 bg-card group-hover/row:bg-[color-mix(in_srgb,var(--muted)_30%,var(--card))] border-r border-border/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]",
-                        idx === paginatedData.length - 1 &&
-                          (col.sticky === "left" || col.sticky === true) &&
-                          "rounded-bl-lg",
-                        col.sticky === "right" &&
-                          "sticky right-0 z-10 bg-card group-hover/row:bg-[color-mix(in_srgb,var(--muted)_30%,var(--card))] border-l border-border/50 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]",
-                        idx === paginatedData.length - 1 &&
-                          col.sticky === "right" &&
-                          "rounded-br-lg",
-                        col.className,
+                        "group/row hover:bg-muted/30 transition-colors",
+                        onRowClick && "cursor-pointer",
+                        isExpanded && "bg-muted/20",
+                        rowClassName?.(row, globalIndex),
                       )}
                     >
-                      {col.render
-                        ? col.render(row)
-                        : ((row as Record<string, unknown>)[col.key] as React.ReactNode)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+                      {columns.map((col) => (
+                        <TableCell
+                          key={col.key}
+                          className={cn(
+                            (col.sticky === "left" || col.sticky === true) &&
+                              "sticky left-0 z-10 bg-card group-hover/row:bg-[color-mix(in_srgb,var(--muted)_30%,var(--card))] border-r border-border/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]",
+                            idx === paginatedData.length - 1 &&
+                              !isExpanded &&
+                              (col.sticky === "left" || col.sticky === true) &&
+                              "rounded-bl-lg",
+                            col.sticky === "right" &&
+                              "sticky right-0 z-10 bg-card group-hover/row:bg-[color-mix(in_srgb,var(--muted)_30%,var(--card))] border-l border-border/50 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]",
+                            idx === paginatedData.length - 1 &&
+                              !isExpanded &&
+                              col.sticky === "right" &&
+                              "rounded-br-lg",
+                            col.className,
+                          )}
+                        >
+                          {col.render
+                            ? col.render(row, globalIndex)
+                            : ((row as Record<string, unknown>)[col.key] as React.ReactNode)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    {isExpanded && renderSubRow && (
+                      <TableRow className="border-b border-border/70 hover:bg-transparent">
+                        <TableCell colSpan={columns.length} className="p-0">
+                          {renderSubRow(row, globalIndex)}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                );
+              })
             )}
           </TableBody>
+          {renderFooter && renderFooter()}
         </Table>
       </div>
 

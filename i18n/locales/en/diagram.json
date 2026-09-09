@@ -261,6 +261,7 @@
   "tabSlaEvaluation": "SLA & Benchmark",
   "slaEvaluationTitle": "Task SLA & Benchmark Evaluation",
   "slaEvaluationDesc": "Compare actual execution time against standard benchmark duration (SLA) for each task and detect bottlenecks.",
+  "searchBenchmarks": "Search by task name or ID...",
   "colTaskId": "Task ID",
   "colTaskName": "Task Name",
   "colBenchmarkDuration": "Benchmark ({unit})",

@@ -261,6 +261,7 @@
   "tabSlaEvaluation": "Đánh giá Định mức",
   "slaEvaluationTitle": "Đánh giá Định mức & SLA theo Tác vụ",
   "slaEvaluationDesc": "So sánh thời gian thực tế với định mức chuẩn (SLA) theo từng tác vụ và xác định điểm nghẽn quy trình.",
+  "searchBenchmarks": "Tìm kiếm theo tên hoặc mã tác vụ...",
   "colTaskId": "Mã Task",
   "colTaskName": "Tên Task",
   "colBenchmarkDuration": "Định mức ({unit})",
