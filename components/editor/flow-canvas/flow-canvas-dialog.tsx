@@ -9,6 +9,7 @@ import {
   useNodesState,
   useEdgesState,
   useReactFlow,
+  useUpdateNodeInternals,
   BackgroundVariant,
   type Node,
 } from "@xyflow/react";
@@ -49,6 +50,7 @@ const edgeTypes = {
 function FlowCanvasInner({ onClose }: { onClose: () => void }) {
   const tEd = useTranslations("editor");
   const { fitView } = useReactFlow();
+  const updateNodeInternals = useUpdateNodeInternals();
 
   const project = useEditorStore((s) => s.project);
   const selectedId = useEditorStore((s) => s.selectedId);
@@ -135,13 +137,39 @@ function FlowCanvasInner({ onClose }: { onClose: () => void }) {
     setEdges(initialEdges);
   }, [initialEdges, setEdges]);
 
-  // Initial fit view on mount
+  // Initial fit view and node internal handle positions sync on mount
+  const nodeIdsKey = useMemo(() => initialNodes.map((n) => n.id).join(","), [initialNodes]);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fitView({ padding: 0.25, duration: 350 });
-    }, 120);
-    return () => clearTimeout(timer);
-  }, [fitView]);
+    if (!initialNodes.length) return;
+    const ids = initialNodes.map((n) => n.id);
+
+    // Immediate frame update once mounted
+    const rafId = requestAnimationFrame(() => {
+      updateNodeInternals(ids);
+    });
+
+    // Staggered updates to account for DOM render, web fonts, and layout settling
+    const t1 = setTimeout(() => {
+      updateNodeInternals(ids);
+    }, 60);
+
+    const t2 = setTimeout(() => {
+      updateNodeInternals(ids);
+      fitView({ padding: 0.25, duration: 250 });
+    }, 180);
+
+    const t3 = setTimeout(() => {
+      updateNodeInternals(ids);
+    }, 450);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [nodeIdsKey, initialNodes, updateNodeInternals, fitView]);
 
   // Track position changes when user drags nodes
   const handleNodeDragStop = useCallback((_: unknown, node: Node) => {
@@ -283,7 +311,7 @@ export function FlowCanvasDialog({ open, onOpenChange }: FlowCanvasDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[calc(100vw-80px)] h-[calc(100vh-80px)] max-w-none! sm:max-w-none! p-0 gap-0 rounded-3xl border border-border/80 shadow-2xl overflow-hidden flex flex-col"
+        className="w-[calc(100vw-80px)] h-[calc(100vh-80px)] max-w-none! sm:max-w-none! p-0 gap-0 rounded-3xl border border-border/80 shadow-2xl overflow-hidden flex flex-col duration-150 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100"
       >
         <DialogTitle className="sr-only">{tEd("visualCanvasTitle")}</DialogTitle>
         <DialogDescription className="sr-only">{tEd("visualCanvasDesc")}</DialogDescription>

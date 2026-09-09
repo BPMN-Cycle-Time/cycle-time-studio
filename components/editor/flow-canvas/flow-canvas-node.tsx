@@ -1,7 +1,7 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
-import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
+import { memo, useMemo, useState, useEffect } from "react";
+import { Handle, Position, useUpdateNodeInternals, type NodeProps, type Node } from "@xyflow/react";
 import {
   Workflow,
   RotateCw,
@@ -85,6 +85,7 @@ export const FlowCanvasNode = memo(function FlowCanvasNode({
   const tEd = useTranslations("editor");
   const tTypes = useTranslations("common.blockTypes");
   const [activeTab, setActiveTab] = useState<"config" | "result">("config");
+  const updateNodeInternals = useUpdateNodeInternals();
 
   const blockType = (block.type as BlockType) || BlockType.SEQ;
   const Icon = BLOCK_ICONS[blockType] || Workflow;
@@ -96,11 +97,15 @@ export const FlowCanvasNode = memo(function FlowCanvasNode({
 
   const isHighlighted = selected || data.isSelected;
 
+  useEffect(() => {
+    updateNodeInternals(block.id);
+  }, [block.id, updateNodeInternals, activeTab, block.type, block.mode]);
+
   return (
     <div
       onClick={() => onSelect(block.id)}
       className={cn(
-        "w-[300px] rounded-2xl bg-card/95 backdrop-blur-md border-2 transition-all shadow-md hover:shadow-xl text-xs",
+        "w-[300px] rounded-2xl bg-card/95 backdrop-blur-md border-2 transition-[border-color,box-shadow] duration-150 shadow-md hover:shadow-xl text-xs",
         isHighlighted
           ? "border-purple-500 ring-4 ring-purple-500/20 shadow-purple-500/10 shadow-lg"
           : "border-border/80 hover:border-border",

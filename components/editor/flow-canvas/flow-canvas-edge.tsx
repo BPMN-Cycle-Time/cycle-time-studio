@@ -79,28 +79,6 @@ export const FlowCanvasEdge = memo(function FlowCanvasEdge({
         }}
       />
 
-      {/* Decorative Source Dot */}
-      <circle
-        cx={sourceX}
-        cy={sourceY}
-        r={3.5}
-        className={cn(
-          "stroke-card stroke-2 pointer-events-none",
-          isLoop ? "fill-amber-500" : "fill-emerald-500",
-        )}
-      />
-
-      {/* Decorative Target Dot */}
-      <circle
-        cx={targetX}
-        cy={targetY}
-        r={3.5}
-        className={cn(
-          "stroke-2 pointer-events-none",
-          isLoop ? "fill-card stroke-amber-500" : "fill-card stroke-muted-foreground/80",
-        )}
-      />
-
       {/* Optional Branch Percentage / Condition Label */}
       {label && (
         <EdgeLabelRenderer>

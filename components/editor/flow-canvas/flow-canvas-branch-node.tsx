@@ -1,7 +1,7 @@
 "use client";
 
-import { memo, useState, useMemo } from "react";
-import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
+import { memo, useState, useMemo, useEffect } from "react";
+import { Handle, Position, useUpdateNodeInternals, type NodeProps, type Node } from "@xyflow/react";
 import { GitBranch, Trash2, Timer, DollarSign, User, Percent } from "lucide-react";
 import { BlockType, type Branch, type Task } from "@/types";
 import {
@@ -53,9 +53,15 @@ export const FlowCanvasBranchNode = memo(function FlowCanvasBranchNode({
 
   const tEd = useTranslations("editor");
   const [activeTab, setActiveTab] = useState<"config" | "result">("config");
+  const updateNodeInternals = useUpdateNodeInternals();
 
   const isXor = parentBlockType === BlockType.XOR;
   const isHighlighted = selected || data.isSelected;
+  const nodeId = `branch_${branch.id}`;
+
+  useEffect(() => {
+    updateNodeInternals(nodeId);
+  }, [nodeId, updateNodeInternals, activeTab, isXor]);
 
   const taskOptions: SelectOption<string>[] = useMemo(
     () => [
@@ -90,7 +96,7 @@ export const FlowCanvasBranchNode = memo(function FlowCanvasBranchNode({
     <div
       onClick={() => onSelect(branch.id)}
       className={cn(
-        "w-[300px] rounded-2xl bg-card/95 backdrop-blur-md border-2 transition-all shadow-md hover:shadow-xl text-xs",
+        "w-[300px] rounded-2xl bg-card/95 backdrop-blur-md border-2 transition-[border-color,box-shadow] duration-150 shadow-md hover:shadow-xl text-xs",
         isHighlighted
           ? "border-purple-500 ring-4 ring-purple-500/20 shadow-purple-500/10 shadow-lg"
           : "border-border/80 hover:border-border",
