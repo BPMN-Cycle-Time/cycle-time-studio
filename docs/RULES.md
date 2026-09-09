@@ -1,6 +1,6 @@
 # Project Rules & Development Guidelines
 
-This document outlines the strict guidelines and conventions for contributing to the **Cycle Time Studio** codebase.
+This document outlines the strict guidelines and conventions for contributing to the **BPMN Studio** codebase.
 
 ---
 

@@ -12,11 +12,12 @@ interface SidebarHeaderProps {
 
 export function SidebarHeader({ collapsed, onCollapsedChange }: SidebarHeaderProps) {
   const t = useTranslations("Sidebar");
+  const tCommon = useTranslations("common");
 
   if (collapsed) {
     return (
       <div className="flex flex-col items-center gap-2.5 pt-3 pb-2 px-1 border-b border-border/40">
-        <AppTooltip content="Cycle Time" side="right">
+        <AppTooltip content={tCommon("appName")} side="right">
           <Button variant="ghost" size="icon" className="size-9 rounded-xl" asChild>
             <Link href="/">
               <Workflow className="size-4 text-primary" />
@@ -45,7 +46,7 @@ export function SidebarHeader({ collapsed, onCollapsedChange }: SidebarHeaderPro
         <Link href="/" className="flex items-center gap-2 group min-w-0">
           <Workflow className="size-4 shrink-0 text-primary" />
           <span className="font-bold text-lg tracking-tight text-foreground font-sans">
-            Cycle Time
+            {tCommon("appName")}
           </span>
         </Link>
         <AppTooltip content={t("collapseSidebar")}>

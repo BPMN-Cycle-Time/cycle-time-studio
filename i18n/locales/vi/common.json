@@ -1,4 +1,5 @@
 {
+  "appName": "BPMN Studio",
   "buttons": {
     "create": "Tạo mới",
     "cancel": "Hủy",

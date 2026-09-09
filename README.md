@@ -1,4 +1,4 @@
-# Cycle Time Studio
+# BPMN Studio
 
 A modern, full-featured web application for **Business Process Management (BPM)** process modeling, cycle time calculation, and stochastic Monte Carlo simulation.
 

@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BPMN",
+  title: "BPMN Studio",
   description: "Model your process, understand where the time goes.",
   icons: {
     icon: [

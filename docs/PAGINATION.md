@@ -1,6 +1,6 @@
-# Pagination Guide & Standards — Cycle Time Studio
+# Pagination Guide & Standards — BPMN Studio
 
-Tài liệu thiết kế, kiến trúc kỹ thuật và tiêu chuẩn triển khai Phân trang (Pagination) cho toàn bộ ứng dụng **Cycle Time Studio**.
+Tài liệu thiết kế, kiến trúc kỹ thuật và tiêu chuẩn triển khai Phân trang (Pagination) cho toàn bộ ứng dụng **BPMN Studio**.
 
 ---
 

@@ -1,6 +1,6 @@
 # Development & Collaboration Workflow
 
-This document describes the workflow for developing, testing, verifying, and committing changes in the **Cycle Time Studio** repository.
+This document describes the workflow for developing, testing, verifying, and committing changes in the **BPMN Studio** repository.
 
 ---
 

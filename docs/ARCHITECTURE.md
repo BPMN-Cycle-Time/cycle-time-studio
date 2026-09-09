@@ -1,6 +1,6 @@
 # Architecture & Technical Documentation
 
-Cycle Time Studio is an interactive Business Process Management (BPM) process modeling, cycle time calculation, and Monte Carlo simulation platform built with modern web technologies.
+BPMN Studio is an interactive Business Process Management (BPM) process modeling, cycle time calculation, and Monte Carlo simulation platform built with modern web technologies.
 
 ---
 
@@ -196,4 +196,4 @@ The UI uses a **3-column responsive flex layout** with zero blocking modal overl
 
 ## 7. Pagination Architecture
 
-For large data sets (Recent Projects, Data Tables, Event Logs), Cycle Time Studio implements a 10-record-per-page client-side pagination architecture with render-phase state adjustment and strict i18n synchronization. See [Pagination Guide](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/PAGINATION.md) for formulas, state diagrams, and reference components.
+For large data sets (Recent Projects, Data Tables, Event Logs), BPMN Studio implements a 10-record-per-page client-side pagination architecture with render-phase state adjustment and strict i18n synchronization. See [Pagination Guide](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/PAGINATION.md) for formulas, state diagrams, and reference components.

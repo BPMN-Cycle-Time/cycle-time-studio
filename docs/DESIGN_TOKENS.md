@@ -1,6 +1,6 @@
-# Design Tokens & Guidelines — Cycle Time Studio
+# Design Tokens & Guidelines — BPMN Studio
 
-This document specifies the design tokens, visual aesthetics, color roles, typography scale, radius geometry, and styling standards for **Cycle Time Studio**, designed after modern productivity and financial dashboard benchmarks (Donezo & Neatclever).
+This document specifies the design tokens, visual aesthetics, color roles, typography scale, radius geometry, and styling standards for **BPMN Studio**, designed after modern productivity and financial dashboard benchmarks (Donezo & Neatclever).
 
 ---
 

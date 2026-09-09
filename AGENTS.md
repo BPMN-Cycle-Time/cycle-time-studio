@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Cycle Time Studio — Agent Directives & Repository Rules
+# BPMN Studio — Agent Directives & Repository Rules
 
 ## 1. Project Reference Docs
 

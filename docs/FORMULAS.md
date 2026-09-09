@@ -1,8 +1,8 @@
 # BẢNG TỔNG HỢP CÔNG THỨC TÍNH TOÁN TRONG HỆ THỐNG
 
-## (Cycle Time Studio — Calculation Formulas Reference)
+## (BPMN Studio — Calculation Formulas Reference)
 
-Tài liệu này tổng hợp toàn bộ các công thức tính toán thời gian chu kỳ (**Cycle Time - CT**) và chi phí quy trình (**Process Cost**) được cài đặt trong hệ thống Cycle Time Studio (`services/engine.ts`).
+Tài liệu này tổng hợp toàn bộ các công thức tính toán thời gian chu kỳ (**Cycle Time - CT**) và chi phí quy trình (**Process Cost**) được cài đặt trong hệ thống BPMN Studio (`services/engine.ts`).
 
 ---
 

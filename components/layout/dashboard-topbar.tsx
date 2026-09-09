@@ -16,6 +16,7 @@ interface DashboardTopbarProps {
 
 export function DashboardTopbar({ searchQuery = "", onSearchChange }: DashboardTopbarProps) {
   const t = useTranslations("Home");
+  const tCommon = useTranslations("common");
   const [internalQuery, setInternalQuery] = useState(searchQuery);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -44,7 +45,7 @@ export function DashboardTopbar({ searchQuery = "", onSearchChange }: DashboardT
         <Link href="/" className="flex items-center gap-2 select-none group">
           <Workflow className="size-4 text-primary shrink-0" />
           <span className="font-bold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
-            BPMN
+            {tCommon("appName")}
           </span>
         </Link>
       </div>
