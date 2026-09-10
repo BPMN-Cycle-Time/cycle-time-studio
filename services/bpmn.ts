@@ -2,6 +2,7 @@ import { BpmnModdle } from "bpmn-moddle";
 import { layoutProcess } from "bpmn-auto-layout";
 import { BlockType, BlockMode, type Block, type Branch, type Task } from "@/types";
 import { cleanTaskName } from "@/utils/formats";
+import { t } from "@/utils/i18n";
 
 /**
  * Bidirectional bridge between our Block/Branch tree and BPMN 2.0 XML.
@@ -225,7 +226,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
             : {
                 id: freshId("loop"),
                 type: BlockType.LOOP,
-                label: "Rework loop",
+                label: t("common", "blockTypes.rework"),
                 mode: BlockMode.COMPOSITE,
                 subBlocks: bodyBlocks,
                 loopP: parsedP,
@@ -254,7 +255,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         ) {
           return {
             id: freshId("br"),
-            label: firstBranchBlock.label || cleanFlow || "Branch",
+            label: firstBranchBlock.label || cleanFlow || t("common", "blockTypes.branch"),
             taskId: firstBranchBlock.taskId ?? null,
             p: parsedP,
             t: firstBranchBlock.time ?? 1,
@@ -265,7 +266,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         if (branchBlocks.length === 0) {
           return {
             id: freshId("br"),
-            label: cleanFlow || "Branch",
+            label: cleanFlow || t("common", "blockTypes.branch"),
             p: parsedP,
             t: 1,
             mode: BlockMode.SIMPLE,
@@ -283,7 +284,9 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
       out.push({
         id: freshId("gw"),
         type: isParallel ? BlockType.AND : BlockType.XOR,
-        label: el.name || (isParallel ? "Parallel work" : "Decision"),
+        label:
+          el.name ||
+          (isParallel ? t("common", "blockTypes.parallel") : t("common", "blockTypes.decision")),
         branches,
       });
 
@@ -325,7 +328,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         ) {
           return {
             id: freshId("br"),
-            label: firstBranchBlock.label || cleanFlow || "Branch",
+            label: firstBranchBlock.label || cleanFlow || t("common", "blockTypes.branch"),
             taskId: firstBranchBlock.taskId ?? null,
             p: parsedP,
             t: firstBranchBlock.time ?? 1,
@@ -335,7 +338,7 @@ function walkChain(startId: string | null, stopId: string | null, ctx: WalkConte
         if (branchBlocks.length === 0) {
           return {
             id: freshId("br"),
-            label: cleanFlow || "Branch",
+            label: cleanFlow || t("common", "blockTypes.branch"),
             p: parsedP,
             t: 1,
             mode: BlockMode.SIMPLE,

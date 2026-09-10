@@ -16,12 +16,12 @@ async function loadLocaleMessages(locale: Locale) {
 
   return {
     common: common.default,
-    Home: home.default,
-    Sidebar: sidebar.default,
+    home: home.default,
+    sidebar: sidebar.default,
     editor: editor.default,
     simulation: simulation.default,
     diagram: diagram.default,
-    LocaleSwitcher: localeSwitcher.default,
+    localeSwitcher: localeSwitcher.default,
   };
 }
 

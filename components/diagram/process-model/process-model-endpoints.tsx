@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { t } from "@/utils/i18n";
 
 interface ProcessModelStartEndpointProps {
   startId: string;
@@ -94,7 +95,7 @@ export function ProcessModelStartEndpoint({
           >
             +
           </text>
-          <title>Insert block here</title>
+          <title>{t("editor", "insertBlockHere")}</title>
         </g>
       )}
 
@@ -186,7 +187,7 @@ export function ProcessModelEndEndpoint({
           >
             +
           </text>
-          <title>Insert block here</title>
+          <title>{t("editor", "insertBlockHere")}</title>
         </g>
       )}
 

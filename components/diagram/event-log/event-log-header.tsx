@@ -171,50 +171,50 @@ export function EventLogHeader({
           </div>
 
           <div className="inline-flex rounded-lg p-0.5 bg-background border border-border/80 shadow-2xs">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               onClick={onResetToSimulated}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1 h-auto rounded-md text-xs font-medium transition-all ${
                 !isUploaded
-                  ? "bg-primary text-primary-foreground shadow-xs"
+                  ? "bg-primary text-primary-foreground shadow-xs hover:bg-primary hover:text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
               title={tDiag("modeSimulatedDesc")}
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>{tDiag("modeSimulated")}</span>
-            </button>
+            </Button>
 
             {hasUploadedFile ? (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
                 onClick={onSelectUploaded}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1 h-auto rounded-md text-xs font-medium transition-all ${
                   isUploaded
-                    ? "bg-primary text-primary-foreground shadow-xs"
+                    ? "bg-primary text-primary-foreground shadow-xs hover:bg-primary hover:text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
                 title={tDiag("modeUploadedDesc")}
               >
                 <Upload className="w-3.5 h-3.5" />
                 <span>{tDiag("modeUploaded")}</span>
-              </button>
+              </Button>
             ) : (
               <UploadEventLogDialog
                 onImport={onImportEvents}
                 trigger={
-                  <button
-                    type="button"
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                  <Button
+                    variant="ghost"
+                    className={`flex items-center gap-1.5 px-3 py-1 h-auto rounded-md text-xs font-medium transition-all ${
                       isUploaded
-                        ? "bg-primary text-primary-foreground shadow-xs"
+                        ? "bg-primary text-primary-foreground shadow-xs hover:bg-primary hover:text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     }`}
                     title={tDiag("modeUploadedDesc")}
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>{tDiag("modeUploaded")}</span>
-                  </button>
+                  </Button>
                 }
               />
             )}

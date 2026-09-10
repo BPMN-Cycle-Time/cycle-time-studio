@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { Play, Pause, RotateCcw, Timer } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { Button } from "@/components/ui/button";
+
 export function TimeTrackerWidget() {
-  const t = useTranslations("Home");
+  const t = useTranslations("home");
   const [seconds, setSeconds] = useState(5048); // 01:24:08 like Donezo
   const [isRunning, setIsRunning] = useState(false);
 
@@ -54,29 +56,33 @@ export function TimeTrackerWidget() {
 
       {/* Controls — circular buttons */}
       <div className="flex items-center justify-center gap-3 z-10">
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="icon"
           onClick={() => setIsRunning((prev) => !prev)}
-          className="size-10 rounded-full bg-white text-emerald-950 hover:bg-white/90 flex items-center justify-center shadow-sm active:scale-95 transition-all cursor-pointer"
-          title={isRunning ? "Pause" : "Start"}
+          className="size-10 rounded-full bg-white text-emerald-950 hover:bg-white/90 shadow-sm active:scale-95 transition-all border-0"
+          title={isRunning ? t("timer.pause") : t("timer.start")}
+          aria-label={isRunning ? t("timer.pause") : t("timer.start")}
         >
           {isRunning ? (
             <Pause className="size-4 fill-current" />
           ) : (
             <Play className="size-4 fill-current ml-0.5" />
           )}
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
           onClick={() => {
             setIsRunning(false);
             setSeconds(0);
           }}
-          className="size-10 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 flex items-center justify-center shadow-sm active:scale-95 transition-all cursor-pointer"
-          title="Reset"
+          className="size-10 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 hover:text-rose-300 shadow-sm active:scale-95 transition-all"
+          title={t("timer.reset")}
+          aria-label={t("timer.reset")}
         >
           <RotateCcw className="size-4" />
-        </button>
+        </Button>
       </div>
     </div>
   );

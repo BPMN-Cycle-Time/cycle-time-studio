@@ -5,7 +5,7 @@ import { Workflow } from "lucide-react";
 import { AppCard } from "@/components/ui";
 
 export function EmptyProjectsState() {
-  const t = useTranslations("Home");
+  const t = useTranslations("home");
 
   return (
     <AppCard

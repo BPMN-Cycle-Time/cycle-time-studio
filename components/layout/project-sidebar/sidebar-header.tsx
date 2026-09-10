@@ -11,7 +11,7 @@ interface SidebarHeaderProps {
 }
 
 export function SidebarHeader({ collapsed, onCollapsedChange }: SidebarHeaderProps) {
-  const t = useTranslations("Sidebar");
+  const t = useTranslations("sidebar");
   const tCommon = useTranslations("common");
 
   if (collapsed) {

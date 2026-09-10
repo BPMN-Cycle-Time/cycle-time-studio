@@ -2,6 +2,7 @@ import type { Block, Project } from "@/types";
 import { BlockMode, BlockType } from "@/types";
 import { saveProjectData } from "./useProjectsIndex";
 import { v4 as uuid } from "uuid";
+import { t } from "@/utils/i18n";
 
 export function persistNow(project: Project | null) {
   if (!project) return;
@@ -100,12 +101,12 @@ export function createNewBlock(type: BlockType): Block {
     type,
     label:
       type === BlockType.SEQ
-        ? "New step"
+        ? t("common", "blockTypes.step")
         : type === BlockType.XOR
-          ? "Decision"
+          ? t("common", "blockTypes.decision")
           : type === BlockType.AND
-            ? "Parallel work"
-            : "Rework loop",
+            ? t("common", "blockTypes.parallel")
+            : t("common", "blockTypes.rework"),
     mode: BlockMode.SIMPLE,
     time: type === BlockType.SEQ ? 1 : undefined,
     loopP: type === BlockType.LOOP ? 20 : undefined,
@@ -115,14 +116,14 @@ export function createNewBlock(type: BlockType): Block {
         ? [
             {
               id: uuid(),
-              label: "Branch A",
+              label: t("editor", "branchA"),
               p: type === BlockType.XOR ? 50 : undefined,
               t: 1,
               mode: BlockMode.SIMPLE,
             },
             {
               id: uuid(),
-              label: "Branch B",
+              label: t("editor", "branchB"),
               p: type === BlockType.XOR ? 50 : undefined,
               t: 1,
               mode: BlockMode.SIMPLE,

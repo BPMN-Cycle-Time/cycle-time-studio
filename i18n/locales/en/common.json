@@ -1,5 +1,7 @@
 {
   "appName": "BPMN Studio",
+  "appDescription": "Model your process, understand where the time goes.",
+  "toggleTheme": "Toggle theme",
   "buttons": {
     "create": "Create",
     "cancel": "Cancel",
@@ -40,9 +42,13 @@
     "decision": "Decision",
     "parallel": "Parallel",
     "rework": "Rework loop",
+    "branch": "Branch",
     "xorBranch": "XOR Branch",
     "andBranch": "AND Branch"
   },
+  "defaultStep": "Step 1",
+  "defaultNewTask": "New Task",
+  "copySuffix": " (copy)",
   "units": {
     "seconds": "Seconds",
     "minutes": "Minutes",

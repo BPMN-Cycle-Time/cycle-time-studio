@@ -22,7 +22,7 @@ export function DeleteProjectDialog({
   onOpenChange,
   onDeleteProject,
 }: DeleteProjectDialogProps) {
-  const t = useTranslations("Sidebar");
+  const t = useTranslations("sidebar");
 
   return (
     <AlertDialog open={project !== null} onOpenChange={onOpenChange}>

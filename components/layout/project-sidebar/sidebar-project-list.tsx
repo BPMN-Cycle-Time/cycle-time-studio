@@ -26,7 +26,7 @@ export function SidebarProjectList({
   projects,
   onDeleteProject,
 }: SidebarProjectListProps) {
-  const t = useTranslations("Sidebar");
+  const t = useTranslations("sidebar");
 
   if (collapsed) {
     return (

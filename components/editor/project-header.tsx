@@ -20,7 +20,7 @@ export function ProjectHeader({ rightCollapsed, onExpandRightPanel }: ProjectHea
   const router = useRouter();
   const tBtn = useTranslations("common.buttons");
   const tEd = useTranslations("editor");
-  const tSidebar = useTranslations("Sidebar");
+  const tSidebar = useTranslations("sidebar");
   const { project } = useEditorStore();
   const { deleteProject } = useProjectsIndex();
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
@@ -62,6 +62,7 @@ export function ProjectHeader({ rightCollapsed, onExpandRightPanel }: ProjectHea
               className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70"
               onClick={() => undo()}
               disabled={pastLen === 0}
+              aria-label={tBtn("undo")}
             >
               <Undo2 className="size-4" />
             </Button>
@@ -74,6 +75,7 @@ export function ProjectHeader({ rightCollapsed, onExpandRightPanel }: ProjectHea
               className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70"
               onClick={() => redo()}
               disabled={futureLen === 0}
+              aria-label={tBtn("redo")}
             >
               <Redo2 className="size-4" />
             </Button>
@@ -103,6 +105,7 @@ export function ProjectHeader({ rightCollapsed, onExpandRightPanel }: ProjectHea
                 size="icon"
                 className="size-8 rounded-lg border-border/80 hover:border-primary/40 hover:bg-primary/5 shadow-2xs"
                 onClick={onExpandRightPanel}
+                aria-label={tEd("showParameters")}
               >
                 <PanelRightOpen className="size-4" />
               </Button>

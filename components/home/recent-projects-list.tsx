@@ -24,7 +24,7 @@ export function RecentProjectsList({
   pageSize = DEFAULT_PROJECTS_PAGE_SIZE,
 }: RecentProjectsListProps) {
   const format = useFormatter();
-  const t = useTranslations("Home");
+  const t = useTranslations("home");
   const { duplicateProject, deleteProject } = useProjectsIndex();
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
 

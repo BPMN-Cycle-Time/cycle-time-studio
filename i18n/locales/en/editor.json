@@ -81,5 +81,11 @@
   "formulaLabel": "Formula:",
   "repeatLabel": "Repeat {p}%",
   "subProcess": "Sub-process",
-  "defaultProcessFlow": "Process Flow"
+  "defaultProcessFlow": "Process Flow",
+  "branchA": "Branch A",
+  "branchB": "Branch B",
+  "newBranch": "New Branch",
+  "loopStep": "Loop step 1",
+  "insertBlockHere": "Insert block here",
+  "dragToResize": "Drag to resize panel width"
 }

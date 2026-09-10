@@ -1,6 +1,7 @@
 export { cn } from "./cn";
 export * from "./formats";
 export * from "./convert";
+export { t, getClientLocale } from "./i18n";
 export { computeFlow, runMonteCarlo } from "@/services/engine";
 export { blocksToBpmnXml, bpmnXmlToBlocks, type BpmnImportResult } from "@/services/bpmn";
 export {

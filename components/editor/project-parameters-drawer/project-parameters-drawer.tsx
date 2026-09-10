@@ -123,7 +123,7 @@ export function ProjectParametersDrawer({
             "absolute top-0 bottom-0 left-0 w-2 cursor-col-resize hover:bg-primary/30 active:bg-primary/70 z-50 transition-colors group flex items-center justify-center",
             isResizing && "bg-primary/70",
           )}
-          title="Drag to resize panel width"
+          title={tEd("dragToResize")}
         >
           <div className="w-0.5 h-8 rounded-full bg-muted-foreground/30 group-hover:bg-foreground/60 transition-colors" />
         </div>

@@ -48,7 +48,7 @@ const NAV_ITEMS: NavItem[] = [
 export function CompactActivityBar({ activeTab, onTabChange }: CompactActivityBarProps) {
   const router = useRouter();
   const t = useTranslations("diagram");
-  const tSidebar = useTranslations("Sidebar");
+  const tSidebar = useTranslations("sidebar");
   const { project, setName } = useEditorStore();
   const { deleteProject } = useProjectsIndex();
   const [collapsed, setCollapsed] = useLocalStorageState(

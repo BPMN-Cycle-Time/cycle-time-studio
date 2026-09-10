@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { temporal } from "zundo";
 import type { Block, Branch, Project, Task, EventLogItem, EventLogDataSource } from "@/types";
 import { BlockMode, BlockType } from "@/types";
+import { t } from "@/utils/i18n";
 import { loadProject } from "./useProjectsIndex";
 import {
   persistNow,
@@ -201,7 +202,7 @@ export const useEditorStore = create<EditorState>()(
         if (!s.project) return;
         const newBranch: Branch = {
           id: createNewBlock(BlockType.SEQ).id,
-          label: "New Branch",
+          label: t("editor", "newBranch"),
           t: 1,
           p: 0,
           mode: BlockMode.SIMPLE,
@@ -267,7 +268,7 @@ export const useEditorStore = create<EditorState>()(
                         {
                           id: createNewBlock(BlockType.SEQ).id,
                           type: BlockType.SEQ,
-                          label: "Step 1",
+                          label: t("common", "defaultStep"),
                           mode: BlockMode.SIMPLE,
                           time: br.t ?? 1,
                         },
@@ -296,7 +297,7 @@ export const useEditorStore = create<EditorState>()(
                     {
                       id: createNewBlock(BlockType.SEQ).id,
                       type: BlockType.SEQ,
-                      label: "Loop step 1",
+                      label: t("editor", "loopStep"),
                       mode: BlockMode.SIMPLE,
                       time: b.loopTime ?? 1,
                     },
@@ -314,7 +315,7 @@ export const useEditorStore = create<EditorState>()(
         if (!s.project) return;
         const nt: Task = {
           id: createNewBlock(BlockType.SEQ).id,
-          name: name.trim() || "New Task",
+          name: name.trim() || t("common", "defaultNewTask"),
           time,
         };
         const tasks = [...(s.project.tasks ?? []), nt];

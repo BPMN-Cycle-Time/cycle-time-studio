@@ -15,7 +15,7 @@ interface DashboardTopbarProps {
 }
 
 export function DashboardTopbar({ searchQuery = "", onSearchChange }: DashboardTopbarProps) {
-  const t = useTranslations("Home");
+  const t = useTranslations("home");
   const tCommon = useTranslations("common");
   const [internalQuery, setInternalQuery] = useState(searchQuery);
   const inputRef = useRef<HTMLInputElement>(null);

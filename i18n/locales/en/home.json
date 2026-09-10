@@ -16,10 +16,18 @@
   "totalTasks": "Timesheet Tasks",
   "simulationEngine": "Monte Carlo Engine",
   "ready": "Ready to Simulate",
+  "badgeTimesheetAndCost": "Timesheet & Cost",
+  "badgeRunsCount": "10,000 runs",
+  "badgeDistribution": "Gaussian & Beta",
   "increasedFromLastMonth": "Active in workspace",
   "timeTracker": "Time Tracker",
   "cycleTimeLive": "Process Cycle Timer",
   "quickActions": "Quick Templates",
+  "timer": {
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Reset"
+  },
   "open": "Open",
   "profileRole": "Process Engineer",
   "appPromoTitle": "Process Simulation",
@@ -33,5 +41,15 @@
   "templateAndDesc": "Concurrent parallel tasks",
   "templateLoopName": "Rework Loop",
   "templateLoopDesc": "Feedback cycle iteration",
-  "useTemplate": "Use Template"
+  "useTemplate": "Use Template",
+  "bpmnBadge": "BPMN 2.0",
+  "templateSeqBlock1": "Task 1: Initiate",
+  "templateSeqBlock2": "Task 2: Review & Finalize",
+  "templateXorLabel": "Decision Check",
+  "templateXorBranchFast": "Fast-track ({p}%)",
+  "templateXorBranchStandard": "Standard Review ({p}%)",
+  "templateAndLabel": "Concurrent Workflows",
+  "templateAndBranchAlpha": "Branch Alpha",
+  "templateAndBranchBeta": "Branch Beta",
+  "templateLoopLabel": "Quality Control"
 }

@@ -10,6 +10,7 @@ import {
   type EventLogItem,
 } from "@/types";
 import { cleanTaskName } from "@/utils/formats";
+import { t } from "@/utils/i18n";
 import { BpmnBuilder } from "./bpmn-builder";
 
 let idCounter = 0;
@@ -460,10 +461,10 @@ export async function discoverBpmnFromEventLog(
       });
     }
 
-    const endNode = builder.addNode("End", "endEvent", "Ket thuc");
+    const endNode = builder.addNode("End", "endEvent", t("diagram", "endEvent"));
     builder.addFlow(joinGwId, endNode);
   } else {
-    const endNode = builder.addNode("End", "endEvent", "Ket thuc");
+    const endNode = builder.addNode("End", "endEvent", t("diagram", "endEvent"));
     builder.addFlow(lastNodeId, endNode);
   }
 

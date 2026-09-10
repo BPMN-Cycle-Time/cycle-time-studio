@@ -81,5 +81,11 @@
   "formulaLabel": "Công thức:",
   "repeatLabel": "Lặp lại {p}%",
   "subProcess": "Luồng con",
-  "defaultProcessFlow": "Luồng quy trình"
+  "defaultProcessFlow": "Luồng quy trình",
+  "branchA": "Nhánh A",
+  "branchB": "Nhánh B",
+  "newBranch": "Nhánh mới",
+  "loopStep": "Bước lặp 1",
+  "insertBlockHere": "Chèn khối tại đây",
+  "dragToResize": "Kéo để thay đổi chiều rộng panel"
 }

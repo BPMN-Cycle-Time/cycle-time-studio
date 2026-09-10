@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { v4 as uuid } from "uuid";
 import { BlockType, BlockMode, type Project, type ProjectSummary } from "@/types";
+import { t } from "@/utils/i18n";
 
 interface ProjectsIndexState {
   projects: ProjectSummary[];
@@ -45,7 +46,15 @@ export function emptyProject(name: string): Project {
     unit: "hours",
     currency: "USD",
     tasks: [],
-    blocks: [{ id: uuid(), type: BlockType.SEQ, label: "Step 1", time: 1, mode: BlockMode.SIMPLE }],
+    blocks: [
+      {
+        id: uuid(),
+        type: BlockType.SEQ,
+        label: t("common", "defaultStep"),
+        time: 1,
+        mode: BlockMode.SIMPLE,
+      },
+    ],
     createdAt: now,
     updatedAt: now,
   };
@@ -56,7 +65,7 @@ export const useProjectsIndex = create<ProjectsIndexState>()(
     (set) => ({
       projects: [],
       createProject: (name) => {
-        const project = emptyProject(name || "Untitled process");
+        const project = emptyProject(name || t("sidebar", "untitledProcess"));
         saveProjectData(project);
         set((s) => ({
           projects: [
@@ -81,7 +90,7 @@ export const useProjectsIndex = create<ProjectsIndexState>()(
         const copy: Project = {
           ...src,
           id: uuid(),
-          name: src.name + " (copy)",
+          name: src.name + t("common", "copySuffix"),
           createdAt: Date.now(),
           updatedAt: Date.now(),
         };

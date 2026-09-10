@@ -1,5 +1,7 @@
 {
   "appName": "BPMN Studio",
+  "appDescription": "Mô hình hóa quy trình, hiểu thời gian được sử dụng ở đâu.",
+  "toggleTheme": "Chuyển đổi giao diện",
   "buttons": {
     "create": "Tạo mới",
     "cancel": "Hủy",
@@ -40,9 +42,13 @@
     "decision": "Quyết định",
     "parallel": "Song song",
     "rework": "Vòng lặp",
+    "branch": "Nhánh",
     "xorBranch": "Nhánh XOR",
     "andBranch": "Nhánh AND"
   },
+  "defaultStep": "Bước 1",
+  "defaultNewTask": "Công việc mới",
+  "copySuffix": " (bản sao)",
   "units": {
     "seconds": "Giây",
     "minutes": "Phút",

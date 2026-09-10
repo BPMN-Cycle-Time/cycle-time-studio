@@ -22,7 +22,7 @@ interface NewProjectDialogProps {
 }
 
 export function NewProjectDialog({ open, onOpenChange, onCreateProject }: NewProjectDialogProps) {
-  const t = useTranslations("Sidebar");
+  const t = useTranslations("sidebar");
   const [name, setName] = useState("");
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

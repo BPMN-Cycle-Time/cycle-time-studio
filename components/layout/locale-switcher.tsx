@@ -11,7 +11,7 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 export function LocaleSwitcher() {
   const locale = useLocale() as Locale;
   const router = useRouter();
-  const t = useTranslations("LocaleSwitcher");
+  const t = useTranslations("localeSwitcher");
   const nextLocale: Locale = locale === "en" ? "vi" : "en";
 
   function changeLocale() {

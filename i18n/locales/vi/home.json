@@ -16,10 +16,18 @@
   "totalTasks": "Công việc trong bảng",
   "simulationEngine": "Mô phỏng Monte Carlo",
   "ready": "Sẵn sàng mô phỏng",
+  "badgeTimesheetAndCost": "Bảng chấm công & Chi phí",
+  "badgeRunsCount": "10.000 lần chạy",
+  "badgeDistribution": "Gaussian & Beta",
   "increasedFromLastMonth": "Đang hoạt động",
   "timeTracker": "Đồng hồ theo dõi",
   "cycleTimeLive": "Bộ đếm chu kỳ quy trình",
   "quickActions": "Mẫu quy trình mẫu",
+  "timer": {
+    "start": "Bắt đầu",
+    "pause": "Tạm dừng",
+    "reset": "Đặt lại"
+  },
   "open": "Mở",
   "profileRole": "Kỹ sư quy trình",
   "appPromoTitle": "Mô phỏng quy trình",
@@ -33,5 +41,15 @@
   "templateAndDesc": "Thực hiện đồng thời các nhánh",
   "templateLoopName": "Vòng lặp Rework",
   "templateLoopDesc": "Chu kỳ làm lại khi chưa đạt",
-  "useTemplate": "Dùng mẫu"
+  "useTemplate": "Dùng mẫu",
+  "bpmnBadge": "BPMN 2.0",
+  "templateSeqBlock1": "Công việc 1: Khởi tạo",
+  "templateSeqBlock2": "Công việc 2: Xem xét & Hoàn thiện",
+  "templateXorLabel": "Kiểm tra quyết định",
+  "templateXorBranchFast": "Đường nhanh ({p}%)",
+  "templateXorBranchStandard": "Xem xét chuẩn ({p}%)",
+  "templateAndLabel": "Luồng song song",
+  "templateAndBranchAlpha": "Nhánh Alpha",
+  "templateAndBranchBeta": "Nhánh Beta",
+  "templateLoopLabel": "Kiểm soát chất lượng"
 }

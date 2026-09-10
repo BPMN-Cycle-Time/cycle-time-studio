@@ -11,7 +11,7 @@ interface SidebarFooterProps {
 }
 
 export function SidebarFooter({ collapsed }: SidebarFooterProps) {
-  const t = useTranslations("Sidebar");
+  const t = useTranslations("sidebar");
 
   if (collapsed) {
     return (

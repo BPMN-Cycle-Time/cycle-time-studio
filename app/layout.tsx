@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "BPMN Studio",
-  description: "Model your process, understand where the time goes.",
-  icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "32x32" },
-    ],
-    shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: "common" });
+
+  return {
+    title: t("appName"),
+    description: t("appDescription"),
+    icons: {
+      icon: [
+        { url: "/favicon.svg", type: "image/svg+xml" },
+        { url: "/favicon.ico", sizes: "32x32" },
+      ],
+      shortcut: "/favicon.svg",
+      apple: "/favicon.svg",
+    },
+  };
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [locale, messages] = await Promise.all([getLocale(), getMessages()]);

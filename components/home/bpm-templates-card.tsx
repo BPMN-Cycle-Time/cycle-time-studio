@@ -5,11 +5,12 @@ import { useTranslations } from "next-intl";
 import { ArrowUpRight, GitBranch, Layers, RotateCcw, Shuffle, Sparkles } from "lucide-react";
 import { v4 as uuid } from "uuid";
 
+import { Button } from "@/components/ui/button";
 import { useProjectsIndex, saveProjectData } from "@/store/useProjectsIndex";
 import { BlockType, BlockMode, type Project } from "@/types";
 
 export function BpmTemplatesCard() {
-  const t = useTranslations("Home");
+  const t = useTranslations("home");
   const router = useRouter();
   const { createProject } = useProjectsIndex();
 
@@ -26,14 +27,14 @@ export function BpmTemplatesCard() {
         {
           id: uuid(),
           type: BlockType.SEQ,
-          label: "Task 1: Initiate",
+          label: t("templateSeqBlock1"),
           time: 2,
           mode: BlockMode.SIMPLE,
         },
         {
           id: uuid(),
           type: BlockType.SEQ,
-          label: "Task 2: Review & Finalize",
+          label: t("templateSeqBlock2"),
           time: 3,
           mode: BlockMode.SIMPLE,
         },
@@ -43,10 +44,10 @@ export function BpmTemplatesCard() {
         {
           id: uuid(),
           type: BlockType.XOR,
-          label: "Decision Check",
+          label: t("templateXorLabel"),
           branches: [
-            { id: uuid(), label: "Fast-track (70%)", p: 70, t: 1.5 },
-            { id: uuid(), label: "Standard Review (30%)", p: 30, t: 4 },
+            { id: uuid(), label: t("templateXorBranchFast", { p: 70 }), p: 70, t: 1.5 },
+            { id: uuid(), label: t("templateXorBranchStandard", { p: 30 }), p: 30, t: 4 },
           ],
         },
       ];
@@ -55,10 +56,10 @@ export function BpmTemplatesCard() {
         {
           id: uuid(),
           type: BlockType.AND,
-          label: "Concurrent Workflows",
+          label: t("templateAndLabel"),
           branches: [
-            { id: uuid(), label: "Branch Alpha", t: 2.5 },
-            { id: uuid(), label: "Branch Beta", t: 4 },
+            { id: uuid(), label: t("templateAndBranchAlpha"), t: 2.5 },
+            { id: uuid(), label: t("templateAndBranchBeta"), t: 4 },
           ],
         },
       ];
@@ -67,7 +68,7 @@ export function BpmTemplatesCard() {
         {
           id: uuid(),
           type: BlockType.LOOP,
-          label: "Quality Control",
+          label: t("templateLoopLabel"),
           time: 2,
           loopP: 25,
           loopTime: 1.5,
@@ -130,7 +131,7 @@ export function BpmTemplatesCard() {
         </div>
         <span className="inline-flex items-center gap-1 text-[10px] font-mono text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full font-medium">
           <Sparkles className="size-2.5" />
-          <span>BPMN 2.0</span>
+          <span>{t("bpmnBadge")}</span>
         </span>
       </div>
 
@@ -139,11 +140,11 @@ export function BpmTemplatesCard() {
         {templates.map((tpl) => {
           const Icon = tpl.icon;
           return (
-            <button
+            <Button
               key={tpl.id}
-              type="button"
+              variant="ghost"
               onClick={() => handleCreateFromTemplate(tpl.id, tpl.name)}
-              className="p-2.5 rounded-xl border border-border/70 bg-background/50 hover:bg-card hover:border-primary/40 hover:shadow-xs flex items-center justify-between gap-3 transition-all duration-200 text-left group cursor-pointer w-full"
+              className="p-2.5 h-auto rounded-xl border border-border/70 bg-background/50 hover:bg-card hover:border-primary/40 hover:shadow-xs flex items-center justify-between gap-3 transition-all duration-200 text-left group w-full"
             >
               {/* Left: Icon + Title & Desc */}
               <div className="flex items-center gap-2.5 min-w-0">
@@ -169,7 +170,7 @@ export function BpmTemplatesCard() {
                   <ArrowUpRight className="size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </div>
               </div>
-            </button>
+            </Button>
           );
         })}
       </div>

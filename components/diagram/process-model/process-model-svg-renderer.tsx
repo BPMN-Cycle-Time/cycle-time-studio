@@ -23,6 +23,7 @@ import {
 } from "./process-model-helpers";
 import { renderGatewayBlock } from "./process-model-gateway-block";
 import { renderReworkBlock } from "./process-model-rework-block";
+import { t } from "@/utils/i18n";
 
 export type { ProcessModelRendererContext };
 
@@ -394,7 +395,7 @@ export function renderFlowRecursive(
           >
             +
           </text>
-          <title>Insert block here</title>
+          <title>{t("editor", "insertBlockHere")}</title>
         </g>,
       );
       cx += GAP;

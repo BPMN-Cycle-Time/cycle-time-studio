@@ -298,5 +298,6 @@
   "kpiTagTotalExecutions": "Lượt chạy",
   "kpiTagBottleneck": "Điểm nghẽn",
   "kpiTagVariants": "Biến thể vết",
-  "kpiTagFitness": "Độ khớp chuẩn"
+  "kpiTagFitness": "Độ khớp chuẩn",
+  "endEvent": "Kết thúc"
 }

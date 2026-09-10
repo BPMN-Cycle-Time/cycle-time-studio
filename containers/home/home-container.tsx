@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export function HomeContainer() {
-  const t = useTranslations("Home");
+  const t = useTranslations("home");
   const { projects, createProject } = useProjectsIndex();
   const hydrated = useHydration();
 
@@ -76,18 +76,18 @@ export function HomeContainer() {
       variant: "default",
       badge: (
         <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-mono font-medium w-fit">
-          Timesheet & Cost
+          {t("badgeTimesheetAndCost")}
         </span>
       ),
     },
     {
       title: t("simulationEngine"),
-      value: "10,000 runs",
+      value: t("badgeRunsCount"),
       icon: Cpu,
       variant: "default",
       badge: (
         <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-primary/10 text-primary dark:text-emerald-300 font-semibold w-fit border border-primary/20">
-          Gaussian & Beta
+          {t("badgeDistribution")}
         </span>
       ),
     },

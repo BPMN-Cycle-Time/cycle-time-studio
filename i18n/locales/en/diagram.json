@@ -298,5 +298,6 @@
   "kpiTagTotalExecutions": "Executions",
   "kpiTagBottleneck": "Bottleneck",
   "kpiTagVariants": "Trace Patterns",
-  "kpiTagFitness": "Fitness Score"
+  "kpiTagFitness": "Fitness Score",
+  "endEvent": "End"
 }

@@ -48,14 +48,14 @@ export function BlockHeader({ block, index, nested }: BlockHeaderProps) {
         patch.branches = [
           {
             id: crypto.randomUUID(),
-            label: "Branch A",
+            label: tEd("branchA"),
             p: newType === BlockType.XOR ? 50 : undefined,
             t: 1,
             mode: BlockMode.SIMPLE,
           },
           {
             id: crypto.randomUUID(),
-            label: "Branch B",
+            label: tEd("branchB"),
             p: newType === BlockType.XOR ? 50 : undefined,
             t: 1,
             mode: BlockMode.SIMPLE,
