@@ -141,6 +141,72 @@
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Micro-interaction keyframes
+   --------------------------------------------------------------------------- */
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes selection-pulse {
+  0% {
+    --tw-ring-opacity: 0.2;
+  }
+  50% {
+    --tw-ring-opacity: 0.45;
+  }
+  100% {
+    --tw-ring-opacity: 0.2;
+  }
+}
+
+@keyframes gentle-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@utility animate-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--foreground) 4%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@utility animate-selection-pulse {
+  animation: selection-pulse 0.6s ease-out 1;
+}
+
+@utility animate-gentle-bounce {
+  animation: gentle-bounce 2.2s ease-in-out infinite;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Spacing tokens (space-1..space-10) — kept as reference CSS variables rather than a Tailwind
    spacing scale override, since they are a fixed named set rather than a uniform multiplier
    and would otherwise collide with Tailwind's default p-1/p-2/... utilities. Use them as

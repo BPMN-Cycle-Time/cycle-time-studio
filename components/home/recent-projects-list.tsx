@@ -60,11 +60,12 @@ export function RecentProjectsList({
       </div>
 
       {/* Project Items List */}
-      <div className="flex flex-col gap-2.5">
-        {paginatedProjects.map((p) => (
+      <div key={`${searchFilter}-${currentPage}`} className="flex flex-col gap-2.5">
+        {paginatedProjects.map((p, idx) => (
           <div
             key={p.id}
-            className="group flex items-center gap-3.5 p-3.5 rounded-xl border border-border/60 hover:border-primary/30 bg-background/50 hover:bg-card hover:shadow-xs transition-all duration-150"
+            style={{ animationDelay: `${idx * 50}ms` }}
+            className="group flex items-center gap-3.5 p-3.5 rounded-xl border border-border/60 hover:border-primary/30 bg-background/50 hover:bg-card hover:shadow-xs hover:-translate-y-0.5 hover:scale-[1.005] transition-all duration-150 animate-in fade-in slide-in-from-bottom-2"
           >
             {/* Project Icon Badge */}
             <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-2xs transition-all duration-200">

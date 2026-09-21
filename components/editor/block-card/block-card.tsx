@@ -37,11 +37,12 @@ export const BlockCard = memo(function BlockCard({ block, index, unit, nested }:
 
   return (
     <Card
+      key={isSelected ? `${block.id}-selected` : block.id}
       className={cn(
         "relative gap-2.5 py-3 border transition-all overflow-hidden bg-card/95 backdrop-blur-xs",
         nested && "py-2 gap-2",
         isSelected
-          ? "border-primary ring-2 ring-primary/20 shadow-md"
+          ? "border-primary ring-2 ring-primary/20 shadow-md animate-selection-pulse"
           : "border-border/80 hover:border-border hover:shadow-xs",
         details.invalid && "border-destructive/80 bg-destructive/5",
       )}

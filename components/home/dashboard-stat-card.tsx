@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/utils";
+import { AnimatedNumber } from "./animated-number";
 
 export interface DashboardStatCardProps {
   title: string;
@@ -18,14 +19,16 @@ export function DashboardStatCard({
   variant = "default",
 }: DashboardStatCardProps) {
   const isPrimary = variant === "primary";
+  const numericValue = typeof value === "number" ? value : Number(value);
+  const displayValue = Number.isFinite(numericValue) ? numericValue : value;
 
   return (
     <div
       className={cn(
-        "rounded-2xl p-4.5 flex flex-col justify-between min-h-[130px] transition-all",
+        "rounded-2xl p-4.5 flex flex-col justify-between min-h-[130px] transition-all duration-200 ease-out will-change-transform",
         isPrimary
-          ? "bg-primary text-primary-foreground shadow-[0_4px_18px_rgba(22,104,56,0.22)] relative overflow-hidden"
-          : "bg-card border border-border/80 text-foreground shadow-xs hover:border-primary/30",
+          ? "bg-primary text-primary-foreground shadow-[0_4px_18px_rgba(22,104,56,0.22)] relative overflow-hidden hover:shadow-[0_8px_24px_rgba(22,104,56,0.28)]"
+          : "bg-card border border-border/80 text-foreground shadow-xs hover:border-primary/30 hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-md",
       )}
     >
       {/* Header Row: Title & Top Icon */}
@@ -55,7 +58,7 @@ export function DashboardStatCard({
           isPrimary ? "text-white" : "text-foreground",
         )}
       >
-        {value}
+        {typeof displayValue === "number" ? <AnimatedNumber value={displayValue} /> : displayValue}
       </div>
 
       {/* Bottom Badge / Tag */}

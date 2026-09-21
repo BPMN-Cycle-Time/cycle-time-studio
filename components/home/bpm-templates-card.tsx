@@ -144,12 +144,12 @@ export function BpmTemplatesCard() {
               key={tpl.id}
               variant="ghost"
               onClick={() => handleCreateFromTemplate(tpl.id, tpl.name)}
-              className="p-2.5 h-auto rounded-xl border border-border/70 bg-background/50 hover:bg-card hover:border-primary/40 hover:shadow-xs flex items-center justify-between gap-3 transition-all duration-200 text-left group w-full"
+              className="p-2.5 h-auto rounded-xl border border-border/70 bg-background/50 hover:bg-card hover:border-primary/40 hover:shadow-xs hover:-translate-y-0.5 flex items-center justify-between gap-3 transition-all duration-200 text-left group w-full"
             >
               {/* Left: Icon + Title & Desc */}
               <div className="flex items-center gap-2.5 min-w-0">
                 <div
-                  className={`size-8 rounded-xl flex items-center justify-center border shrink-0 ${tpl.color} shadow-2xs group-hover:scale-105 transition-transform`}
+                  className={`size-8 rounded-xl flex items-center justify-center border shrink-0 ${tpl.color} shadow-2xs group-hover:scale-110 transition-transform duration-200`}
                 >
                   <Icon className="size-4" />
                 </div>

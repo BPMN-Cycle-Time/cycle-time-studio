@@ -10,9 +10,9 @@ export function EmptyProjectsState() {
   return (
     <AppCard
       variant="dashed"
-      contentClassName="text-muted-foreground text-sm text-center py-10 flex flex-col items-center gap-2"
+      contentClassName="text-muted-foreground text-sm text-center py-10 flex flex-col items-center gap-2 animate-in fade-in zoom-in-95 duration-300"
     >
-      <Workflow className="size-8 opacity-40" />
+      <Workflow className="size-8 opacity-40 animate-gentle-bounce" />
       {t("empty")}
     </AppCard>
   );
