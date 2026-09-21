@@ -1,0 +1,97 @@
+{
+  "tab": "BPR",
+  "title": "Business Process Redesign",
+  "subtitle": "Rule-based AS IS analysis and redesign recommendations",
+  "empty": "Add process blocks to see BPR analysis.",
+  "sections": {
+    "asIs": "AS IS Overview",
+    "issues": "Detected Issues",
+    "recommendations": "Redesign Recommendations",
+    "formulas": "Academic Formulas"
+  },
+  "formulas": {
+    "description": "How BPR detects issues from the process model and event log.",
+    "expand": "Show formulas",
+    "collapse": "Hide formulas",
+    "items": {
+      "bottleneck": {
+        "title": "Bottleneck detection",
+        "description": "Top 3 nodes by expected duration qualify if their time is at least 15% of total cycle time. Severity is set by the node's share of total cycle time."
+      },
+      "reworkLoop": {
+        "title": "Rework loop",
+        "description": "Severity is driven by loop probability. Expected iterations follow the geometric-series mean for a loop with repeat probability r."
+      },
+      "conformanceFitness": {
+        "title": "Conformance fitness",
+        "description": "Each case is penalized by its violations relative to the expected path length; the overall score is the average across cases."
+      },
+      "slaCompliance": {
+        "title": "SLA compliance",
+        "description": "Each event meets SLA when its duration is within the task benchmark. Compliance rolls up from events to tasks to the overall process."
+      }
+    }
+  },
+  "metrics": {
+    "totalTime": "Cycle Time",
+    "totalCost": "Total Cost",
+    "laborCost": "Labor Cost",
+    "fixedCost": "Fixed Cost",
+    "taskCount": "Tasks",
+    "xorCount": "XOR Gates",
+    "andCount": "AND Gates",
+    "loopCount": "Loops",
+    "fitness": "Conformance Fitness",
+    "slaCompliance": "SLA Compliance"
+  },
+  "issues": {
+    "title": "Issue",
+    "type": "Type",
+    "severity": "Severity",
+    "evidence": "Evidence",
+    "affectedTasks": "Affected tasks",
+    "empty": "No significant issues detected.",
+    "types": {
+      "reworkLoop": "Rework loop",
+      "bottleneck": "Bottleneck",
+      "highCost": "High cost",
+      "conformanceViolation": "Conformance violation",
+      "slaBreach": "SLA breach",
+      "lowConformanceFitness": "Low conformance fitness",
+      "longWaitTime": "Long wait time"
+    },
+    "severityLevels": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
+  },
+  "recommendations": {
+    "title": "Recommendation",
+    "technique": "Technique",
+    "impact": "Impact",
+    "confidence": "Confidence",
+    "relatedIssues": "Related issues",
+    "empty": "No recommendations yet.",
+    "techniques": {
+      "elimination": "Elimination",
+      "resequencing": "Resequencing",
+      "parallelization": "Parallelization",
+      "specialization": "Specialization",
+      "resourceOptimization": "Resource Optimization",
+      "communicationOptimization": "Communication Optimization",
+      "automation": "Automation"
+    },
+    "impactLevels": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "confidenceLevels": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
+  }
+}

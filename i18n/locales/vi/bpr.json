@@ -1,0 +1,97 @@
+{
+  "tab": "BPR",
+  "title": "Tái cấu trúc quy trình",
+  "subtitle": "Phân tích AS IS và đề xuất cải tiến dựa trên quy tắc",
+  "empty": "Thêm các khối quy trình để xem phân tích BPR.",
+  "sections": {
+    "asIs": "Tổng quan AS IS",
+    "issues": "Vấn đề phát hiện",
+    "recommendations": "Đề xuất tái thiết kế",
+    "formulas": "Công thức học thuật"
+  },
+  "formulas": {
+    "description": "Cách BPR phát hiện vấn đề từ mô hình quy trình và nhật ký sự kiện.",
+    "expand": "Hiện công thức",
+    "collapse": "Ẩn công thức",
+    "items": {
+      "bottleneck": {
+        "title": "Phát hiện điểm nghẽn",
+        "description": "Top 3 nút có thời gian kỳ vọng lớn nhất được chọn nếu thời gian ít nhất 15% tổng thời gian chu kỳ. Mức độ nghiêm trọng dựa trên tỷ lệ đóng góp vào tổng thời gian."
+      },
+      "reworkLoop": {
+        "title": "Vòng lặp rework",
+        "description": "Mức độ nghiêm trọng dựa trên xác suất lặp. Số lần lặp kỳ vọng theo trung bình chuỗi hình học với xác suất lặp lại r."
+      },
+      "conformanceFitness": {
+        "title": "Độ tuân thủ conformance",
+        "description": "Mỗi case bị phạt theo số vi phạm so với độ dài đường đi kỳ vọng; điểm tổng thể là trung bình trên toàn bộ các case."
+      },
+      "slaCompliance": {
+        "title": "Tuân thủ SLA",
+        "description": "Mỗi sự kiện đạt SLA khi thời gian thực hiện nằm trong định mức. Tỷ lệ tuân thủ được tổng hợp từ sự kiện lên task và toàn quy trình."
+      }
+    }
+  },
+  "metrics": {
+    "totalTime": "Thời gian chu kỳ",
+    "totalCost": "Tổng chi phí",
+    "laborCost": "Chi phí nhân công",
+    "fixedCost": "Chi phí cố định",
+    "taskCount": "Số tác vụ",
+    "xorCount": "Cổng XOR",
+    "andCount": "Cổng AND",
+    "loopCount": "Vòng lặp",
+    "fitness": "Conformance Fitness",
+    "slaCompliance": "Tuân thủ SLA"
+  },
+  "issues": {
+    "title": "Vấn đề",
+    "type": "Loại",
+    "severity": "Mức độ",
+    "evidence": "Bằng chứng",
+    "affectedTasks": "Tác vụ ảnh hưởng",
+    "empty": "Không phát hiện vấn đề đáng kể.",
+    "types": {
+      "reworkLoop": "Vòng lặp rework",
+      "bottleneck": "Điểm nghẽn",
+      "highCost": "Chi phí cao",
+      "conformanceViolation": "Vi phạm conformance",
+      "slaBreach": "Vi phạm SLA",
+      "lowConformanceFitness": "Fitness thấp",
+      "longWaitTime": "Thời gian chờ lâu"
+    },
+    "severityLevels": {
+      "critical": "Nghiêm trọng",
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp"
+    }
+  },
+  "recommendations": {
+    "title": "Đề xuất",
+    "technique": "Thủ thuật",
+    "impact": "Tác động",
+    "confidence": "Độ tin cậy",
+    "relatedIssues": "Vấn đề liên quan",
+    "empty": "Chưa có đề xuất.",
+    "techniques": {
+      "elimination": "Loại bỏ tác vụ",
+      "resequencing": "Sắp xếp lại thứ tự",
+      "parallelization": "Song song hóa",
+      "specialization": "Chuyên biệt hóa",
+      "resourceOptimization": "Tối ưu nguồn lực",
+      "communicationOptimization": "Tối ưu truyền thông",
+      "automation": "Tự động hóa"
+    },
+    "impactLevels": {
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp"
+    },
+    "confidenceLevels": {
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp"
+    }
+  }
+}

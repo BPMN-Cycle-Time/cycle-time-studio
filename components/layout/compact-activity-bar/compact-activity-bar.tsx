@@ -10,6 +10,7 @@ import {
   FileCode2,
   ScrollText,
   Network,
+  Lightbulb,
   LayoutDashboard,
   Trash2,
   PanelLeftClose,
@@ -24,7 +25,7 @@ import { useProjectsIndex } from "@/store/useProjectsIndex";
 import { DeleteProjectDialog } from "../project-sidebar/delete-project-dialog";
 import { cn } from "@/utils";
 
-export type DiagramTab = "model" | "graph" | "bpmn" | "eventLog" | "socialNetwork";
+export type DiagramTab = "model" | "graph" | "bpmn" | "eventLog" | "socialNetwork" | "bpr";
 
 interface CompactActivityBarProps {
   activeTab: DiagramTab;
@@ -33,7 +34,8 @@ interface CompactActivityBarProps {
 
 interface NavItem {
   value: DiagramTab;
-  labelKey: "processModelTab" | "graphTab" | "bpmnTab" | "eventLogTab" | "socialNetworkTab";
+  labelKey:
+    "processModelTab" | "graphTab" | "bpmnTab" | "eventLogTab" | "socialNetworkTab" | "bprTab";
   icon: React.ComponentType<{ className?: string }>;
 }
 
@@ -43,6 +45,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "bpmn", labelKey: "bpmnTab", icon: FileCode2 },
   { value: "eventLog", labelKey: "eventLogTab", icon: ScrollText },
   { value: "socialNetwork", labelKey: "socialNetworkTab", icon: Network },
+  { value: "bpr", labelKey: "bprTab", icon: Lightbulb },
 ];
 
 export function CompactActivityBar({ activeTab, onTabChange }: CompactActivityBarProps) {

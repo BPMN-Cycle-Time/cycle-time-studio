@@ -7,6 +7,7 @@ import { GraphPanel } from "./graph";
 import { BpmnPanel } from "./bpmn";
 import { EventLogPanel } from "./event-log";
 import { SocialNetworkPanel } from "./social-network";
+import { BprPanel } from "./bpr";
 import type { DiagramTab } from "@/components/layout";
 
 interface DiagramPanelProps {
@@ -57,6 +58,7 @@ export function DiagramPanel({ blocks, unit, activeTab, onTabChange }: DiagramPa
           onDataSourceChange={setEventLogDataSource}
         />
       )}
+      {activeTab === "bpr" && <BprPanel blocks={blocks} tasks={tasks} unit={unit} />}
     </div>
   );
 }

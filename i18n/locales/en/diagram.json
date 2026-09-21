@@ -117,6 +117,7 @@
   "toggleAdjacency": "Adjacency list ({count})",
   "eventLogTab": "Event Log",
   "socialNetworkTab": "Social Network",
+  "bprTab": "BPR",
   "activityBarHomeTooltip": "Go to Dashboard",
   "activityBarExpandTooltip": "Expand sidebar",
   "activityBarCollapseTooltip": "Collapse sidebar",
