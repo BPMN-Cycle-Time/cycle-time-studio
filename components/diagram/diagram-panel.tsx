@@ -8,6 +8,9 @@ import { BpmnPanel } from "./bpmn";
 import { EventLogPanel } from "./event-log";
 import { SocialNetworkPanel } from "./social-network";
 import { BprPanel } from "./bpr";
+import { DiscoveryPanel } from "./discovery";
+import { AutomationPanel } from "./automation";
+import { TemplatesPanel } from "./templates";
 import type { DiagramTab } from "@/components/layout";
 
 interface DiagramPanelProps {
@@ -58,6 +61,28 @@ export function DiagramPanel({ blocks, unit, activeTab, onTabChange }: DiagramPa
           onDataSourceChange={setEventLogDataSource}
         />
       )}
+      {activeTab === "discovery" && (
+        <DiscoveryPanel
+          blocks={blocks}
+          tasks={tasks}
+          unit={unit}
+          uploadedEvents={uploadedEvents}
+          dataSource={eventLogDataSource}
+          onUploadEvents={setUploadedEvents}
+          onDataSourceChange={setEventLogDataSource}
+          onSwitchDiagramTab={onTabChange}
+        />
+      )}
+      {activeTab === "automation" && (
+        <AutomationPanel
+          blocks={blocks}
+          tasks={tasks}
+          unit={unit}
+          uploadedEvents={uploadedEvents}
+          dataSource={eventLogDataSource}
+        />
+      )}
+      {activeTab === "templates" && <TemplatesPanel blocks={blocks} tasks={tasks} />}
       {activeTab === "bpr" && <BprPanel blocks={blocks} tasks={tasks} unit={unit} />}
     </div>
   );

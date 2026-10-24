@@ -11,3 +11,6 @@ export * from "./process-discovery";
 export * from "./social-network";
 export * from "./sla-benchmark";
 export * from "./bpr";
+export * from "./heuristics-miner";
+export * from "./automation-opportunities";
+export * from "./template-applier";
