@@ -15,6 +15,7 @@ import {
   Trash2,
   PanelLeftClose,
   PanelLeftOpen,
+  GitFork,
 } from "lucide-react";
 
 import { AppTooltip, Input } from "@/components/ui";
@@ -25,7 +26,8 @@ import { useProjectsIndex } from "@/store/useProjectsIndex";
 import { DeleteProjectDialog } from "../project-sidebar/delete-project-dialog";
 import { cn } from "@/utils";
 
-export type DiagramTab = "model" | "graph" | "bpmn" | "eventLog" | "socialNetwork" | "bpr";
+export type DiagramTab =
+  "model" | "graph" | "bpmn" | "eventLog" | "socialNetwork" | "bpr" | "discovery";
 
 interface CompactActivityBarProps {
   activeTab: DiagramTab;
@@ -35,7 +37,13 @@ interface CompactActivityBarProps {
 interface NavItem {
   value: DiagramTab;
   labelKey:
-    "processModelTab" | "graphTab" | "bpmnTab" | "eventLogTab" | "socialNetworkTab" | "bprTab";
+    | "processModelTab"
+    | "graphTab"
+    | "bpmnTab"
+    | "eventLogTab"
+    | "socialNetworkTab"
+    | "bprTab"
+    | "discoveryTab";
   icon: React.ComponentType<{ className?: string }>;
 }
 
@@ -45,6 +53,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "bpmn", labelKey: "bpmnTab", icon: FileCode2 },
   { value: "eventLog", labelKey: "eventLogTab", icon: ScrollText },
   { value: "socialNetwork", labelKey: "socialNetworkTab", icon: Network },
+  { value: "discovery", labelKey: "discoveryTab", icon: GitFork },
   { value: "bpr", labelKey: "bprTab", icon: Lightbulb },
 ];
 

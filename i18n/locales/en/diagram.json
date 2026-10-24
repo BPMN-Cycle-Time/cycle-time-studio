@@ -301,5 +301,16 @@
   "kpiTagVariants": "Trace Patterns",
   "kpiTagFitness": "Fitness Score",
   "endEvent": "End",
-  "discoveredBpmnLimitationNotice": "Discovery scope: currently supports one primary XOR split, sequential prefixes, and simple rework loops. Parallel gateways (AND), nested splits, and complex routing are not yet inferred."
+  "discoveredBpmnLimitationNotice": "Discovery scope: currently supports one primary XOR split, sequential prefixes, and simple rework loops. Parallel gateways (AND), nested splits, and complex routing are not yet inferred.",
+  "discoveryTab": "Discovery",
+  "discoveryTitle": "Heuristics Miner",
+  "discoveryDesc": "Discover process model from event log using Directly-Follows Graph and heuristics.",
+  "discoverySettings": "Discovery Settings",
+  "directlyFollowsGraph": "Directly-Follows Graph",
+  "thresholdFrequency": "Frequency threshold",
+  "thresholdDependency": "Dependency threshold",
+  "thresholdLoop": "Loop threshold",
+  "runDiscovery": "Run Discovery",
+  "runDiscoveryHint": "Click Run Discovery to build the DFG",
+  "noEventsForDiscovery": "Add blocks or upload an event log to run discovery."
 }
