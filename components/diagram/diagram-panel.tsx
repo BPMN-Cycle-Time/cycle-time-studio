@@ -9,6 +9,7 @@ import { EventLogPanel } from "./event-log";
 import { SocialNetworkPanel } from "./social-network";
 import { BprPanel } from "./bpr";
 import { DiscoveryPanel } from "./discovery";
+import { AutomationPanel } from "./automation";
 import type { DiagramTab } from "@/components/layout";
 
 interface DiagramPanelProps {
@@ -69,6 +70,15 @@ export function DiagramPanel({ blocks, unit, activeTab, onTabChange }: DiagramPa
           onUploadEvents={setUploadedEvents}
           onDataSourceChange={setEventLogDataSource}
           onSwitchDiagramTab={onTabChange}
+        />
+      )}
+      {activeTab === "automation" && (
+        <AutomationPanel
+          blocks={blocks}
+          tasks={tasks}
+          unit={unit}
+          uploadedEvents={uploadedEvents}
+          dataSource={eventLogDataSource}
         />
       )}
       {activeTab === "bpr" && <BprPanel blocks={blocks} tasks={tasks} unit={unit} />}

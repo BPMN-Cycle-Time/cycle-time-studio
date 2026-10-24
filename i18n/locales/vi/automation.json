@@ -1,0 +1,21 @@
+{
+  "title": "Cơ hội RPA",
+  "subtitle": "Xác định các tác vụ lặp lại, dễ dự đoán phù hợp để tự động hóa.",
+  "empty": "Thêm block hoặc tải lên event log để xem các ứng viên tự động hóa.",
+  "candidateCount": "Ứng viên",
+  "estimatedSavings": "Tiết kiệm ước tính",
+  "topCandidate": "Ứng viên hàng đầu",
+  "activity": "Hoạt động",
+  "score": "Điểm",
+  "frequency": "Tần suất",
+  "avgDuration": "Thời gian TB",
+  "hoursSaved": "Giờ tiết kiệm",
+  "cardsView": "Thẻ",
+  "matrixView": "Bảng",
+  "searchCandidates": "Tìm kiếm hoạt động...",
+  "tagHighFrequency": "Tần suất cao",
+  "tagLowVariance": "Biến động thấp",
+  "tagRuleBased": "Theo quy tắc",
+  "tagSystemTask": "Tác vụ hệ thống",
+  "tagHighTimeSavings": "Tiết kiệm nhiều thời gian"
+}

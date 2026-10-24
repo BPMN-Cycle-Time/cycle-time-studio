@@ -1,0 +1,21 @@
+{
+  "title": "RPA Opportunities",
+  "subtitle": "Identify repetitive, predictable tasks suitable for automation.",
+  "empty": "Add blocks or upload an event log to see automation candidates.",
+  "candidateCount": "Candidates",
+  "estimatedSavings": "Est. Savings",
+  "topCandidate": "Top Candidate",
+  "activity": "Activity",
+  "score": "Score",
+  "frequency": "Frequency",
+  "avgDuration": "Avg Duration",
+  "hoursSaved": "Hours Saved",
+  "cardsView": "Cards",
+  "matrixView": "Matrix",
+  "searchCandidates": "Search activity...",
+  "tagHighFrequency": "High Frequency",
+  "tagLowVariance": "Low Variance",
+  "tagRuleBased": "Rule-Based",
+  "tagSystemTask": "System Task",
+  "tagHighTimeSavings": "High Time Savings"
+}
