@@ -300,5 +300,6 @@
   "kpiTagBottleneck": "Bottleneck",
   "kpiTagVariants": "Trace Patterns",
   "kpiTagFitness": "Fitness Score",
-  "endEvent": "End"
+  "endEvent": "End",
+  "discoveredBpmnLimitationNotice": "Discovery scope: currently supports one primary XOR split, sequential prefixes, and simple rework loops. Parallel gateways (AND), nested splits, and complex routing are not yet inferred."
 }

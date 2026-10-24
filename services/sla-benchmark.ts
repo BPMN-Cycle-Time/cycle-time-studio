@@ -14,7 +14,7 @@ export function resolveBenchmarkDuration(
   customBenchmarks?: Record<string, number>,
   tasks?: Task[],
   blocks?: Block[],
-): number {
+): number | null {
   const normActivity = activity.trim().toLowerCase();
 
   // 1. Custom user overrides
@@ -78,7 +78,7 @@ export function resolveBenchmarkDuration(
     }
   }
 
-  return 1;
+  return null;
 }
 
 /**
@@ -91,18 +91,21 @@ export function enrichEventsWithSla(
   blocks?: Block[],
 ): EventLogItem[] {
   return events.map((item) => {
-    // Check if custom benchmark applies
-    const hasCustom =
-      customBenchmarks &&
-      ((item.taskId && customBenchmarks[item.taskId] !== undefined) ||
-        customBenchmarks[item.activity] !== undefined ||
-        customBenchmarks[item.activity.trim().toLowerCase()] !== undefined);
+    // Use the event's own benchmark if already set, otherwise resolve from model.
+    const resolved =
+      item.benchmarkDuration === undefined
+        ? resolveBenchmarkDuration(item.activity, item.taskId, customBenchmarks, tasks, blocks)
+        : item.benchmarkDuration;
 
-    const benchmarkDuration = hasCustom
-      ? resolveBenchmarkDuration(item.activity, item.taskId, customBenchmarks, tasks, blocks)
-      : (item.benchmarkDuration ??
-        resolveBenchmarkDuration(item.activity, item.taskId, customBenchmarks, tasks, blocks));
+    if (resolved === null || resolved === undefined) {
+      return {
+        ...item,
+        benchmarkDuration: null,
+        slaStatus: null,
+      };
+    }
 
+    const benchmarkDuration = resolved;
     const slaStatus: "met" | "delayed" = item.duration <= benchmarkDuration ? "met" : "delayed";
 
     return {
@@ -155,18 +158,19 @@ export function computeSlaEvaluation(events: EventLogItem[]): SlaEvaluationResul
   const taskSummaries: TaskBenchmarkSummary[] = [];
 
   for (const [, group] of taskGroupMap.entries()) {
-    const total = group.events.length;
+    const evaluatedEvents = group.events.filter((evt) => evt.slaStatus !== null);
+
     let metCount = 0;
     let delayedCount = 0;
     let totalDuration = 0;
     let maxDelay = 0;
 
-    // Benchmark duration for the task group (use the first available or mode)
-    const benchmarkDuration = group.events[0]?.benchmarkDuration ?? 1;
+    // Benchmark duration for the task group (use the first available evaluated event)
+    const benchmarkDuration = evaluatedEvents[0]?.benchmarkDuration ?? null;
 
-    for (const evt of group.events) {
+    for (const evt of evaluatedEvents) {
       totalDuration += evt.duration;
-      const bDuration = evt.benchmarkDuration ?? benchmarkDuration;
+      const bDuration = evt.benchmarkDuration ?? benchmarkDuration ?? 1;
       if (evt.duration <= bDuration) {
         metCount += 1;
       } else {
@@ -176,14 +180,16 @@ export function computeSlaEvaluation(events: EventLogItem[]): SlaEvaluationResul
       }
     }
 
-    const complianceRate = total > 0 ? Math.round((metCount / total) * 1000) / 10 : 0;
-    const avgActualDuration = total > 0 ? Math.round((totalDuration / total) * 10) / 10 : 0;
+    const complianceRate =
+      evaluatedEvents.length > 0 ? Math.round((metCount / evaluatedEvents.length) * 1000) / 10 : 0;
+    const avgActualDuration =
+      group.events.length > 0 ? Math.round((totalDuration / group.events.length) * 10) / 10 : 0;
 
     taskSummaries.push({
       taskId: group.taskId,
       taskName: group.taskName,
       benchmarkDuration,
-      totalInstances: total,
+      totalInstances: group.events.length,
       metCount,
       delayedCount,
       complianceRate,

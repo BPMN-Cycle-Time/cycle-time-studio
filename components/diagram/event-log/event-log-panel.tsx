@@ -286,7 +286,7 @@ export function EventLogPanel({
         sortable: true,
         render: (row) => (
           <span className="font-mono text-xs text-muted-foreground">
-            {row.benchmarkDuration !== undefined ? `${row.benchmarkDuration} ${unit}` : "—"}
+            {row.benchmarkDuration != null ? `${row.benchmarkDuration} ${unit}` : "—"}
           </span>
         ),
       },

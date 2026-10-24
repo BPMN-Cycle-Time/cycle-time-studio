@@ -13,6 +13,11 @@ import { cleanTaskName } from "@/utils/formats";
 import { t } from "@/utils/i18n";
 import { BpmnBuilder } from "./bpmn-builder";
 
+const DEFAULT_NORMAL_BRANCH_PROBABILITY = 67;
+const DEFAULT_CANCEL_BRANCH_PROBABILITY = 33;
+const MIN_LOOP_PROBABILITY = 20;
+const MAX_LOOP_PROBABILITY = 80;
+
 let idCounter = 0;
 function freshId(prefix: string): string {
   idCounter += 1;
@@ -384,9 +389,9 @@ export async function discoverBpmnFromEventLog(
         builder.addFlow(normalNodeId, qualityNodeId);
 
         const loopProb = Math.max(
-          20,
+          MIN_LOOP_PROBABILITY,
           Math.min(
-            80,
+            MAX_LOOP_PROBABILITY,
             Math.round((loopInfo.casesWithRework / Math.max(1, loopInfo.totalCases)) * 100),
           ),
         );
@@ -440,14 +445,14 @@ export async function discoverBpmnFromEventLog(
         {
           id: freshId("br"),
           label: "Co hang",
-          p: 67,
+          p: DEFAULT_NORMAL_BRANCH_PROBABILITY,
           mode: BlockMode.COMPOSITE,
           subBlocks: normalSubBlocks,
         },
         {
           id: freshId("br"),
           label: "Het hang",
-          p: 33,
+          p: DEFAULT_CANCEL_BRANCH_PROBABILITY,
           mode: BlockMode.COMPOSITE,
           subBlocks: cancelSubBlocks,
         },

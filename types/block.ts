@@ -17,8 +17,6 @@ export interface Branch {
   label: string;
   /** Probability weight in % — only meaningful for xor parents. Branches of an xor parent should sum to 100. */
   p?: number;
-  /** Relative weight — only meaningful for and parents (informational; and takes the max of branch times). */
-  weight?: number;
   /** Direct time for this branch, in the project's unit. Ignored when mode === BlockMode.COMPOSITE. */
   t?: number;
   /** Hourly / resource labor rate. */

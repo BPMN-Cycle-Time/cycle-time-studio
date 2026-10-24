@@ -11,14 +11,14 @@ export interface EventLogItem {
   cost: number;
   taskId?: string;
   blockId?: string;
-  benchmarkDuration?: number;
-  slaStatus?: "met" | "delayed";
+  benchmarkDuration?: number | null;
+  slaStatus?: "met" | "delayed" | null;
 }
 
 export interface TaskBenchmarkSummary {
   taskId: string;
   taskName: string;
-  benchmarkDuration: number;
+  benchmarkDuration: number | null;
   totalInstances: number;
   metCount: number;
   delayedCount: number;

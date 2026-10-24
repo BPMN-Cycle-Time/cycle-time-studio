@@ -300,5 +300,6 @@
   "kpiTagBottleneck": "Điểm nghẽn",
   "kpiTagVariants": "Biến thể vết",
   "kpiTagFitness": "Độ khớp chuẩn",
-  "endEvent": "Kết thúc"
+  "endEvent": "Kết thúc",
+  "discoveredBpmnLimitationNotice": "Phạm vi khám phá: hiện hỗ trợ một nhánh XOR chính, các tiền tố tuần tự và vòng lặp làm lại đơn giản. Cổng song song (AND), nhánh lồng nhau và định tuyến phức tạp chưa được suy luận."
 }

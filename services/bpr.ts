@@ -301,7 +301,7 @@ function detectConformanceIssues(
   return issueTypes;
 }
 
-function mapToRecommendations(issues: BprIssue[]): BprRecommendation[] {
+function mapToRecommendations(issues: BprIssue[], eventCount: number): BprRecommendation[] {
   const recommendations: BprRecommendation[] = [];
 
   const techniqueMap: Record<BprIssueType, BprTechnique[]> = {
@@ -335,8 +335,18 @@ function mapToRecommendations(issues: BprIssue[]): BprRecommendation[] {
 
       const impact: BprImpact =
         issue.severity === "critical" ? "high" : issue.severity === "high" ? "high" : "medium";
-      const confidence: BprImpact =
-        issue.type === "reworkLoop" || issue.type === "slaBreach" ? "high" : "medium";
+
+      const isDataDriven =
+        issue.type === "slaBreach" ||
+        issue.type === "conformanceViolation" ||
+        issue.type === "lowConformanceFitness";
+
+      let confidence: BprImpact;
+      if (isDataDriven) {
+        confidence = eventCount >= 30 ? "high" : eventCount >= 10 ? "medium" : "low";
+      } else {
+        confidence = issue.severity === "critical" || issue.severity === "high" ? "high" : "medium";
+      }
 
       recommendations.push({
         id: `rec-${key}`,
@@ -399,7 +409,7 @@ export function analyzeBpr(
   const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
   issues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
 
-  const recommendations = mapToRecommendations(issues);
+  const recommendations = mapToRecommendations(issues, events.length);
 
   return { metrics, issues, recommendations };
 }

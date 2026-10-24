@@ -165,6 +165,13 @@ export function DiscoveredBpmnDialog({
               </div>
             </div>
 
+            {/* Discovery Limitation Notice */}
+            <div className="p-2.5 rounded-lg bg-muted/50 border border-border/70">
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                {tDiag("discoveredBpmnLimitationNotice")}
+              </p>
+            </div>
+
             {/* XML Preview */}
             <div className="space-y-1.5 min-w-0">
               <div className="flex items-center justify-between">

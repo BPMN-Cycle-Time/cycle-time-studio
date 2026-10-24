@@ -8,7 +8,7 @@ import {
   type EventLogConfig,
   type EventLogSummary,
 } from "@/types";
-import { getLeafCost, getLeafTime } from "./engine";
+import { getLeafCost, getLeafTime, MAX_LOOP_REPEAT_RATIO, MAX_LOOP_ITERATIONS } from "./engine";
 import { cleanTaskName } from "@/utils/formats";
 
 const DEFAULT_ROLES = [
@@ -20,6 +20,8 @@ const DEFAULT_ROLES = [
   "Finance Officer",
   "System / Service",
 ];
+
+const DEFAULT_TIME_VARIANCE_PERCENT = 15;
 
 function hashString(str: string): number {
   let hash = 0;
@@ -118,7 +120,7 @@ function traverseBranch(branch: Branch, startTimeMs: number, ctx: TraverseContex
   const durationMs = Math.max(1000, duration * ctx.unitMs);
   const endTimeMs = startTimeMs + durationMs;
 
-  const costResult = getLeafCost(branch, ctx.tasks);
+  const costResult = getLeafCost(branch, "t", ctx.tasks);
   const resource = resolveResource(branch, ctx.tasks);
 
   const linkedBranchTask = branch.taskId ? ctx.tasks?.find((t) => t.id === branch.taskId) : null;
@@ -154,7 +156,7 @@ function traverseBlock(block: Block, startTimeMs: number, ctx: TraverseContext):
       const durationMs = Math.max(1000, duration * ctx.unitMs);
       const endTimeMs = startTimeMs + durationMs;
 
-      const costResult = getLeafCost(block, ctx.tasks);
+      const costResult = getLeafCost(block, "time", ctx.tasks);
       const resource = resolveResource(block, ctx.tasks);
 
       const linkedSeqTask = block.taskId ? ctx.tasks?.find((t) => t.id === block.taskId) : null;
@@ -211,7 +213,7 @@ function traverseBlock(block: Block, startTimeMs: number, ctx: TraverseContext):
 
     case BlockType.LOOP: {
       const rawR = block.loopP ?? 0;
-      const p = Math.min(0.95, Math.max(0, rawR / 100));
+      const p = Math.min(MAX_LOOP_REPEAT_RATIO, Math.max(0, rawR / 100));
 
       let currStart = startTimeMs;
       let iter = 0;
@@ -224,7 +226,7 @@ function traverseBlock(block: Block, startTimeMs: number, ctx: TraverseContext):
           const durationMs = Math.max(1000, duration * ctx.unitMs);
           const endTimeMs = currStart + durationMs;
 
-          const costResult = getLeafCost(block, ctx.tasks);
+          const costResult = getLeafCost(block, "loopTime", ctx.tasks);
           const resource = resolveResource(block, ctx.tasks);
 
           const linkedLoopTask = block.taskId
@@ -252,7 +254,7 @@ function traverseBlock(block: Block, startTimeMs: number, ctx: TraverseContext):
           currStart = endTimeMs;
         }
         iter += 1;
-      } while (Math.random() < p && iter < 10);
+      } while (Math.random() < p && iter < MAX_LOOP_ITERATIONS);
 
       return currStart;
     }
@@ -277,7 +279,7 @@ export function generateEventLog(
   config?: Partial<EventLogConfig>,
 ): EventLogItem[] {
   const caseCount = config?.caseCount ?? 20;
-  const variancePct = config?.timeVariancePercent ?? 15;
+  const variancePct = config?.timeVariancePercent ?? DEFAULT_TIME_VARIANCE_PERCENT;
   const unitMs = getUnitMultiplierMs(unit);
 
   const startBase = config?.startDate

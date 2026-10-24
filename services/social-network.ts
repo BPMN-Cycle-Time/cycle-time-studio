@@ -79,6 +79,10 @@ export function buildSocialNetwork(
   } else {
     // Working Together: co-occurrence of resources in the same case with step-distance decay (beta^(d-1))
     // van der Aalst, Reijers & Song (2005): resources executing adjacent/close tasks have higher collaboration strength.
+    //
+    // Optimized: for each case we scan the trace once per unique resource pair to find the minimum
+    // step distance. This reduces per-case complexity from O(R^2 * I^2) to O(R^2 * I), where R is the
+    // number of distinct resources in the case and I is the number of events in the case.
     const pairDecayWeights = new Map<string, number>();
 
     for (const caseEvents of traces.values()) {
@@ -103,17 +107,23 @@ export function buildSocialNetwork(
           const [source, target] = [rA, rB].sort();
           const key = `${source}<->${target}`;
 
-          // Find minimum step distance d between rA and rB in this trace (d >= 1)
-          const indicesA = resourceIndices.get(rA) || [];
-          const indicesB = resourceIndices.get(rB) || [];
+          // Single pass to find the minimum step distance between rA and rB.
           let minDistance = Infinity;
+          let lastA = -1;
+          let lastB = -1;
 
-          for (const posA of indicesA) {
-            for (const posB of indicesB) {
-              const d = Math.abs(posA - posB);
-              if (d < minDistance) {
-                minDistance = d;
+          for (let idx = 0; idx < sorted.length; idx++) {
+            const res = sorted[idx].resource;
+            if (res === rA) {
+              if (lastB >= 0) {
+                minDistance = Math.min(minDistance, idx - lastB);
               }
+              lastA = idx;
+            } else if (res === rB) {
+              if (lastA >= 0) {
+                minDistance = Math.min(minDistance, idx - lastA);
+              }
+              lastB = idx;
             }
           }
 

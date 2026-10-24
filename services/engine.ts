@@ -14,6 +14,9 @@ import {
  * Expected-value calculation engine with support for task-linked times and nested sub-processes.
  */
 
+export const MAX_LOOP_REPEAT_RATIO = 0.98;
+export const MAX_LOOP_ITERATIONS = 500;
+
 function num(v: unknown): number {
   const n = typeof v === "number" ? v : parseFloat(String(v));
   return Number.isFinite(n) ? n : 0;
@@ -96,9 +99,8 @@ export function getLeafCost(
     loopTime?: number;
     hourlyRate?: number;
     fixedCost?: number;
-    cost?: number;
-    loopCost?: number;
   },
+  rawField: "time" | "t" | "loopTime",
   tasks?: Task[],
 ): CostBreakdown {
   if (holder.taskId && tasks && tasks.length > 0) {
@@ -111,9 +113,9 @@ export function getLeafCost(
       return { total: labor + fixed, labor, fixed };
     }
   }
-  const time = num(holder.time ?? holder.t ?? holder.loopTime);
+  const time = num(holder[rawField]);
   const rate = num(holder.hourlyRate);
-  const fixed = num(holder.fixedCost ?? holder.cost ?? holder.loopCost);
+  const fixed = num(holder.fixedCost);
   const labor = time * rate;
   return { total: labor + fixed, labor, fixed };
 }
@@ -135,14 +137,14 @@ export function sumArrayCost(blocks: Block[] | undefined, tasks?: Task[]): CostB
 
 export function computeBranchCost(branch: Branch, tasks?: Task[]): CostBreakdown {
   if (branch.mode === BlockMode.COMPOSITE) return sumArrayCost(branch.subBlocks, tasks);
-  return getLeafCost(branch, tasks);
+  return getLeafCost(branch, "t", tasks);
 }
 
 export function computeBlockCost(block: Block, tasks?: Task[]): CostBreakdown {
   switch (block.type) {
     case BlockType.SEQ: {
       if (block.mode === BlockMode.COMPOSITE) return sumArrayCost(block.subBlocks, tasks);
-      return getLeafCost(block, tasks);
+      return getLeafCost(block, "time", tasks);
     }
     case BlockType.XOR: {
       const branches = block.branches ?? [];
@@ -185,7 +187,7 @@ export function computeBlockCost(block: Block, tasks?: Task[]): CostBreakdown {
       const base =
         block.mode === BlockMode.COMPOSITE
           ? sumArrayCost(block.subBlocks, tasks)
-          : getLeafCost(block, tasks);
+          : getLeafCost(block, "loopTime", tasks);
       return {
         total: base.total * mult,
         labor: base.labor * mult,
@@ -233,10 +235,11 @@ export function computeBlockDetails(block: Block, tasks?: Task[]): BlockComputat
     case BlockType.XOR: {
       const branches = block.branches ?? [];
       const sumP = branches.reduce((s, b) => s + num(b.p), 0);
+      const denom = sumP > 0 ? sumP : 100;
       const branchValues = branches.map((b) => computeBranchTime(b, tasks));
-      const value = branches.reduce((s, br, i) => s + (num(br.p) / 100) * branchValues[i], 0);
+      const value = branches.reduce((s, br, i) => s + (num(br.p) / denom) * branchValues[i], 0);
       const terms = branches
-        .map((br, i) => `${(num(br.p) / 100).toFixed(2)}×${fmt(branchValues[i])}`)
+        .map((br, i) => `${(num(br.p) / denom).toFixed(2)}×${fmt(branchValues[i])}`)
         .join(" + ");
       const warning =
         Math.abs(sumP - 100) > 0.5
@@ -278,18 +281,18 @@ export function computeBlockDetails(block: Block, tasks?: Task[]): BlockComputat
 export function computeFlow(blocks: Block[], tasks?: Task[]): FlowResult {
   const contributions: ContributionRow[] = [];
 
-  function visitArray(arr: Block[], depth: number, scale: number) {
-    for (const b of arr) visitBlock(b, depth, scale);
+  function visitArray(arr: Block[], depth: number, timeScale: number, costScale: number) {
+    for (const b of arr) visitBlock(b, depth, timeScale, costScale);
   }
 
-  function visitBlock(b: Block, depth: number, scale: number) {
-    const own = computeBlockTime(b, tasks) * scale;
+  function visitBlock(b: Block, depth: number, timeScale: number, costScale: number) {
+    const own = computeBlockTime(b, tasks) * timeScale;
     const ownCost = computeBlockCost(b, tasks);
     contributions.push({
       id: b.id,
       label: b.label,
       expected: Number.isFinite(own) ? own : 0,
-      expectedCost: Number.isFinite(ownCost.total * scale) ? ownCost.total * scale : 0,
+      expectedCost: Number.isFinite(ownCost.total * costScale) ? ownCost.total * costScale : 0,
       share: 0,
       depth,
       kind: ContributionKind.BLOCK,
@@ -304,9 +307,11 @@ export function computeFlow(blocks: Block[], tasks?: Task[]): FlowResult {
         contributions.push({
           id: br.id,
           label: br.label,
-          expected: Number.isFinite(branchTime * mult * scale) ? branchTime * mult * scale : 0,
-          expectedCost: Number.isFinite(branchCost.total * mult * scale)
-            ? branchCost.total * mult * scale
+          expected: Number.isFinite(branchTime * mult * timeScale)
+            ? branchTime * mult * timeScale
+            : 0,
+          expectedCost: Number.isFinite(branchCost.total * mult * costScale)
+            ? branchCost.total * mult * costScale
             : 0,
           share: 0,
           depth: depth + 1,
@@ -314,7 +319,7 @@ export function computeFlow(blocks: Block[], tasks?: Task[]): FlowResult {
           multiplier: mult,
         });
         if (br.mode === BlockMode.COMPOSITE && br.subBlocks)
-          visitArray(br.subBlocks, depth + 2, scale * mult);
+          visitArray(br.subBlocks, depth + 2, timeScale * mult, costScale * mult);
       }
     } else if (b.type === BlockType.AND && b.branches) {
       const times = b.branches.map((br) => computeBranchTime(br, tasks));
@@ -325,22 +330,28 @@ export function computeFlow(blocks: Block[], tasks?: Task[]): FlowResult {
         contributions.push({
           id: br.id,
           label: br.label,
-          expected: Number.isFinite(times[i] * scale) ? times[i] * scale : 0,
-          expectedCost: Number.isFinite(branchCost.total * scale) ? branchCost.total * scale : 0,
+          expected: Number.isFinite(times[i] * timeScale) ? times[i] * timeScale : 0,
+          expectedCost: Number.isFinite(branchCost.total * costScale)
+            ? branchCost.total * costScale
+            : 0,
           share: 0,
           depth: depth + 1,
           kind: ContributionKind.BRANCH,
           excluded: !isCritical,
         });
         if (br.mode === BlockMode.COMPOSITE && br.subBlocks)
-          visitArray(br.subBlocks, depth + 2, isCritical ? scale : 0);
+          visitArray(br.subBlocks, depth + 2, isCritical ? timeScale : 0, costScale);
       });
+    } else if (b.type === BlockType.LOOP && b.mode === BlockMode.COMPOSITE && b.subBlocks) {
+      // The LOOP block row already contains the inflated expected value/cost.
+      // Children contribute to cost but not to the cycle-time total again.
+      visitArray(b.subBlocks, depth + 1, 0, costScale);
     } else if (b.mode === BlockMode.COMPOSITE && b.subBlocks) {
-      visitArray(b.subBlocks, depth + 1, scale);
+      visitArray(b.subBlocks, depth + 1, timeScale, costScale);
     }
   }
 
-  visitArray(blocks, 0, 1);
+  visitArray(blocks, 0, 1, 1);
   const total = sumArray(blocks, tasks);
   const cost = sumArrayCost(blocks, tasks);
   for (const row of contributions) row.share = total > 0 ? row.expected / total : 0;
@@ -385,17 +396,17 @@ function sampleBlock(b: Block, tasks?: Task[]): number {
       );
     }
     case BlockType.LOOP: {
-      const p = Math.min(0.98, Math.max(0, num(b.loopP) / 100));
-      const base =
-        b.mode === BlockMode.COMPOSITE
-          ? sampleArray(b.subBlocks, tasks)
-          : getLeafTime(b, "loopTime", tasks);
+      const p = Math.min(MAX_LOOP_REPEAT_RATIO, Math.max(0, num(b.loopP) / 100));
       let total = 0;
       let iterations = 0;
       do {
-        total += base;
+        const pass =
+          b.mode === BlockMode.COMPOSITE
+            ? sampleArray(b.subBlocks, tasks)
+            : getLeafTime(b, "loopTime", tasks);
+        total += pass;
         iterations++;
-      } while (Math.random() < p && iterations < 500);
+      } while (Math.random() < p && iterations < MAX_LOOP_ITERATIONS);
       return total;
     }
     default:

@@ -93,10 +93,20 @@ export function TaskBenchmarkTable({
         key: "benchmarkDuration",
         header: tDiag("colBenchmarkDuration", { unit }),
         sortable: true,
-        sortValue: (row) => row.benchmarkDuration,
+        sortValue: (row) => row.benchmarkDuration ?? -1,
         className: "py-2.5 px-3 text-right",
         headerClassName: "text-right justify-end",
         render: (summary) => {
+          if (summary.benchmarkDuration === null) {
+            return (
+              <span
+                className="text-xs text-muted-foreground font-mono"
+                title={tDiag("noUploadedFileHint")}
+              >
+                —
+              </span>
+            );
+          }
           const currentInputVal =
             editingValues[summary.taskId] ?? String(summary.benchmarkDuration);
           return (
