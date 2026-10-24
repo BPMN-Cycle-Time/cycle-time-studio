@@ -10,3 +10,4 @@ export * from "./conformance";
 export * from "./bpr";
 export * from "./discovery";
 export * from "./automation";
+export * from "./templates";

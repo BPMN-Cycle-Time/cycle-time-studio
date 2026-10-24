@@ -10,6 +10,7 @@ import { SocialNetworkPanel } from "./social-network";
 import { BprPanel } from "./bpr";
 import { DiscoveryPanel } from "./discovery";
 import { AutomationPanel } from "./automation";
+import { TemplatesPanel } from "./templates";
 import type { DiagramTab } from "@/components/layout";
 
 interface DiagramPanelProps {
@@ -81,6 +82,7 @@ export function DiagramPanel({ blocks, unit, activeTab, onTabChange }: DiagramPa
           dataSource={eventLogDataSource}
         />
       )}
+      {activeTab === "templates" && <TemplatesPanel blocks={blocks} tasks={tasks} />}
       {activeTab === "bpr" && <BprPanel blocks={blocks} tasks={tasks} unit={unit} />}
     </div>
   );

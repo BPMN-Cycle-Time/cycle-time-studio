@@ -312,5 +312,7 @@
   "thresholdLoop": "Ngưỡng vòng lặp",
   "runDiscovery": "Chạy khám phá",
   "runDiscoveryHint": "Nhấn Chạy khám phá để xây dựng DFG",
-  "noEventsForDiscovery": "Thêm block hoặc tải lên event log để chạy khám phá."
+  "noEventsForDiscovery": "Thêm block hoặc tải lên event log để chạy khám phá.",
+  "automationTab": "Tự động hóa",
+  "templatesTab": "Mẫu"
 }

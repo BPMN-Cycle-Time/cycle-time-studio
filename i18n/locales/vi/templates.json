@@ -1,0 +1,19 @@
+{
+  "title": "Mẫu Ngành",
+  "subtitle": "Áp dụng mẫu quy trình có sẵn để khởi đầu phân tích nhanh.",
+  "applyTemplate": "Áp dụng mẫu",
+  "replaceWarning": "Áp dụng mẫu sẽ thay thế mô hình quy trình và danh sách task hiện tại.",
+  "confirmTitle": "Áp dụng mẫu",
+  "confirmDescription": "Thay thế mô hình hiện tại bằng {name}?",
+  "confirmDescriptionGeneric": "Thay thế mô hình hiện tại bằng mẫu đã chọn?",
+  "confirmApply": "Áp dụng",
+  "cancel": "Hủy",
+  "templateP2p": "Mua hàng - Thanh toán",
+  "templateP2pDesc": "Quy trình mua hàng tiêu chuẩn: yêu cầu, phê duyệt, nhận hàng và đối chiếu ba bên.",
+  "templateO2c": "Đơn hàng - Thu tiền",
+  "templateO2cDesc": "Quy trình thực hiện đơn hàng từ tạo đơn, đóng gói, giao hàng, lập hóa đơn đến thu tiền.",
+  "templateItsm": "Quản lý Dịch vụ IT",
+  "templateItsmDesc": "Quy trình xử lý sự cố IT với phân loại, vòng lặp giải quyết và đóng ticket.",
+  "stepCount": "{count} bước",
+  "taskCount": "{count} công việc"
+}

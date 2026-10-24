@@ -27,3 +27,4 @@ export {
 } from "@/services/xlsx";
 export { exportSvgToPng, prepareSvgForExport } from "./export-image";
 export { loadProject, saveProjectData, emptyProject } from "@/store/useProjectsIndex";
+export * from "./blocks";

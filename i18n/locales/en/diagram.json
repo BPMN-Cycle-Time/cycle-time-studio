@@ -312,5 +312,7 @@
   "thresholdLoop": "Loop threshold",
   "runDiscovery": "Run Discovery",
   "runDiscoveryHint": "Click Run Discovery to build the DFG",
-  "noEventsForDiscovery": "Add blocks or upload an event log to run discovery."
+  "noEventsForDiscovery": "Add blocks or upload an event log to run discovery.",
+  "automationTab": "Automation",
+  "templatesTab": "Templates"
 }

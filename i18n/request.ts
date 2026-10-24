@@ -4,18 +4,29 @@ import { getRequestConfig } from "next-intl/server";
 import { defaultLocale, isLocale, localeCookieName, type Locale } from "@/i18n/config";
 
 async function loadLocaleMessages(locale: Locale) {
-  const [common, home, sidebar, editor, simulation, diagram, bpr, automation, localeSwitcher] =
-    await Promise.all([
-      import(`@/i18n/locales/${locale}/common.json`),
-      import(`@/i18n/locales/${locale}/home.json`),
-      import(`@/i18n/locales/${locale}/sidebar.json`),
-      import(`@/i18n/locales/${locale}/editor.json`),
-      import(`@/i18n/locales/${locale}/simulation.json`),
-      import(`@/i18n/locales/${locale}/diagram.json`),
-      import(`@/i18n/locales/${locale}/bpr.json`),
-      import(`@/i18n/locales/${locale}/automation.json`),
-      import(`@/i18n/locales/${locale}/localeSwitcher.json`),
-    ]);
+  const [
+    common,
+    home,
+    sidebar,
+    editor,
+    simulation,
+    diagram,
+    bpr,
+    automation,
+    templates,
+    localeSwitcher,
+  ] = await Promise.all([
+    import(`@/i18n/locales/${locale}/common.json`),
+    import(`@/i18n/locales/${locale}/home.json`),
+    import(`@/i18n/locales/${locale}/sidebar.json`),
+    import(`@/i18n/locales/${locale}/editor.json`),
+    import(`@/i18n/locales/${locale}/simulation.json`),
+    import(`@/i18n/locales/${locale}/diagram.json`),
+    import(`@/i18n/locales/${locale}/bpr.json`),
+    import(`@/i18n/locales/${locale}/automation.json`),
+    import(`@/i18n/locales/${locale}/templates.json`),
+    import(`@/i18n/locales/${locale}/localeSwitcher.json`),
+  ]);
 
   return {
     common: common.default,
@@ -26,6 +37,7 @@ async function loadLocaleMessages(locale: Locale) {
     diagram: diagram.default,
     bpr: bpr.default,
     automation: automation.default,
+    templates: templates.default,
     localeSwitcher: localeSwitcher.default,
   };
 }

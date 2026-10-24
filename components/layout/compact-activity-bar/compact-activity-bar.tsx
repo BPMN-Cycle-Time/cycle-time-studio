@@ -17,6 +17,7 @@ import {
   PanelLeftOpen,
   GitFork,
   Bot,
+  Layers,
 } from "lucide-react";
 
 import { AppTooltip, Input } from "@/components/ui";
@@ -28,7 +29,15 @@ import { DeleteProjectDialog } from "../project-sidebar/delete-project-dialog";
 import { cn } from "@/utils";
 
 export type DiagramTab =
-  "model" | "graph" | "bpmn" | "eventLog" | "socialNetwork" | "bpr" | "discovery" | "automation";
+  | "model"
+  | "graph"
+  | "bpmn"
+  | "eventLog"
+  | "socialNetwork"
+  | "bpr"
+  | "discovery"
+  | "automation"
+  | "templates";
 
 interface CompactActivityBarProps {
   activeTab: DiagramTab;
@@ -45,7 +54,8 @@ interface NavItem {
     | "socialNetworkTab"
     | "bprTab"
     | "discoveryTab"
-    | "automationTab";
+    | "automationTab"
+    | "templatesTab";
   icon: React.ComponentType<{ className?: string }>;
 }
 
@@ -57,6 +67,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "socialNetwork", labelKey: "socialNetworkTab", icon: Network },
   { value: "discovery", labelKey: "discoveryTab", icon: GitFork },
   { value: "automation", labelKey: "automationTab", icon: Bot },
+  { value: "templates", labelKey: "templatesTab", icon: Layers },
   { value: "bpr", labelKey: "bprTab", icon: Lightbulb },
 ];
 

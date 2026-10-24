@@ -1,0 +1,19 @@
+{
+  "title": "Industry Templates",
+  "subtitle": "Apply a pre-built process template to jump-start your analysis.",
+  "applyTemplate": "Apply Template",
+  "replaceWarning": "Applying a template will replace the current process model and tasks.",
+  "confirmTitle": "Apply Template",
+  "confirmDescription": "Replace current model with {name}?",
+  "confirmDescriptionGeneric": "Replace current model with the selected template?",
+  "confirmApply": "Apply",
+  "cancel": "Cancel",
+  "templateP2p": "Procure-to-Pay",
+  "templateP2pDesc": "Standard purchase-to-payment workflow with approval, goods receipt, and three-way matching.",
+  "templateO2c": "Order-to-Cash",
+  "templateO2cDesc": "Order fulfillment workflow from order creation through shipping, invoicing, and payment.",
+  "templateItsm": "IT Service Management",
+  "templateItsmDesc": "IT incident handling workflow with categorization, resolution loop, and ticket closure.",
+  "stepCount": "{count} steps",
+  "taskCount": "{count} tasks"
+}
