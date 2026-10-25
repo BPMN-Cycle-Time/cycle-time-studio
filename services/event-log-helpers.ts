@@ -4,6 +4,7 @@
 
 export function normalizeColName(str: string): string {
   return String(str || "")
+    .replace(/^\uFEFF/, "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -122,7 +123,11 @@ export const ALIAS_GROUPS = {
     "startdate",
   ],
   end: [
+    "endtimestamp",
     "completetimestamp",
+    "finishtimestamp",
+    "completetime",
+    "timecomplete",
     "complete",
     "endtime",
     "end",
