@@ -7,6 +7,7 @@ export * from "./event-log";
 export * from "./event-log-helpers";
 export * from "./event-log-parser";
 export * from "./conformance";
+export * from "./conformance-model";
 export * from "./process-discovery";
 export * from "./social-network";
 export * from "./sla-benchmark";

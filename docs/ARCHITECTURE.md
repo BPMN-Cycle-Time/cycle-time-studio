@@ -181,6 +181,10 @@ The engine performs $N$ iterations (default $N = 5{,}000$ runs) to simulate real
     `taskId`, no `subBlocks` and `t: 0` (`isEmptyBranch()` in `utils/blocks.ts`). Import creates it, export draws a
     bare sequence flow (label kept), the engine adds 0 time/cost, and conformance treats it as "no activity"
     (making the XOR's activities optional).
+  - **Conformance model** (`services/conformance-model.ts` → `inspectModel()`): derives activities, optional
+    activities, precedence and XOR alternatives from the block tree. Inside a `LOOP` the body's internal
+    precedence is dropped (later iterations may legitimately reorder first occurrences); only "single mandatory
+    entry activity before the rest of the body" is kept, plus before-loop → loop → after-loop ordering.
 
 ---
 
