@@ -1,15 +1,15 @@
 import * as XLSX from "xlsx";
 import type { EventLogItem } from "@/types";
 import { cleanTaskName } from "@/utils/formats";
-import { normalizeColName, parseFlexibleDate, ALIAS_GROUPS } from "./event-log-helpers";
+import {
+  normalizeColName,
+  parseFlexibleDate,
+  ALIAS_GROUPS,
+  createEventId,
+} from "./event-log-helpers";
+import { parseEventLogXes } from "./event-log-xes";
 
-export { normalizeColName, parseFlexibleDate, ALIAS_GROUPS };
-
-let idCounter = 0;
-function uniqueId(): string {
-  idCounter += 1;
-  return `evt_${idCounter}_${Math.random().toString(36).slice(2, 7)}`;
-}
+export { normalizeColName, parseFlexibleDate, ALIAS_GROUPS, parseEventLogXes };
 
 export interface ParseEventLogResult {
   items: EventLogItem[];
@@ -147,7 +147,7 @@ export function parseEventLogRows(
     }
 
     items.push({
-      id: uniqueId(),
+      id: createEventId(),
       caseId,
       activity,
       resource,
@@ -212,80 +212,6 @@ export function parseEventLogCsv(csvContent: string): EventLogItem[] {
 
   const rawRows = lines.map(parseRow);
   return parseEventLogRows(rawRows);
-}
-
-/**
- * Parses IEEE XES XML text into standard EventLogItem array.
- */
-export function parseEventLogXes(xesXml: string): EventLogItem[] {
-  const items: EventLogItem[] = [];
-  if (!xesXml.includes("<trace")) return items;
-
-  const traceRegex = /<trace[\s\S]*?<\/trace>/gi;
-  const eventRegex = /<event[\s\S]*?<\/event>/gi;
-  const attrRegex = /<(string|date|float|int)\s+key="([^"]+)"\s+value="([^"]*)"\s*\/?>/gi;
-
-  let traceMatch: RegExpExecArray | null;
-  let caseCounter = 1;
-
-  while ((traceMatch = traceRegex.exec(xesXml)) !== null) {
-    const traceBlock = traceMatch[0];
-
-    let caseId = `Case_${caseCounter}`;
-    const traceHeader = traceBlock.slice(
-      0,
-      traceBlock.indexOf("<event") !== -1 ? traceBlock.indexOf("<event") : undefined,
-    );
-    let attrMatch: RegExpExecArray | null;
-    while ((attrMatch = attrRegex.exec(traceHeader)) !== null) {
-      if (attrMatch[2] === "concept:name") {
-        caseId = attrMatch[3] || caseId;
-        break;
-      }
-    }
-
-    let eventMatch: RegExpExecArray | null;
-    while ((eventMatch = eventRegex.exec(traceBlock)) !== null) {
-      const eventBlock = eventMatch[0];
-      let activity = "Unknown Activity";
-      let resource = "Unassigned";
-      let timestamp = new Date().toISOString();
-      let duration = 1;
-      let cost = 0;
-
-      let eventAttrMatch: RegExpExecArray | null;
-      while ((eventAttrMatch = attrRegex.exec(eventBlock)) !== null) {
-        const key = eventAttrMatch[2];
-        const val = eventAttrMatch[3] || "";
-
-        if (key === "concept:name") activity = cleanTaskName(val);
-        else if (key === "org:resource") resource = val;
-        else if (key === "time:timestamp") timestamp = val;
-        else if (key === "duration") {
-          const num = parseFloat(val);
-          if (!isNaN(num)) duration = num;
-        } else if (key === "cost") {
-          const num = parseFloat(val);
-          if (!isNaN(num)) cost = num;
-        }
-      }
-
-      items.push({
-        id: uniqueId(),
-        caseId,
-        activity,
-        resource,
-        startTimestamp: timestamp,
-        completeTimestamp: timestamp,
-        duration,
-        cost,
-      });
-    }
-
-    caseCounter++;
-  }
-
-  return items;
 }
 
 /**
@@ -369,7 +295,7 @@ export async function parseEventLogFile(
       const data = JSON.parse(text);
       if (Array.isArray(data)) {
         const items = data.map((d) => ({
-          id: d.id || uniqueId(),
+          id: d.id || createEventId(),
           caseId: String(d.caseId || d.case_id || "Case_1"),
           activity: cleanTaskName(String(d.activity || d.task || "Activity")),
           resource: String(d.resource || d.role || "Unassigned"),

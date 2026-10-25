@@ -2,6 +2,13 @@
  * Helper utilities and column alias dictionaries for parsing Event Logs (CSV, Excel, XES).
  */
 
+let eventIdCounter = 0;
+/** Generates a unique id for a parsed event-log item. */
+export function createEventId(): string {
+  eventIdCounter += 1;
+  return `evt_${eventIdCounter}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
 export function normalizeColName(str: string): string {
   return String(str || "")
     .replace(/^\uFEFF/, "")
