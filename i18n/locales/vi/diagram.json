@@ -314,5 +314,11 @@
   "runDiscoveryHint": "Nhấn Chạy khám phá để xây dựng DFG",
   "noEventsForDiscovery": "Thêm block hoặc tải lên event log để chạy khám phá.",
   "automationTab": "Tự động hóa",
-  "templatesTab": "Mẫu"
+  "templatesTab": "Mẫu",
+  "bpmnImport": {
+    "loopMultipleExits": "Một vòng lặp có nhiều lối ra tới các bước khác nhau — đã gộp thành một lối ra sau vòng lặp.",
+    "tooDeep": "Sơ đồ lồng nhau quá sâu — một phần chưa được chuyển đổi.",
+    "tooComplex": "Sơ đồ quá phức tạp để chuyển đổi đầy đủ — một phần đã bị bỏ qua.",
+    "unstructuredCycle": "Phát hiện chu trình không có cấu trúc — đã cắt tại bước bị lặp lại."
+  }
 }

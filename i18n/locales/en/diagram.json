@@ -314,5 +314,11 @@
   "runDiscoveryHint": "Click Run Discovery to build the DFG",
   "noEventsForDiscovery": "Add blocks or upload an event log to run discovery.",
   "automationTab": "Automation",
-  "templatesTab": "Templates"
+  "templatesTab": "Templates",
+  "bpmnImport": {
+    "loopMultipleExits": "A loop has several exits to different steps — they were merged into one exit after the loop.",
+    "tooDeep": "The diagram is nested too deeply — part of it was not converted.",
+    "tooComplex": "The diagram is too complex to convert completely — part of it was skipped.",
+    "unstructuredCycle": "An unstructured cycle was found — it was cut at the repeated step."
+  }
 }

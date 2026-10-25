@@ -1,4 +1,4 @@
-import type { Block } from "@/types";
+import type { Block, Branch } from "@/types";
 
 export function countBlocks(blocks: Block[]): number {
   let count = 0;
@@ -19,4 +19,13 @@ export function countBlocks(blocks: Block[]): number {
 
   blocks.forEach(visit);
   return count;
+}
+
+/**
+ * An empty branch is a pure routing path (e.g. the "Yes" side of a decision that goes
+ * straight to the join): no task, no sub-blocks and no direct time. It is not an activity —
+ * it renders as a bare sequence flow and contributes 0 time / cost.
+ */
+export function isEmptyBranch(branch: Branch): boolean {
+  return !branch.taskId && !branch.subBlocks?.length && !branch.t;
 }

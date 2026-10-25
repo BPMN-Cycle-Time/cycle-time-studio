@@ -43,6 +43,7 @@ BPMN Studio is an interactive Business Process Management (BPM) process modeling
 │   ├── engine.ts             # Cycle time calculation & Monte Carlo simulation math
 │   ├── graph.ts              # Directed graph layout, SVG measurement, topology traversal
 │   ├── bpmn.ts               # Block Tree ↔ BPMN 2.0 XML bidirectional parser & layout
+│   ├── bpmn-import/          # BPMN → Block tree: graph analysis (loops, joins) + structured walk
 │   └── xlsx.ts               # XLSX workbook / CSV parsing, normalization, export
 ├── store/                    # Zustand State Stores
 │   ├── useEditorStore.ts     # Active project & flow editor store with undo/redo
@@ -170,6 +171,16 @@ The engine performs $N$ iterations (default $N = 5{,}000$ runs) to simulate real
 - Bidirectional synchronization:
   - `blocksToBpmnXml()`: Generates semantic BPMN XML + auto-calculates layout with `bpmn-auto-layout`.
   - `bpmnXmlToBlocks()`: Parses arbitrary BPMN XML graphs back into the Block tree with preview and safety warnings.
+    - `services/bpmn-import/graph-analysis.ts` classifies flow nodes (activities, gateways, events), finds loops
+      via DFS back-edges (loop header = back-edge target, body = natural loop) and computes split/join pairs.
+    - `services/bpmn-import/walk-chain.ts` walks the graph: a loop header opens a `LOOP` block whose back-edges and
+      exits are redirected to a virtual loop end, so rework cycles that return to a merge gateway never recurse.
+      Events (start, end, intermediate catch/throw) only route and never become tasks. Guards (depth, step budget,
+      per-walk visited set) turn malformed graphs into warnings instead of crashes.
+  - **Empty branches**: a decision path that goes straight from split to join is a `Branch` with `mode: SIMPLE`, no
+    `taskId`, no `subBlocks` and `t: 0` (`isEmptyBranch()` in `utils/blocks.ts`). Import creates it, export draws a
+    bare sequence flow (label kept), the engine adds 0 time/cost, and conformance treats it as "no activity"
+    (making the XOR's activities optional).
 
 ---
 

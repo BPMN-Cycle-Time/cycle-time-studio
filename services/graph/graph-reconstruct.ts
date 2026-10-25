@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { BlockType, BlockMode, type Block, type Branch, type Task } from "@/types";
-import { parseProbability } from "../bpmn";
+import { parseProbability } from "../bpmn-import";
 import type { RawGraphNodeRecord, RawGraphEdgeRecord } from "../xlsx";
 
 export interface ReconstructedGraphModel {

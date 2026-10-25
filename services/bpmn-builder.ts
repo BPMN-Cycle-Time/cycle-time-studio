@@ -6,6 +6,7 @@
 
 import { BlockType, BlockMode, type Block, type Task } from "@/types";
 
+import { isEmptyBranch } from "@/utils/blocks";
 import { cleanTaskName } from "@/utils/formats";
 
 export interface BpmnNodeDef {
@@ -152,6 +153,7 @@ export function renderBlock(
     if (afterId) builder.addFlow(afterId, splitId);
 
     const branchTails: string[] = [];
+    const emptyBranchFlows: string[] = [];
     for (const br of b.branches ?? []) {
       const brTaskName = br.taskId ? tasks?.find((t) => t.id === br.taskId)?.name : null;
       const isTaskName =
@@ -165,6 +167,12 @@ export function renderBlock(
         }
       } else {
         flowName = !isTaskName && br.label !== "Branch" ? br.label || "" : "";
+      }
+
+      if (isEmptyBranch(br)) {
+        // Pure routing path: draw split → join directly (no fake task), keep the flow label.
+        emptyBranchFlows.push(flowName);
+        continue;
       }
 
       const branchBlocks: Block[] =
@@ -191,6 +199,9 @@ export function renderBlock(
     );
     for (const t of branchTails) {
       builder.addFlow(t, joinId);
+    }
+    for (const flowName of emptyBranchFlows) {
+      builder.addFlow(splitId, joinId, flowName);
     }
     return { startId: splitId, tailId: joinId };
   }
