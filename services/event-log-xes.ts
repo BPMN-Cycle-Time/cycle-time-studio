@@ -44,6 +44,19 @@ function readAttributes(block: string): Map<string, string> {
   return attrs;
 }
 
+/** Event attributes mapped to EventLogItem fields; everything else goes to `attributes`. */
+const MAPPED_KEYS = new Set([
+  "concept:name",
+  "org:resource",
+  "org:role",
+  "time:timestamp",
+  "time:start",
+  "start_timestamp",
+  "lifecycle:transition",
+  "duration",
+  "cost",
+]);
+
 const toIso = (raw: string | undefined): string | null => (raw ? parseFlexibleDate(raw) : null);
 
 function hoursBetween(startIso: string, endIso: string): number {
@@ -111,10 +124,12 @@ export function parseEventLogXes(xesXml: string): EventLogItem[] {
         caseId,
         activity,
         resource: attrs.get("org:resource") || "Unassigned",
+        role: attrs.get("org:role") || undefined,
         startTimestamp: startIso,
         completeTimestamp: timestamp,
         duration,
         cost: parseNumber(attrs.get("cost")) ?? 0,
+        attributes: Object.fromEntries([...attrs].filter(([key]) => !MAPPED_KEYS.has(key))),
       });
     }
 

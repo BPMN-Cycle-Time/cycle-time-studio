@@ -126,22 +126,25 @@ export function analyzeConformance(
         violationCounts.unexpected_activity++;
       } else {
         // 2. Check for Resource compliance
+        // Compare the assigned role/lane with the event's role when the log has one,
+        // never a lane name with a person's name.
         const expectedResource = model.resourceMap.get(ev.activity);
+        const actualPerformer = ev.role?.trim() || ev.resource;
         if (
           expectedResource &&
-          ev.resource &&
-          ev.resource !== "Unassigned" &&
-          expectedResource.toLowerCase() !== ev.resource.toLowerCase()
+          actualPerformer &&
+          actualPerformer !== "Unassigned" &&
+          expectedResource.toLowerCase() !== actualPerformer.toLowerCase()
         ) {
           stepStatus = "wrong_resource";
-          violationMsg = `Executed by "${ev.resource}" instead of assigned role "${expectedResource}".`;
+          violationMsg = `Executed by "${actualPerformer}" instead of assigned role "${expectedResource}".`;
           violations.push({
             id: uniqueViolationId(),
             caseId,
             type: "wrong_resource",
             activity: ev.activity,
             expected: expectedResource,
-            actual: ev.resource,
+            actual: actualPerformer,
             resource: ev.resource,
             stepIndex: idx + 1,
             message: violationMsg,

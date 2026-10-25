@@ -10,6 +10,8 @@ export interface ImportNode {
   kind: ImportNodeKind;
   name: string;
   isParallel: boolean;
+  /** Name of the (innermost) lane containing this node, if any. */
+  lane?: string;
 }
 
 export interface ImportEdge {
@@ -42,6 +44,27 @@ export interface MoFlowElement {
   outgoing?: { targetRef?: { id: string }; name?: string }[];
 }
 
+/** Minimal structural view of a bpmn-moddle lane (lanes may nest via `childLaneSet`). */
+export interface MoLane {
+  name?: string;
+  flowNodeRef?: { id: string }[];
+  childLaneSet?: { lanes?: MoLane[] };
+}
+
+/** Maps flow node id → name of the innermost lane that references it. */
+export function collectLaneNames(lanes: MoLane[] | undefined): Map<string, string> {
+  const laneOf = new Map<string, string>();
+  const visit = (list: MoLane[] | undefined): void => {
+    for (const lane of list ?? []) {
+      const name = lane.name?.trim();
+      if (name) for (const ref of lane.flowNodeRef ?? []) if (ref?.id) laneOf.set(ref.id, name);
+      visit(lane.childLaneSet?.lanes); // nested lanes override their parent
+    }
+  };
+  visit(lanes);
+  return laneOf;
+}
+
 const ACTIVITY_TYPES = new Set(["bpmn:SubProcess", "bpmn:CallActivity", "bpmn:Transaction"]);
 
 function classify(type: string): ImportNodeKind | null {
@@ -51,7 +74,10 @@ function classify(type: string): ImportNodeKind | null {
   return null; // sequence flows, data objects, annotations, ...
 }
 
-export function buildImportGraph(flowElements: MoFlowElement[]): ImportGraph {
+export function buildImportGraph(
+  flowElements: MoFlowElement[],
+  laneOf: Map<string, string> = new Map(),
+): ImportGraph {
   const nodes = new Map<string, ImportNode>();
   for (const el of flowElements) {
     const kind = classify(el.$type);
@@ -61,6 +87,7 @@ export function buildImportGraph(flowElements: MoFlowElement[]): ImportGraph {
       kind,
       name: el.name ?? "",
       isParallel: el.$type === "bpmn:ParallelGateway",
+      lane: laneOf.get(el.id),
     });
   }
 

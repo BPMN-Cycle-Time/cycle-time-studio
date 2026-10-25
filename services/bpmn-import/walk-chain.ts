@@ -65,7 +65,12 @@ function outgoing(id: string, ctx: WalkContext): ResolvedEdge[] {
   return out;
 }
 
-function resolveOrCreateTask(rawName: string, ctx: WalkContext): { label: string; task: Task } {
+/** Finds the project task with this name (or id), or creates one owned by `lane`. */
+function resolveOrCreateTask(
+  rawName: string,
+  lane: string | undefined,
+  ctx: WalkContext,
+): { label: string; task: Task } {
   const taskName = cleanTaskName(rawName || "").trim() || "Step";
   const matched = ctx.tasks.find(
     (task) =>
@@ -73,7 +78,13 @@ function resolveOrCreateTask(rawName: string, ctx: WalkContext): { label: string
       task.id.toLowerCase() === taskName.toLowerCase(),
   );
   if (matched) return { label: matched.name, task: matched };
-  const newTask: Task = { id: ctx.freshId("task"), name: taskName, time: 1, usedMinutes: 0 };
+  const newTask: Task = {
+    id: ctx.freshId("task"),
+    name: taskName,
+    time: 1,
+    usedMinutes: 0,
+    ...(lane ? { resource: lane } : {}),
+  };
   ctx.tasks.push(newTask);
   return { label: newTask.name, task: newTask };
 }
@@ -101,6 +112,7 @@ function toBranch(
       id: ctx.freshId("br"),
       label: first.label || cleanFlow || t("common", "blockTypes.branch"),
       taskId: first.taskId ?? null,
+      resource: first.resource,
       p,
       t: first.time ?? 1,
       mode: BlockMode.SIMPLE,
@@ -157,6 +169,7 @@ function buildLoop(loop: LoopInfo, ctx: WalkContext): { block: Block; next: stri
           type: BlockType.LOOP,
           label: first.label,
           taskId: first.taskId ?? null,
+          resource: first.resource,
           mode: BlockMode.SIMPLE,
           loopTime: first.time ?? 1,
           loopP,
@@ -215,7 +228,9 @@ export function walkChain(
     }
 
     if (node.kind === "activity") {
-      const { label, task } = resolveOrCreateTask(node.name || node.id, ctx);
+      const { label, task } = resolveOrCreateTask(node.name || node.id, node.lane, ctx);
+      // An existing task keeps its own resource; otherwise the lane is the performing role.
+      const laneResource = !task.resource?.trim() && node.lane ? { resource: node.lane } : {};
       out.push({
         id: ctx.freshId("blk"),
         type: BlockType.SEQ,
@@ -223,6 +238,7 @@ export function walkChain(
         taskId: task.id,
         time: task.time ?? 1,
         mode: BlockMode.SIMPLE,
+        ...laneResource,
       });
     }
 

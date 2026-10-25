@@ -57,7 +57,10 @@ export function parseEventLogRows(
 
   const caseIdx = findColIndex(...ALIAS_GROUPS.case);
   const actIdx = findColIndex(...ALIAS_GROUPS.act);
-  const resIdx = findColIndex(...ALIAS_GROUPS.res);
+  const roleIdx = findColIndex(...ALIAS_GROUPS.role);
+  // Logs with only a role column keep using it as the performer.
+  const explicitResIdx = findColIndex(...ALIAS_GROUPS.res);
+  const resIdx = explicitResIdx !== -1 ? explicitResIdx : roleIdx;
   const startIdx = findColIndex(...ALIAS_GROUPS.start);
   const endIdx = findColIndex(...ALIAS_GROUPS.end);
   const durIdx = findColIndex(...ALIAS_GROUPS.dur);
@@ -65,6 +68,28 @@ export function parseEventLogRows(
   const taskIdx = findColIndex(...ALIAS_GROUPS.task);
   const benchmarkIdx = findColIndex(...ALIAS_GROUPS.benchmark);
   const slaStatusIdx = findColIndex(...ALIAS_GROUPS.status);
+
+  const mappedIdx = new Set([
+    caseIdx,
+    actIdx,
+    resIdx,
+    roleIdx,
+    startIdx,
+    endIdx,
+    durIdx,
+    costIdx,
+    taskIdx,
+    benchmarkIdx,
+    slaStatusIdx,
+  ]);
+  const rawHeaders = (rawRows[headerRowIdx] || []).map((c) =>
+    String(c ?? "")
+      .replace(/^\uFEFF/, "")
+      .trim(),
+  );
+  const extraIdx = rawHeaders
+    .map((_, idx) => idx)
+    .filter((idx) => !mappedIdx.has(idx) && rawHeaders[idx]);
 
   const items: EventLogItem[] = [];
   const now = Date.now();
@@ -77,6 +102,9 @@ export function parseEventLogRows(
     const caseId = caseIdx !== -1 && row[caseIdx] ? row[caseIdx]! : `Case_${rowNum}`;
     const rawAct = actIdx !== -1 && row[actIdx] ? row[actIdx]! : `Activity_${rowNum}`;
     const resource = resIdx !== -1 && row[resIdx] ? row[resIdx]! : "Unassigned";
+    const role = roleIdx !== -1 && row[roleIdx] ? row[roleIdx]! : undefined;
+    const attributes: Record<string, string> = {};
+    for (const idx of extraIdx) if (row[idx]) attributes[rawHeaders[idx]!] = row[idx]!;
 
     let taskId = taskIdx !== -1 && row[taskIdx] ? row[taskIdx]! : undefined;
     const activity = cleanTaskName(rawAct);
@@ -151,6 +179,7 @@ export function parseEventLogRows(
       caseId,
       activity,
       resource,
+      role,
       startTimestamp: startIso,
       completeTimestamp: endIso,
       duration,
@@ -158,6 +187,7 @@ export function parseEventLogRows(
       taskId,
       benchmarkDuration,
       slaStatus,
+      ...(extraIdx.length ? { attributes } : {}),
     });
   }
 
@@ -299,6 +329,7 @@ export async function parseEventLogFile(
           caseId: String(d.caseId || d.case_id || "Case_1"),
           activity: cleanTaskName(String(d.activity || d.task || "Activity")),
           resource: String(d.resource || d.role || "Unassigned"),
+          role: d.role ? String(d.role) : undefined,
           startTimestamp: String(d.startTimestamp || d.start || new Date().toISOString()),
           completeTimestamp: String(d.completeTimestamp || d.end || new Date().toISOString()),
           duration: typeof d.duration === "number" ? d.duration : 1,

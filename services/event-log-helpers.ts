@@ -111,12 +111,12 @@ export const ALIAS_GROUPS = {
     "orgresource",
     "user",
     "username",
-    "role",
     "vaitro",
     "bophan",
     "thuchien",
     "assignee",
   ],
+  role: ["role", "orgrole", "lane", "vaitro"],
   start: [
     "starttimestamp",
     "start",

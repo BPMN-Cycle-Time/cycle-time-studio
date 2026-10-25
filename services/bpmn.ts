@@ -3,10 +3,12 @@ import { layoutProcess } from "bpmn-auto-layout";
 import type { Block, Task } from "@/types";
 import {
   buildImportGraph,
+  collectLaneNames,
   detectLoops,
   parseProbability,
   walkChain,
   type MoFlowElement,
+  type MoLane,
 } from "./bpmn-import";
 
 /**
@@ -75,7 +77,9 @@ export async function bpmnXmlToBlocks(
   if (pools?.length)
     warnings.push("This file has multiple pools/lanes — only the first process was converted.");
 
-  const graph = buildImportGraph(flowElements);
+  const laneSets: { lanes?: MoLane[] }[] = process.laneSets ?? [];
+  const laneOf = collectLaneNames(laneSets.flatMap((set) => set.lanes ?? []));
+  const graph = buildImportGraph(flowElements, laneOf);
   const tasks: Task[] = existingTasks ? [...existingTasks] : [];
   const blocks = walkChain(start.id, null, {
     graph,
