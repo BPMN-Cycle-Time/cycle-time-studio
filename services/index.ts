@@ -11,6 +11,8 @@ export * from "./conformance-model";
 export * from "./process-discovery";
 export * from "./social-network";
 export * from "./sla-benchmark";
+export * from "./work-calendar";
+export * from "./performance-analysis";
 export * from "./bpr";
 export * from "./heuristics-miner";
 export * from "./automation-opportunities";

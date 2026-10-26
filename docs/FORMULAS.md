@@ -222,7 +222,25 @@ $$S_1 \le S_2 \le \dots \le S_N$$
 
 ---
 
-## 5. Bảng tổng hợp tra cứu nhanh (Cheat Sheet)
+## 5. Phân tích hiệu năng từ Event Log (`analyzePerformance`)
+
+Nguồn: `services/performance-analysis.ts`. Đơn vị **giờ**, tính từ `startTimestamp` / `completeTimestamp`
+(không dùng field `duration` đã làm tròn).
+
+- **Thứ tự event trong case:** theo `start` tăng dần, rồi `complete`, rồi thứ tự trong log.
+- **Thời gian xử lý** event $e$: $P_e = \text{complete}_e - \text{start}_e$.
+- **Thời gian chờ** event $e$ (trừ event đầu case): $W_e = \max\big(0,\; \text{start}_e - \max_{f \prec e} \text{complete}_f\big)$.
+- **Case:** $CT = \max(\text{complete}) - \min(\text{start})$, $P = \sum P_e$, $W = \sum W_e$, $CTE = P / CT$.
+- **CTE tổng:** $CTE_{overall} = \sum P / \sum CT$ (tỷ số của tổng, không phải trung bình các tỷ số).
+- **Thống kê:** `count, mean, median, p90, p95, max, total`; phân vị nội suy tuyến tính $pos = (n-1)\cdot p$
+  (như `numpy.quantile` / Excel `PERCENTILE.INC`).
+- **Xếp hạng điểm nghẽn:** $share_a = W^{total}_a / \sum_b W^{total}_b$, sắp giảm dần.
+- **Lịch làm việc** (tùy chọn, `WorkCalendar`): mọi khoảng thời gian chỉ đếm phần nằm trong các block giờ làm việc
+  của ngày làm việc, theo giờ địa phương (`services/work-calendar.ts`).
+
+---
+
+## 6. Bảng tổng hợp tra cứu nhanh (Cheat Sheet)
 
 | Loại phần tử               | Thời gian chu kỳ ($CT$)                       | Chi phí quy trình ($\text{Cost}$)                     |
 | :------------------------- | :-------------------------------------------- | :---------------------------------------------------- |
