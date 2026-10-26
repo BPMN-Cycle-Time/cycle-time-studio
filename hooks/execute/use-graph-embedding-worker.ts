@@ -33,7 +33,9 @@ export function useGraphEmbeddingWorker() {
 
   const getWorker = useCallback((): Worker => {
     if (workerRef.current) return workerRef.current;
-    const worker = new Worker(new URL("./graph-embedding.worker.ts", import.meta.url));
+    const worker = new Worker(new URL("./graph-embedding.worker.ts", import.meta.url), {
+      type: "module",
+    });
     worker.onmessage = (event: MessageEvent<EmbeddingJobResponse>) => {
       const pending = pendingRef.current;
       if (!pending || pending.id !== event.data.id) return;

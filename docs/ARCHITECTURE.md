@@ -44,6 +44,7 @@ BPMN Studio is an interactive Business Process Management (BPM) process modeling
 │   ├── graph.ts              # Directed graph layout, SVG measurement, topology traversal
 │   ├── bpmn.ts               # Block Tree ↔ BPMN 2.0 XML bidirectional parser & layout
 │   ├── bpmn-import/          # BPMN → Block tree: graph analysis (loops, joins) + structured walk
+│   ├── graph-embedding/      # Node2Vec, WL features / kernel, Graph2Vec, kNN anomaly scores, jobs
 │   └── xlsx.ts               # XLSX workbook / CSV parsing, normalization, export
 ├── store/                    # Zustand State Stores
 │   ├── useEditorStore.ts     # Active project & flow editor store with undo/redo
@@ -212,3 +213,21 @@ The UI uses a **3-column responsive flex layout** with zero blocking modal overl
 ## 7. Pagination Architecture
 
 For large data sets (Recent Projects, Data Tables, Event Logs), BPMN Studio implements a 10-record-per-page client-side pagination architecture with render-phase state adjustment and strict i18n synchronization. See [Pagination Guide](file:///Users/phuson/Documents/master-degree/BPM%20-%202026/cycle-time-app/docs/PAGINATION.md) for formulas, state diagrams, and reference components.
+
+---
+
+## Graph Embedding (`services/graph-embedding/`, tab "Graph Embedding")
+
+- **Pure, synchronous, seeded** algorithms (mulberry32 PRNG, never `Math.random`): `node2vec` (2nd-order p/q walks
+  on the undirected graph + skip-gram negative sampling in `sgns.ts`), `kMeans` / `pca2d` / `cosineSimilarity`,
+  `buildTraceGraphs` (one START → events → END chain per case, optional `|SLOW` / `|OK` and attribute labels),
+  `wlSubtreeFeatures` / `wlKernelVectors` (sublinear TF-IDF) / `wlKernelSimilarity`, `graph2vec` (PV-DBOW),
+  `knnAnomalyScores`, `evaluateAnomalyScores` (AUC per anomaly type, precision@N) and `compareProcessGraphs`.
+- **Web Worker:** `runEmbeddingJob` (`jobs.ts`) dispatches node2vec / trace embedding / 3-label-mode comparison jobs;
+  `hooks/execute/graph-embedding.worker.ts` runs it off the main thread and `useGraphEmbeddingWorker` exposes
+  `run` / `cancel` / `running` (cancel terminates the worker). Turbopack bundles the worker from
+  `new Worker(new URL("./graph-embedding.worker.ts", import.meta.url))`.
+- **UI** (`components/diagram/embedding/`): Node2Vec (process graph or handover network, PCA scatter by k-means
+  cluster, top-5 similar nodes), log anomalies (Graph2Vec / WL kernel, label modes, ground-truth CSV → AUC table next to
+  the share of cases that control-flow conformance flags) and WL-kernel model comparison (AS-IS vs another project /
+  uploaded `.bpmn`). Sub-tabs stay mounted so results survive tab switches.

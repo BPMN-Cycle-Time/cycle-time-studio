@@ -12,6 +12,7 @@ import { DiscoveryPanel } from "./discovery";
 import { AutomationPanel } from "./automation";
 import { TemplatesPanel } from "./templates";
 import { PerformancePanel } from "./performance";
+import { EmbeddingPanel } from "./embedding";
 import type { DiagramTab } from "@/components/layout";
 
 interface DiagramPanelProps {
@@ -85,6 +86,9 @@ export function DiagramPanel({ blocks, unit, activeTab, onTabChange }: DiagramPa
           uploadedEvents={uploadedEvents}
           dataSource={eventLogDataSource}
         />
+      )}
+      {activeTab === "embedding" && (
+        <EmbeddingPanel blocks={blocks} tasks={tasks} uploadedEvents={uploadedEvents} />
       )}
       {activeTab === "templates" && <TemplatesPanel blocks={blocks} tasks={tasks} />}
       {activeTab === "bpr" && <BprPanel blocks={blocks} tasks={tasks} unit={unit} />}

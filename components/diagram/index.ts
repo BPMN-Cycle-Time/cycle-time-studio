@@ -14,3 +14,4 @@ export * from "./social-network";
 export * from "./bpr";
 export * from "./calibration";
 export * from "./performance";
+export * from "./embedding";

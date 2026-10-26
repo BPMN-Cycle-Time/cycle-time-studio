@@ -19,6 +19,7 @@ import {
   Bot,
   Layers,
   Hourglass,
+  Orbit,
 } from "lucide-react";
 
 import { AppTooltip, Input } from "@/components/ui";
@@ -39,6 +40,7 @@ export type DiagramTab =
   | "bpr"
   | "discovery"
   | "automation"
+  | "embedding"
   | "templates";
 
 interface CompactActivityBarProps {
@@ -58,6 +60,7 @@ interface NavItem {
     | "bprTab"
     | "discoveryTab"
     | "automationTab"
+    | "embeddingTab"
     | "templatesTab";
   icon: React.ComponentType<{ className?: string }>;
 }
@@ -71,6 +74,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "socialNetwork", labelKey: "socialNetworkTab", icon: Network },
   { value: "discovery", labelKey: "discoveryTab", icon: GitFork },
   { value: "automation", labelKey: "automationTab", icon: Bot },
+  { value: "embedding", labelKey: "embeddingTab", icon: Orbit },
   { value: "templates", labelKey: "templatesTab", icon: Layers },
   { value: "bpr", labelKey: "bprTab", icon: Lightbulb },
 ];

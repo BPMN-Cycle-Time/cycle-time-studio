@@ -8,3 +8,4 @@ export * from "./wl";
 export * from "./graph2vec";
 export * from "./anomaly";
 export * from "./jobs";
+export * from "./graph-compare";
