@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_FE_Code_Review" targetNamespace="http://devtify.example/bpmn" exporter="make_bpmn.py" exporterVersion="1.0">
+  <bpmn:message id="Msg_ApiReady" name="API ready" />
+  <bpmn:collaboration id="Collab_FE">
+    <bpmn:participant id="P_Devtify" name="Devtify – FE Development &amp; Code Review" processRef="Process_FE" />
+    <bpmn:participant id="P_BE" name="BE Team (Backend)" />
+    <bpmn:messageFlow id="MF_ApiReady" sourceRef="P_BE" targetRef="ICE_Api" messageRef="Msg_ApiReady" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_FE" name="FE Development &amp; Code Review" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_PM" name="PM / BA">
+        <bpmn:flowNodeRef>T_Clarify</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Dev" name="FE Dev">
+        <bpmn:flowNodeRef>Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Receive</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Analyze</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Spec</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_AskPM</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_SpecJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Branch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Code</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Api</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ICE_Api</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Integrate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_ApiJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_PR</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Fix</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_MergeJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Bot" name="AI System">
+        <bpmn:flowNodeRef>GW_ReviewJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Bot</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Bot</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Important</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Lead" name="FE Lead">
+        <bpmn:flowNodeRef>T_Lead</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GW_Approved</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start" name="Task assigned">
+      <bpmn:outgoing>F01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="T_Receive" name="Receive Task on ClickUp">
+      <bpmn:incoming>F01</bpmn:incoming>
+      <bpmn:outgoing>F02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="T_Analyze" name="Analyze Spec, Figma, API">
+      <bpmn:incoming>F02</bpmn:incoming>
+      <bpmn:outgoing>F03</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_Spec" name="Spec clear?" gatewayDirection="Diverging">
+      <bpmn:incoming>F03</bpmn:incoming>
+      <bpmn:outgoing>F04</bpmn:outgoing>
+      <bpmn:outgoing>F05</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_AskPM" name="Ask PM to Clarify Spec">
+      <bpmn:incoming>F05</bpmn:incoming>
+      <bpmn:outgoing>F06</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="T_Clarify" name="Clarify Spec">
+      <bpmn:incoming>F06</bpmn:incoming>
+      <bpmn:outgoing>F07</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_SpecJoin" gatewayDirection="Converging">
+      <bpmn:incoming>F04</bpmn:incoming>
+      <bpmn:incoming>F07</bpmn:incoming>
+      <bpmn:outgoing>F08</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="T_Branch" name="Create New Branch">
+      <bpmn:incoming>F08</bpmn:incoming>
+      <bpmn:outgoing>F09</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="T_Code" name="Write Code &amp; Integrate">
+      <bpmn:incoming>F09</bpmn:incoming>
+      <bpmn:outgoing>F10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_Api" name="API ready?" gatewayDirection="Diverging">
+      <bpmn:incoming>F10</bpmn:incoming>
+      <bpmn:outgoing>F11</bpmn:outgoing>
+      <bpmn:outgoing>F12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateCatchEvent id="ICE_Api" name="API ready">
+      <bpmn:incoming>F12</bpmn:incoming>
+      <bpmn:outgoing>F13</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MED_ApiReady" messageRef="Msg_ApiReady" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="T_Integrate" name="Integrate Real API">
+      <bpmn:incoming>F13</bpmn:incoming>
+      <bpmn:outgoing>F14</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_ApiJoin" gatewayDirection="Converging">
+      <bpmn:incoming>F11</bpmn:incoming>
+      <bpmn:incoming>F14</bpmn:incoming>
+      <bpmn:outgoing>F15</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="T_PR" name="Create Pull Request">
+      <bpmn:incoming>F15</bpmn:incoming>
+      <bpmn:outgoing>F16</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="GW_ReviewJoin" gatewayDirection="Converging">
+      <bpmn:incoming>F16</bpmn:incoming>
+      <bpmn:incoming>F26</bpmn:incoming>
+      <bpmn:outgoing>F17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="T_Bot" name="AI Bot Code Review">
+      <bpmn:incoming>F17</bpmn:incoming>
+      <bpmn:outgoing>F18</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GW_Bot" name="Bot passed?" gatewayDirection="Diverging">
+      <bpmn:incoming>F18</bpmn:incoming>
+      <bpmn:outgoing>F19</bpmn:outgoing>
+      <bpmn:outgoing>F20</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GW_Important" name="Important PR?" gatewayDirection="Diverging">
+      <bpmn:incoming>F20</bpmn:incoming>
+      <bpmn:outgoing>F21</bpmn:outgoing>
+      <bpmn:outgoing>F22</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_Lead" name="FE Lead Review">
+      <bpmn:incoming>F22</bpmn:incoming>
+      <bpmn:outgoing>F23</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_Approved" name="Code Approved?" gatewayDirection="Diverging">
+      <bpmn:incoming>F23</bpmn:incoming>
+      <bpmn:outgoing>F24</bpmn:outgoing>
+      <bpmn:outgoing>F25</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_Fix" name="Fix Review Comments">
+      <bpmn:incoming>F19</bpmn:incoming>
+      <bpmn:incoming>F25</bpmn:incoming>
+      <bpmn:outgoing>F26</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GW_MergeJoin" gatewayDirection="Converging">
+      <bpmn:incoming>F21</bpmn:incoming>
+      <bpmn:incoming>F24</bpmn:incoming>
+      <bpmn:outgoing>F27</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="T_Merge" name="Merge Code">
+      <bpmn:incoming>F27</bpmn:incoming>
+      <bpmn:outgoing>F28</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End" name="PR merged">
+      <bpmn:incoming>F28</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F01" sourceRef="Start" targetRef="T_Receive" />
+    <bpmn:sequenceFlow id="F02" sourceRef="T_Receive" targetRef="T_Analyze" />
+    <bpmn:sequenceFlow id="F03" sourceRef="T_Analyze" targetRef="GW_Spec" />
+    <bpmn:sequenceFlow id="F04" name="Yes" sourceRef="GW_Spec" targetRef="GW_SpecJoin" />
+    <bpmn:sequenceFlow id="F05" name="No" sourceRef="GW_Spec" targetRef="T_AskPM" />
+    <bpmn:sequenceFlow id="F06" sourceRef="T_AskPM" targetRef="T_Clarify" />
+    <bpmn:sequenceFlow id="F07" sourceRef="T_Clarify" targetRef="GW_SpecJoin" />
+    <bpmn:sequenceFlow id="F08" sourceRef="GW_SpecJoin" targetRef="T_Branch" />
+    <bpmn:sequenceFlow id="F09" sourceRef="T_Branch" targetRef="T_Code" />
+    <bpmn:sequenceFlow id="F10" sourceRef="T_Code" targetRef="GW_Api" />
+    <bpmn:sequenceFlow id="F11" name="Yes" sourceRef="GW_Api" targetRef="GW_ApiJoin" />
+    <bpmn:sequenceFlow id="F12" name="No (mock data)" sourceRef="GW_Api" targetRef="ICE_Api" />
+    <bpmn:sequenceFlow id="F13" sourceRef="ICE_Api" targetRef="T_Integrate" />
+    <bpmn:sequenceFlow id="F14" sourceRef="T_Integrate" targetRef="GW_ApiJoin" />
+    <bpmn:sequenceFlow id="F15" sourceRef="GW_ApiJoin" targetRef="T_PR" />
+    <bpmn:sequenceFlow id="F16" sourceRef="T_PR" targetRef="GW_ReviewJoin" />
+    <bpmn:sequenceFlow id="F17" sourceRef="GW_ReviewJoin" targetRef="T_Bot" />
+    <bpmn:sequenceFlow id="F18" sourceRef="T_Bot" targetRef="GW_Bot" />
+    <bpmn:sequenceFlow id="F19" name="No" sourceRef="GW_Bot" targetRef="T_Fix" />
+    <bpmn:sequenceFlow id="F20" name="Yes" sourceRef="GW_Bot" targetRef="GW_Important" />
+    <bpmn:sequenceFlow id="F21" name="No" sourceRef="GW_Important" targetRef="GW_MergeJoin" />
+    <bpmn:sequenceFlow id="F22" name="Yes" sourceRef="GW_Important" targetRef="T_Lead" />
+    <bpmn:sequenceFlow id="F23" sourceRef="T_Lead" targetRef="GW_Approved" />
+    <bpmn:sequenceFlow id="F24" name="Approved" sourceRef="GW_Approved" targetRef="GW_MergeJoin" />
+    <bpmn:sequenceFlow id="F25" name="Request changes" sourceRef="GW_Approved" targetRef="T_Fix" />
+    <bpmn:sequenceFlow id="F26" sourceRef="T_Fix" targetRef="GW_ReviewJoin" />
+    <bpmn:sequenceFlow id="F27" sourceRef="GW_MergeJoin" targetRef="T_Merge" />
+    <bpmn:sequenceFlow id="F28" sourceRef="T_Merge" targetRef="End" />
+    <bpmn:textAnnotation id="Ann_Code"><bpmn:text>Use mock data if the Backend API is not ready</bpmn:text></bpmn:textAnnotation>
+    <bpmn:association id="As_Ann_Code" sourceRef="T_Code" targetRef="Ann_Code" />
+    <bpmn:textAnnotation id="Ann_Bot"><bpmn:text>Min 4 min/PR; slower when the shared bot is overloaded</bpmn:text></bpmn:textAnnotation>
+    <bpmn:association id="As_Ann_Bot" sourceRef="T_Bot" targetRef="Ann_Bot" />
+    <bpmn:textAnnotation id="Ann_Lead"><bpmn:text>Only important PRs; Lead reviews in a morning batch (8:30-9:45)</bpmn:text></bpmn:textAnnotation>
+    <bpmn:association id="As_Ann_Lead" sourceRef="T_Lead" targetRef="Ann_Lead" />
+    <bpmn:textAnnotation id="Ann_Merge"><bpmn:text>Developer merges the PR</bpmn:text></bpmn:textAnnotation>
+    <bpmn:association id="As_Ann_Merge" sourceRef="T_Merge" targetRef="Ann_Merge" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_1">
+    <bpmndi:BPMNPlane id="Plane_1" bpmnElement="Collab_FE">
+      <bpmndi:BPMNShape id="P_Devtify_di" bpmnElement="P_Devtify" isHorizontal="true"><dc:Bounds x="160" y="80" width="2800" height="770" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_PM_di" bpmnElement="Lane_PM" isHorizontal="true"><dc:Bounds x="190" y="80" width="2770" height="150" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Dev_di" bpmnElement="Lane_Dev" isHorizontal="true"><dc:Bounds x="190" y="230" width="2770" height="260" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Bot_di" bpmnElement="Lane_Bot" isHorizontal="true"><dc:Bounds x="190" y="490" width="2770" height="210" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Lead_di" bpmnElement="Lane_Lead" isHorizontal="true"><dc:Bounds x="190" y="700" width="2770" height="150" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="P_BE_di" bpmnElement="P_BE" isHorizontal="true"><dc:Bounds x="160" y="900" width="2800" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_di" bpmnElement="Start">
+        <dc:Bounds x="240" y="392" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="218" y="432" width="80" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Receive_di" bpmnElement="T_Receive">
+        <dc:Bounds x="310" y="370" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Analyze_di" bpmnElement="T_Analyze">
+        <dc:Bounds x="460" y="370" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Spec_di" bpmnElement="GW_Spec" isMarkerVisible="true">
+        <dc:Bounds x="610" y="385" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="595" y="438" width="80" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_AskPM_di" bpmnElement="T_AskPM">
+        <dc:Bounds x="700" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Clarify_di" bpmnElement="T_Clarify">
+        <dc:Bounds x="850" y="115" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_SpecJoin_di" bpmnElement="GW_SpecJoin" isMarkerVisible="true">
+        <dc:Bounds x="1010" y="385" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Branch_di" bpmnElement="T_Branch">
+        <dc:Bounds x="1100" y="370" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Code_di" bpmnElement="T_Code">
+        <dc:Bounds x="1250" y="370" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Api_di" bpmnElement="GW_Api" isMarkerVisible="true">
+        <dc:Bounds x="1400" y="385" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1385" y="438" width="80" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ICE_Api_di" bpmnElement="ICE_Api">
+        <dc:Bounds x="1480" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1468" y="252" width="60" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Integrate_di" bpmnElement="T_Integrate">
+        <dc:Bounds x="1560" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_ApiJoin_di" bpmnElement="GW_ApiJoin" isMarkerVisible="true">
+        <dc:Bounds x="1700" y="385" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_PR_di" bpmnElement="T_PR">
+        <dc:Bounds x="1790" y="370" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_ReviewJoin_di" bpmnElement="GW_ReviewJoin" isMarkerVisible="true">
+        <dc:Bounds x="1940" y="540" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Bot_di" bpmnElement="T_Bot">
+        <dc:Bounds x="2030" y="525" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Bot_di" bpmnElement="GW_Bot" isMarkerVisible="true">
+        <dc:Bounds x="2180" y="540" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2165" y="593" width="80" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Important_di" bpmnElement="GW_Important" isMarkerVisible="true">
+        <dc:Bounds x="2290" y="540" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2322" y="520" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Lead_di" bpmnElement="T_Lead">
+        <dc:Bounds x="2380" y="735" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Approved_di" bpmnElement="GW_Approved" isMarkerVisible="true">
+        <dc:Bounds x="2530" y="750" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2515" y="803" width="80" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Fix_di" bpmnElement="T_Fix">
+        <dc:Bounds x="2155" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_MergeJoin_di" bpmnElement="GW_MergeJoin" isMarkerVisible="true">
+        <dc:Bounds x="2620" y="385" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Merge_di" bpmnElement="T_Merge">
+        <dc:Bounds x="2710" y="370" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_di" bpmnElement="End">
+        <dc:Bounds x="2870" y="392" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2848" y="432" width="80" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F01_di" bpmnElement="F01">
+        <di:waypoint x="276" y="410" />
+        <di:waypoint x="310" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F02_di" bpmnElement="F02">
+        <di:waypoint x="410" y="410" />
+        <di:waypoint x="460" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F03_di" bpmnElement="F03">
+        <di:waypoint x="560" y="410" />
+        <di:waypoint x="610" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F04_di" bpmnElement="F04">
+        <di:waypoint x="660" y="410" />
+        <di:waypoint x="1010" y="410" />
+        <bpmndi:BPMNLabel><dc:Bounds x="815" y="388" width="40" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F05_di" bpmnElement="F05">
+        <di:waypoint x="635" y="385" />
+        <di:waypoint x="635" y="290" />
+        <di:waypoint x="700" y="290" />
+        <bpmndi:BPMNLabel><dc:Bounds x="585" y="318" width="40" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F06_di" bpmnElement="F06">
+        <di:waypoint x="750" y="250" />
+        <di:waypoint x="750" y="155" />
+        <di:waypoint x="850" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F07_di" bpmnElement="F07">
+        <di:waypoint x="950" y="155" />
+        <di:waypoint x="1035" y="155" />
+        <di:waypoint x="1035" y="385" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F08_di" bpmnElement="F08">
+        <di:waypoint x="1060" y="410" />
+        <di:waypoint x="1100" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F09_di" bpmnElement="F09">
+        <di:waypoint x="1200" y="410" />
+        <di:waypoint x="1250" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F10_di" bpmnElement="F10">
+        <di:waypoint x="1350" y="410" />
+        <di:waypoint x="1400" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F11_di" bpmnElement="F11">
+        <di:waypoint x="1450" y="410" />
+        <di:waypoint x="1700" y="410" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1555" y="388" width="40" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F12_di" bpmnElement="F12">
+        <di:waypoint x="1425" y="385" />
+        <di:waypoint x="1425" y="290" />
+        <di:waypoint x="1480" y="290" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1335" y="318" width="98" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F13_di" bpmnElement="F13">
+        <di:waypoint x="1516" y="290" />
+        <di:waypoint x="1560" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F14_di" bpmnElement="F14">
+        <di:waypoint x="1660" y="290" />
+        <di:waypoint x="1725" y="290" />
+        <di:waypoint x="1725" y="385" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F15_di" bpmnElement="F15">
+        <di:waypoint x="1750" y="410" />
+        <di:waypoint x="1790" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F16_di" bpmnElement="F16">
+        <di:waypoint x="1890" y="410" />
+        <di:waypoint x="1915" y="410" />
+        <di:waypoint x="1915" y="565" />
+        <di:waypoint x="1940" y="565" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F17_di" bpmnElement="F17">
+        <di:waypoint x="1990" y="565" />
+        <di:waypoint x="2030" y="565" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F18_di" bpmnElement="F18">
+        <di:waypoint x="2130" y="565" />
+        <di:waypoint x="2180" y="565" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F19_di" bpmnElement="F19">
+        <di:waypoint x="2205" y="540" />
+        <di:waypoint x="2205" y="330" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2140" y="440" width="40" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F20_di" bpmnElement="F20">
+        <di:waypoint x="2230" y="565" />
+        <di:waypoint x="2290" y="565" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2240" y="543" width="40" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F21_di" bpmnElement="F21">
+        <di:waypoint x="2315" y="540" />
+        <di:waypoint x="2315" y="470" />
+        <di:waypoint x="2600" y="470" />
+        <di:waypoint x="2600" y="410" />
+        <di:waypoint x="2620" y="410" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2321" y="495" width="40" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F22_di" bpmnElement="F22">
+        <di:waypoint x="2315" y="590" />
+        <di:waypoint x="2315" y="775" />
+        <di:waypoint x="2380" y="775" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2321" y="672" width="40" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F23_di" bpmnElement="F23">
+        <di:waypoint x="2480" y="775" />
+        <di:waypoint x="2530" y="775" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F24_di" bpmnElement="F24">
+        <di:waypoint x="2580" y="775" />
+        <di:waypoint x="2645" y="775" />
+        <di:waypoint x="2645" y="435" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2592" y="753" width="56" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F25_di" bpmnElement="F25">
+        <di:waypoint x="2555" y="750" />
+        <di:waypoint x="2555" y="290" />
+        <di:waypoint x="2255" y="290" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2561" y="510" width="105" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F26_di" bpmnElement="F26">
+        <di:waypoint x="2155" y="290" />
+        <di:waypoint x="1965" y="290" />
+        <di:waypoint x="1965" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F27_di" bpmnElement="F27">
+        <di:waypoint x="2670" y="410" />
+        <di:waypoint x="2710" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F28_di" bpmnElement="F28">
+        <di:waypoint x="2810" y="410" />
+        <di:waypoint x="2870" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_ApiReady_di" bpmnElement="MF_ApiReady">
+        <di:waypoint x="1498" y="900" />
+        <di:waypoint x="1498" y="308" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Ann_Code_di" bpmnElement="Ann_Code"><dc:Bounds x="1130" y="252" width="230" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="As_Ann_Code_di" bpmnElement="As_Ann_Code"><di:waypoint x="1300" y="370" /><di:waypoint x="1300" y="302" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Ann_Bot_di" bpmnElement="Ann_Bot"><dc:Bounds x="1990" y="622" width="250" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="As_Ann_Bot_di" bpmnElement="As_Ann_Bot"><di:waypoint x="2080" y="605" /><di:waypoint x="2080" y="622" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Ann_Lead_di" bpmnElement="Ann_Lead"><dc:Bounds x="2040" y="722" width="260" height="56" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="As_Ann_Lead_di" bpmnElement="As_Ann_Lead"><di:waypoint x="2380" y="760" /><di:waypoint x="2300" y="750" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Ann_Merge_di" bpmnElement="Ann_Merge"><dc:Bounds x="2690" y="255" width="180" height="40" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="As_Ann_Merge_di" bpmnElement="As_Ann_Merge"><di:waypoint x="2760" y="370" /><di:waypoint x="2760" y="295" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
