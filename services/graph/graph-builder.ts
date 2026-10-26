@@ -9,6 +9,7 @@ import {
   type ProcessNodeShape,
   type Task,
 } from "@/types";
+import { isEmptyBranch } from "@/utils/blocks";
 
 export function findTaskById(tasks: Task[] | undefined, id?: string | null): Task | null {
   if (!id || !tasks) return null;
@@ -234,6 +235,9 @@ export function buildProcessGraph(blocks: Block[], tasks?: Task[]): ProcessGraph
           } else {
             link(splitId, joinId, pText);
           }
+        } else if (isEmptyBranch(br)) {
+          // Pure routing path: a straight split → join edge, never a fake task node.
+          link(splitId, joinId, pText);
         } else {
           const t = leafTime(br, "t", tasks);
           const brNodeId = addNode(

@@ -1,0 +1,131 @@
+import type { EventLogItem } from "./event-log";
+
+// Graph embedding models: Node2Vec, Weisfeiler–Lehman features / kernel, Graph2Vec anomaly scoring.
+
+/** Generic directed, labelled graph used by every embedding algorithm. */
+export interface LabeledGraph {
+  nodes: { id: string; label: string }[];
+  edges: { source: string; target: string; weight?: number }[];
+}
+
+export interface Node2VecOptions {
+  dimensions?: number;
+  walkLength?: number;
+  numWalks?: number;
+  p?: number;
+  q?: number;
+  window?: number;
+  negative?: number;
+  epochs?: number;
+  learningRate?: number;
+  minLearningRate?: number;
+  seed?: number;
+}
+
+export interface Graph2VecOptions {
+  dimensions?: number;
+  epochs?: number;
+  negative?: number;
+  learningRate?: number;
+  minLearningRate?: number;
+  seed?: number;
+}
+
+export interface KMeansOptions {
+  seed?: number;
+  nInit?: number;
+  maxIter?: number;
+}
+
+export interface KMeansResult {
+  labels: number[];
+  centroids: number[][];
+  inertia: number;
+}
+
+export interface TraceGraphOptions {
+  /** Append "|SLOW" / "|OK" (waiting time above the per-activity quantile). */
+  timeAware?: boolean;
+  /** Quantile of the activity's waiting times above which an event is SLOW (default 0.9). */
+  slowQuantile?: number;
+  /** Event attributes appended to node labels, in order (e.g. ["review_result"]). */
+  attributeKeys?: string[];
+}
+
+export interface TraceGraph {
+  caseId: string;
+  graph: LabeledGraph;
+}
+
+export interface AnomalyEvaluation {
+  byType: Record<string, { count: number; auc: number }>;
+  any: { count: number; auc: number };
+  precisionAtN: number;
+}
+
+// ---------------------------------------------------------------------------
+// Background jobs (run in a Web Worker by the Graph Embedding tab)
+// ---------------------------------------------------------------------------
+
+export type TraceEmbeddingMethod = "graph2vec" | "wlKernel";
+
+/** Node labelling of trace graphs: activity only / + waiting level / + waiting level + attributes. */
+export type TraceLabelMode = "structure" | "timeAware" | "timeAndAttributes";
+
+export interface TraceEmbeddingSettings {
+  method: TraceEmbeddingMethod;
+  /** kNN neighbours for the anomaly score. */
+  k: number;
+  slowQuantile: number;
+  attributeKeys: string[];
+  graph2vec: Graph2VecOptions;
+}
+
+export type EmbeddingJobRequest =
+  | { kind: "node2vec"; graph: LabeledGraph; options: Node2VecOptions; clusters: number }
+  | {
+      kind: "traceEmbedding";
+      events: EventLogItem[];
+      mode: TraceLabelMode;
+      settings: TraceEmbeddingSettings;
+    }
+  | {
+      kind: "compareLabelModes";
+      events: EventLogItem[];
+      settings: TraceEmbeddingSettings;
+    };
+
+export interface Node2VecJobResult {
+  kind: "node2vec";
+  ids: string[];
+  vectors: number[][];
+  clusters: number[];
+  points: [number, number][];
+}
+
+export interface TraceCaseSummary {
+  caseId: string;
+  score: number;
+  eventCount: number;
+  slowCount: number;
+  /** Activities in order. */
+  activities: string[];
+}
+
+export interface TraceEmbeddingJobResult {
+  kind: "traceEmbedding";
+  cases: TraceCaseSummary[];
+  points: [number, number][];
+}
+
+export interface LabelModeComparisonResult {
+  kind: "compareLabelModes";
+  caseIds: string[];
+  scores: Record<TraceLabelMode, number[]>;
+}
+
+export type EmbeddingJobResult =
+  Node2VecJobResult | TraceEmbeddingJobResult | LabelModeComparisonResult;
+
+export type EmbeddingJobResponse =
+  { id: number; ok: true; result: EmbeddingJobResult } | { id: number; ok: false; error: string };
