@@ -89,13 +89,19 @@ function resolveOrCreateTask(
   return { label: newTask.name, task: newTask };
 }
 
+/** Flow label without its probability annotation; "" when the label is only a probability. */
+function flowDisplayLabel(flowName: string | undefined): string {
+  const clean = cleanTaskName(flowName);
+  return /^\(?\s*(?:p\s*=\s*)?\d+(?:\.\d+)?\s*%?\s*\)?$/i.test(clean) ? "" : clean;
+}
+
 function toBranch(
   blocks: Block[],
   flowName: string | undefined,
   p: number | undefined,
   ctx: WalkContext,
 ): Branch {
-  const cleanFlow = cleanTaskName(flowName);
+  const cleanFlow = flowDisplayLabel(flowName);
   const first = blocks[0];
   if (!first) {
     // Empty branch: pure routing path (split → join). Not an activity, contributes 0.

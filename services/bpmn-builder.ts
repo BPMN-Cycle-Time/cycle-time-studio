@@ -124,6 +124,17 @@ export function renderChain(
   return { startId: startId ?? prevId, tailId: prevId };
 }
 
+/**
+ * Label of a loop's repeat flow. Always carries the repeat probability (read back by the importer):
+ * "Repeat (30%)", or "<custom label> (30%)" when the loop has its own, non-default label.
+ */
+function loopFlowLabel(b: Block, taskName?: string): string {
+  const pct = `${b.loopP ?? 0}%`;
+  const label = cleanTaskName(b.label);
+  const isDefault = !label || label === "Rework loop" || label === "Loop" || label === taskName;
+  return isDefault ? `Repeat (${pct})` : `${label} (${pct})`;
+}
+
 /** Renders a single block, wires it after `afterId` (if any), returns startId and tailId. */
 export function renderBlock(
   b: Block,
@@ -160,11 +171,11 @@ export function renderBlock(
         brTaskName && br.label?.trim().toLowerCase() === brTaskName.trim().toLowerCase();
       let flowName = "";
       if (isXor) {
-        if (br.label && !isTaskName && br.label !== "Branch") {
-          flowName = br.label;
-        } else if (br.p != null) {
-          flowName = `${br.p / 100}`;
-        }
+        // Keep the probability in the flow label so it survives export → import, e.g. "Yes (72.5%)".
+        const hasOwnLabel = !!br.label && !isTaskName && br.label !== "Branch";
+        const pct = br.p != null ? `${br.p}%` : "";
+        if (hasOwnLabel) flowName = pct ? `${cleanTaskName(br.label)} (${pct})` : br.label;
+        else flowName = pct;
       } else {
         flowName = !isTaskName && br.label !== "Branch" ? br.label || "" : "";
       }
@@ -219,11 +230,7 @@ export function renderBlock(
       const decisionGwId = builder.addNode("LoopDecision", "exclusiveGateway");
       builder.addFlow(taskId, decisionGwId);
 
-      const loopLabel =
-        b.label && b.label !== "Rework loop" && b.label !== "Loop"
-          ? b.label
-          : `Repeat (${b.loopP ?? 0}%)`;
-      builder.addFlow(decisionGwId, taskId, loopLabel);
+      builder.addFlow(decisionGwId, taskId, loopFlowLabel(b, taskName));
 
       return { startId: taskId, tailId: decisionGwId };
     }
@@ -236,11 +243,7 @@ export function renderBlock(
     const decisionGwId = builder.addNode("LoopDecision", "exclusiveGateway");
     builder.addFlow(tailId ?? mergeGwId, decisionGwId);
 
-    const loopLabel =
-      b.label && b.label !== "Rework loop" && b.label !== "Loop"
-        ? b.label
-        : `Repeat (${b.loopP ?? 0}%)`;
-    builder.addFlow(decisionGwId, mergeGwId, loopLabel);
+    builder.addFlow(decisionGwId, mergeGwId, loopFlowLabel(b));
 
     return { startId: mergeGwId, tailId: decisionGwId };
   }
