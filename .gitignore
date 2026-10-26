@@ -56,3 +56,6 @@ Thumbs.db
 .claude/
 .agents/
 scratch/
+
+# Presentation-only demo material (TO-BE model, log, screenshots) — kept out of the repo
+docs/demo/
