@@ -320,5 +320,11 @@
     "tooDeep": "Sơ đồ lồng nhau quá sâu — một phần chưa được chuyển đổi.",
     "tooComplex": "Sơ đồ quá phức tạp để chuyển đổi đầy đủ — một phần đã bị bỏ qua.",
     "unstructuredCycle": "Phát hiện chu trình không có cấu trúc — đã cắt tại bước bị lặp lại."
+  },
+  "calibration": {
+    "activityNotInLog": "\"{name}\" không xuất hiện trong event log — giữ nguyên thời gian.",
+    "decisionNotReached": "Không trace nào đi tới điểm quyết định \"{name}\" — giữ nguyên xác suất.",
+    "loopNotReached": "Không trace nào vào vòng lặp \"{name}\" — giữ nguyên xác suất lặp.",
+    "parallelApproximated": "Các khối song song được duyệt theo thứ tự nhánh — xác suất chỉ là gần đúng."
   }
 }

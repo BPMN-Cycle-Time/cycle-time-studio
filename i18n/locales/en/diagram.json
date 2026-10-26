@@ -320,5 +320,11 @@
     "tooDeep": "The diagram is nested too deeply — part of it was not converted.",
     "tooComplex": "The diagram is too complex to convert completely — part of it was skipped.",
     "unstructuredCycle": "An unstructured cycle was found — it was cut at the repeated step."
+  },
+  "calibration": {
+    "activityNotInLog": "\"{name}\" does not appear in the event log — its time was kept.",
+    "decisionNotReached": "Decision \"{name}\" is never reached in the log — its probabilities were kept.",
+    "loopNotReached": "Loop \"{name}\" is never entered in the log — its repeat probability was kept.",
+    "parallelApproximated": "Parallel blocks were replayed in branch order — their probabilities are approximate."
   }
 }

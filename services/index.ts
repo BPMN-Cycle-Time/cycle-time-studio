@@ -13,6 +13,7 @@ export * from "./social-network";
 export * from "./sla-benchmark";
 export * from "./work-calendar";
 export * from "./performance-analysis";
+export * from "./model-calibration";
 export * from "./bpr";
 export * from "./heuristics-miner";
 export * from "./automation-opportunities";

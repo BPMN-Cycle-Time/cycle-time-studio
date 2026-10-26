@@ -67,6 +67,11 @@ function groupCases(events: EventLogItem[]): Map<string, TimedEvent[]> {
   return cases;
 }
 
+/** Ordered activity traces, one per case (same event ordering as the performance analysis). */
+export function orderedCaseTraces(events: EventLogItem[]): EventLogItem[][] {
+  return [...groupCases(events).values()].map((list) => list.map((item) => item.event));
+}
+
 function collectStats<K extends string>(
   items: TimedEvent[],
   keyOf: (e: TimedEvent) => K,

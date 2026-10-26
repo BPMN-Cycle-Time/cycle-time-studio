@@ -240,7 +240,26 @@ Nguồn: `services/performance-analysis.ts`. Đơn vị **giờ**, tính từ `s
 
 ---
 
-## 6. Bảng tổng hợp tra cứu nhanh (Cheat Sheet)
+## 6. Hiệu chỉnh mô hình từ Event Log (`calibrateModelFromLog`)
+
+Nguồn: `services/model-calibration.ts` (hàm thuần, trả bản sao mới).
+
+- **Thời gian task:** $T_{task} = \text{median}$ (hoặc mean) thời gian xử lý của activity cùng tên, đổi sang đơn vị
+  project (hours ×1, minutes ×60, days ÷24). Activity không có trong log ⇒ giữ nguyên + cảnh báo.
+- **Phát lại trace trên mô hình:** cây block được dựng thành automaton kiểu Glushkov
+  (`services/calibration/trace-automaton.ts`): activity là node; mỗi XOR, mỗi lần vào LOOP và mỗi lần lặp lại LOOP là
+  một node _marker_. Với mỗi cặp activity liên tiếp $a \to b$ trong trace (kể cả START → đầu, cuối → END), đường ngắn
+  nhất từ $a$ tới $b$ chỉ đi qua marker cho biết nhánh XOR được chọn và vòng lặp được vào / lặp lại.
+- **Xác suất nhánh XOR:** $p_k = 100 \cdot n_k / \sum_j n_j$ ($n_k$ = số lần chọn nhánh $k$ tại điểm quyết định),
+  làm tròn 1 chữ số, tổng = 100. Nếu activity kế tiếp thuộc phần sau XOR ⇒ nhánh rỗng. XOR không được đi tới ⇒ giữ
+  nguyên + cảnh báo.
+- **Xác suất lặp:** $r = 100 \cdot \dfrac{\text{repeats}}{\text{entries} + \text{repeats}}
+  = 100 \cdot \Big(1 - \dfrac{\text{entries}}{\text{số lần bắt đầu thân vòng lặp}}\Big)$.
+- **Kiểm chứng:** hiệu chỉnh với `mean` ⇒ $CT$ của mô hình (`computeFlow`) = thời gian xử lý trung bình mỗi case.
+
+---
+
+## 7. Bảng tổng hợp tra cứu nhanh (Cheat Sheet)
 
 | Loại phần tử               | Thời gian chu kỳ ($CT$)                       | Chi phí quy trình ($\text{Cost}$)                     |
 | :------------------------- | :-------------------------------------------- | :---------------------------------------------------- |
