@@ -12,3 +12,4 @@ export * from "./discovery";
 export * from "./automation";
 export * from "./templates";
 export * from "./performance";
+export * from "./graph-embedding";

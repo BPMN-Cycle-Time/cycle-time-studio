@@ -261,7 +261,44 @@ Nguồn: `services/model-calibration.ts` (hàm thuần, trả bản sao mới).
 
 ---
 
-## 7. Bảng tổng hợp tra cứu nhanh (Cheat Sheet)
+## 7. Nhúng đồ thị (`services/graph-embedding/`)
+
+Mọi ngẫu nhiên dùng PRNG có seed (mulberry32) ⇒ cùng seed, cùng kết quả.
+
+### 7.1. Node2Vec (Grover & Leskovec 2016)
+
+- Đồ thị vô hướng hóa: $w(u,v) = w_{u\to v} + w_{v\to u}$, bỏ self-loop.
+- Bước đầu: $P(x \mid cur) \propto w(cur, x)$. Các bước sau (đang ở $cur$, đến từ $prev$):
+  $$ P(x \mid prev, cur) \propto w(cur,x)\cdot\alpha_{pq}(prev,x),\quad
+  \alpha = \begin{cases}1/p & x = prev\\ 1 & x \text{ kề } prev\\ 1/q & \text{còn lại}\end{cases}$$
+  $$
+- Skip-gram negative sampling: với cặp (tâm $c$, ngữ cảnh $o$) và $K$ mẫu âm $n_k \sim U(n)^{0.75}$:
+  $g_j = \eta\,(y_j - \sigma(\mathbf{c}_j \cdot \mathbf{w}_c))$, $\mathbf{w}_c \mathrel{+}= \sum_j g_j \mathbf{c}_j$,
+  $\mathbf{c}_j \mathrel{+}= g_j \mathbf{w}_c$ ($y = 1$ cho $o$, 0 cho mẫu âm; $\sigma$ kẹp $[-10, 10]$;
+  $\eta$ giảm tuyến tính $0{,}025 \to 0{,}0001$).
+- Phân cụm k-means++ / Lloyd (lấy lần chạy inertia nhỏ nhất), chiếu 2D bằng PCA (power iteration),
+  độ tương tự $\cos(\mathbf{a},\mathbf{b}) = \mathbf{a}\cdot\mathbf{b} / (\lVert\mathbf{a}\rVert\lVert\mathbf{b}\rVert)$.
+
+### 7.2. Trace graph & Weisfeiler–Lehman
+
+- Mỗi case: chuỗi `START → e1 → … → en → END`; nhãn = activity, tùy chọn `|SLOW` khi
+  $W_e > 0$ và $W_e > Q_{0{,}9}(W_{activity})$ (ngược lại `|OK`), và `|<giá trị thuộc tính>`.
+- WL (có hướng): $\ell^{(i)}(v) = f\big(\ell^{(i-1)}(v),\ \{\!\{\ell^{(i-1)}(u): u \to v\}\!\},\
+  \{\!\{\ell^{(i-1)}(u): v \to u\}\!\}\big)$ với $f$ đơn ánh; feature của graph = multiset mọi nhãn vòng $0..h$ ($h = 2$).
+- **WL kernel (TF-IDF):** $tf = 1 + \ln(\text{count})$, $idf = \ln\frac{1+n}{1+df} + 1$, chuẩn hóa L2 theo hàng.
+  So sánh mô hình: $\cos$ giữa vector đếm thô WL của hai graph.
+
+### 7.3. Graph2Vec & điểm bất thường
+
+- Graph2Vec = PV-DBOW: vector của graph $d$ học dự đoán từng WL feature của nó bằng SGNS (như 7.1, không cửa sổ).
+- Điểm kNN: $s_i = \frac{1}{k}\sum_{j \in kNN(i)} (1 - \cos(\mathbf{x}_i, \mathbf{x}_j))$, $k = \min(20, n-1)$.
+- **AUC** (Mann–Whitney): $AUC = \frac{1}{|P||N|}\sum_{p\in P}\sum_{n\in N}\big[\mathbb{1}(s_p > s_n) + \tfrac12\mathbb{1}(s_p = s_n)\big]$,
+  $P$ = case có loại lỗi, $N$ = case không nhãn (điểm làm tròn 9 chữ số).
+- **precision@N:** $N$ = số case có nhãn; tỉ lệ case có nhãn trong top $N$ điểm (hòa: theo `caseId`).
+
+---
+
+## 8. Bảng tổng hợp tra cứu nhanh (Cheat Sheet)
 
 | Loại phần tử               | Thời gian chu kỳ ($CT$)                       | Chi phí quy trình ($\text{Cost}$)                     |
 | :------------------------- | :-------------------------------------------- | :---------------------------------------------------- |
