@@ -325,7 +325,24 @@
     "activityNotInLog": "\"{name}\" không xuất hiện trong event log — giữ nguyên thời gian.",
     "decisionNotReached": "Không trace nào đi tới điểm quyết định \"{name}\" — giữ nguyên xác suất.",
     "loopNotReached": "Không trace nào vào vòng lặp \"{name}\" — giữ nguyên xác suất lặp.",
-    "parallelApproximated": "Các khối song song được duyệt theo thứ tự nhánh — xác suất chỉ là gần đúng."
+    "parallelApproximated": "Các khối song song được duyệt theo thứ tự nhánh — xác suất chỉ là gần đúng.",
+    "button": "Hiệu chỉnh từ event log",
+    "title": "Hiệu chỉnh mô hình từ event log",
+    "description": "Thời gian task, xác suất nhánh và tỉ lệ lặp đo trên log đã tải lên ({count} event). Có thể hoàn tác sau khi áp dụng.",
+    "noLog": "Hãy tải event log lên trước (tab Event Log).",
+    "timeStat": "Thống kê thời gian task",
+    "median": "Trung vị thời gian xử lý",
+    "mean": "Trung bình thời gian xử lý",
+    "colKind": "Tham số",
+    "colTarget": "Đối tượng",
+    "colChange": "Trước → sau",
+    "noChanges": "Không có gì để hiệu chỉnh.",
+    "apply": "Áp dụng hiệu chỉnh",
+    "kinds": {
+      "taskTime": "Thời gian task",
+      "branchProbability": "Xác suất nhánh",
+      "loopProbability": "Xác suất lặp"
+    }
   },
   "performance": {
     "bpr": {

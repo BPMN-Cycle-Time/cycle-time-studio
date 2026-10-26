@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Wand2, Upload, Download, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui";
+import { CalibrateFromLogDialog } from "../calibration";
 
 interface BpmnToolbarProps {
   busy: boolean;
@@ -62,6 +63,7 @@ export function BpmnToolbar({
       <Button variant="outline" size="sm" onClick={onExportPng} disabled={busy}>
         <Download /> {t("exportPng")}
       </Button>
+      <CalibrateFromLogDialog />
       <span className="flex-1" />
       <Button variant="secondary" size="sm" onClick={onPreviewSync} disabled={busy}>
         <RefreshCw /> {t("syncCalculator")}

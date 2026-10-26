@@ -325,7 +325,24 @@
     "activityNotInLog": "\"{name}\" does not appear in the event log — its time was kept.",
     "decisionNotReached": "Decision \"{name}\" is never reached in the log — its probabilities were kept.",
     "loopNotReached": "Loop \"{name}\" is never entered in the log — its repeat probability was kept.",
-    "parallelApproximated": "Parallel blocks were replayed in branch order — their probabilities are approximate."
+    "parallelApproximated": "Parallel blocks were replayed in branch order — their probabilities are approximate.",
+    "button": "Calibrate from event log",
+    "title": "Calibrate model from event log",
+    "description": "Task times, decision probabilities and loop rates measured on the uploaded log ({count} events). Applying can be undone.",
+    "noLog": "Upload an event log first (Event Log tab).",
+    "timeStat": "Task time statistic",
+    "median": "Median processing time",
+    "mean": "Mean processing time",
+    "colKind": "Parameter",
+    "colTarget": "Target",
+    "colChange": "Before → after",
+    "noChanges": "Nothing to calibrate.",
+    "apply": "Apply calibration",
+    "kinds": {
+      "taskTime": "Task time",
+      "branchProbability": "Branch probability",
+      "loopProbability": "Loop probability"
+    }
   },
   "performance": {
     "bpr": {

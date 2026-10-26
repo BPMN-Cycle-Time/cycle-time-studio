@@ -37,7 +37,13 @@ export interface CalibrationOptions {
   unit?: string;
 }
 
-const HOURS_TO_UNIT: Record<string, number> = { minutes: 60, hours: 1, days: 1 / 24 };
+const HOURS_TO_UNIT: Record<string, number> = {
+  seconds: 3600,
+  minutes: 60,
+  hours: 1,
+  days: 1 / 24,
+  weeks: 1 / 168,
+};
 
 const round = (value: number, digits: number): number => {
   const f = 10 ** digits;
