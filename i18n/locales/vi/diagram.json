@@ -314,5 +314,135 @@
   "runDiscoveryHint": "Nhấn Chạy khám phá để xây dựng DFG",
   "noEventsForDiscovery": "Thêm block hoặc tải lên event log để chạy khám phá.",
   "automationTab": "Tự động hóa",
-  "templatesTab": "Mẫu"
+  "templatesTab": "Mẫu",
+  "bpmnImport": {
+    "loopMultipleExits": "Một vòng lặp có nhiều lối ra tới các bước khác nhau — đã gộp thành một lối ra sau vòng lặp.",
+    "tooDeep": "Sơ đồ lồng nhau quá sâu — một phần chưa được chuyển đổi.",
+    "tooComplex": "Sơ đồ quá phức tạp để chuyển đổi đầy đủ — một phần đã bị bỏ qua.",
+    "unstructuredCycle": "Phát hiện chu trình không có cấu trúc — đã cắt tại bước bị lặp lại."
+  },
+  "calibration": {
+    "activityNotInLog": "\"{name}\" không xuất hiện trong event log — giữ nguyên thời gian.",
+    "decisionNotReached": "Không trace nào đi tới điểm quyết định \"{name}\" — giữ nguyên xác suất.",
+    "loopNotReached": "Không trace nào vào vòng lặp \"{name}\" — giữ nguyên xác suất lặp.",
+    "parallelApproximated": "Các khối song song được duyệt theo thứ tự nhánh — xác suất chỉ là gần đúng.",
+    "button": "Hiệu chỉnh từ event log",
+    "title": "Hiệu chỉnh mô hình từ event log",
+    "description": "Thời gian task, xác suất nhánh và tỉ lệ lặp đo trên log đã tải lên ({count} event). Có thể hoàn tác sau khi áp dụng.",
+    "noLog": "Hãy tải event log lên trước (tab Event Log).",
+    "timeStat": "Thống kê thời gian task",
+    "median": "Trung vị thời gian xử lý",
+    "mean": "Trung bình thời gian xử lý",
+    "colKind": "Tham số",
+    "colTarget": "Đối tượng",
+    "colChange": "Trước → sau",
+    "noChanges": "Không có gì để hiệu chỉnh.",
+    "apply": "Áp dụng hiệu chỉnh",
+    "kinds": {
+      "taskTime": "Thời gian task",
+      "branchProbability": "Xác suất nhánh",
+      "loopProbability": "Xác suất lặp"
+    }
+  },
+  "performance": {
+    "bpr": {
+      "title": "Chờ lâu trước: {name}",
+      "description": "Case phải chờ lâu trước khi bắt đầu activity này; chiếm {share}% tổng thời gian chờ trong log.",
+      "evidence": "Chờ trung vị {median} h · p95 {p95} h · max {max} h · {share}% tổng thời gian chờ"
+    },
+    "title": "Hiệu năng & thời gian chờ",
+    "subtitle": "Thời gian xử lý, chờ và chu kỳ đo trên event log đã tải lên. Thời gian chờ = khoảng từ lúc bước trước xong tới lúc bước này bắt đầu.",
+    "empty": "Phân tích hiệu năng cần event log thực có thời điểm bắt đầu và kết thúc. Hãy tải log lên ở tab Event Log.",
+    "goToEventLog": "Mở tab Event Log",
+    "noCasesInRange": "Không có case nào bắt đầu trong khoảng ngày đã chọn.",
+    "units": {
+      "minutes": "{value} phút",
+      "hours": "{value} giờ",
+      "days": "{value} ngày ({hours} giờ)"
+    },
+    "kpi": {
+      "cases": "Số case",
+      "cycleTimeMedian": "Cycle time trung vị",
+      "cycleTimeP90": "p90: {value}",
+      "cte": "Hiệu suất chu kỳ (CTE)",
+      "cteHint": "Σ xử lý / Σ cycle time",
+      "totalWaiting": "Tổng thời gian chờ",
+      "waitingPerCase": "Trung bình mỗi case: {value}"
+    },
+    "activities": {
+      "title": "Activity",
+      "description": "Tô nổi 3 điểm nghẽn có tỷ trọng thời gian chờ lớn nhất.",
+      "activity": "Activity",
+      "count": "Số lần",
+      "processingMedian": "Xử lý (trung vị)",
+      "processingMean": "Xử lý (trung bình)",
+      "waitingMedian": "Chờ (trung vị)",
+      "waitingP95": "Chờ (p95)",
+      "waitingMax": "Chờ (max)",
+      "waitingShare": "Tỷ trọng chờ"
+    },
+    "chart": {
+      "title": "Thời gian chờ nằm ở đâu?",
+      "description": "Tỷ trọng tổng thời gian chờ theo activity (chờ trước khi bắt đầu).",
+      "share": "Tỷ trọng chờ"
+    },
+    "resources": {
+      "title": "Nguồn lực",
+      "resource": "Nguồn lực",
+      "count": "Số event",
+      "processingTotal": "Xử lý (tổng)",
+      "processingMedian": "Xử lý (trung vị)",
+      "waitingMedian": "Chờ trước (trung vị)",
+      "waitingP95": "Chờ trước (p95)"
+    },
+    "cases": {
+      "title": "Case theo thời gian chờ",
+      "description": "Chờ lâu nhất xếp trước.",
+      "caseId": "Case",
+      "start": "Bắt đầu",
+      "waitingTime": "Chờ",
+      "processingTime": "Xử lý",
+      "cycleTime": "Cycle time",
+      "cte": "CTE",
+      "search": "Tìm case…"
+    },
+    "filters": {
+      "from": "Case bắt đầu từ",
+      "to": "đến",
+      "clearDates": "Xóa ngày",
+      "workingHours": "Giờ làm việc",
+      "calendarHours": "Giờ lịch"
+    },
+    "calendar": {
+      "configure": "Lịch làm việc",
+      "title": "Lịch làm việc",
+      "description": "Khi bật \"Giờ làm việc\", chỉ tính thời gian nằm trong các khung giờ này của ngày làm việc (giờ địa phương).",
+      "workDays": "Ngày làm việc",
+      "blocks": "Khung giờ làm việc",
+      "from": "Từ",
+      "to": "Đến",
+      "invalidBlock": "Giờ kết thúc phải sau giờ bắt đầu",
+      "removeBlock": "Xóa khung giờ",
+      "addBlock": "Thêm khung giờ",
+      "save": "Lưu",
+      "days": {
+        "0": "CN",
+        "1": "T2",
+        "2": "T3",
+        "3": "T4",
+        "4": "T5",
+        "5": "T6",
+        "6": "T7"
+      }
+    },
+    "heatmap": {
+      "title": "Heatmap thời gian chờ",
+      "description": "Thời gian chờ trung bình trước activity đã chọn, theo thứ và giờ bắt đầu chờ (giờ địa phương).",
+      "activity": "Activity",
+      "cell": "{day} {hour}:00 — {count} lần chờ, trung bình {mean}",
+      "emptyCell": "{day} {hour}:00 — không có lần chờ",
+      "legend": "Màu càng đậm = chờ trung bình càng lâu (đậm nhất ≈ {max})."
+    }
+  },
+  "performanceTab": "Hiệu năng"
 }

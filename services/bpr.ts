@@ -22,6 +22,7 @@ import {
 import { generateEventLog } from "./event-log";
 import { analyzeConformance } from "./conformance";
 import { computeSlaEvaluation, enrichEventsWithSla } from "./sla-benchmark";
+import { detectLongWaitIssues } from "./bpr-wait-time";
 import type { EventLogItem } from "@/types";
 
 interface FlattenedNode {
@@ -339,6 +340,7 @@ function mapToRecommendations(issues: BprIssue[], eventCount: number): BprRecomm
       const isDataDriven =
         issue.type === "slaBreach" ||
         issue.type === "conformanceViolation" ||
+        issue.type === "longWaitTime" ||
         issue.type === "lowConformanceFitness";
 
       let confidence: BprImpact;
@@ -403,6 +405,8 @@ export function analyzeBpr(
     ...detectHighCostIssues(nodes, flow.totalCost),
     ...detectSlaIssues(events, blocks, tasks),
     ...detectConformanceIssues(events, blocks, tasks),
+    // Waiting time only exists in a real log (simulated logs have no queues).
+    ...(uploadedEvents?.length ? detectLongWaitIssues(uploadedEvents, tasks) : []),
   ];
 
   // Sort by severity

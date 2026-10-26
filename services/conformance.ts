@@ -1,10 +1,7 @@
 // Conformance Checking Service: Validates Event Log traces against BPMN / Block process model.
 
 import {
-  BlockType,
-  BlockMode,
   type Block,
-  type Branch,
   type Task,
   type EventLogItem,
   type ConformanceViolation,
@@ -13,253 +10,12 @@ import {
   type LogConformanceAnalysis,
   type TraceVariantInfo,
 } from "@/types";
+import { inspectModel } from "./conformance-model";
 
 let violationCounter = 0;
 function uniqueViolationId(): string {
   violationCounter += 1;
   return `viol_${violationCounter}_${Math.random().toString(36).slice(2, 7)}`;
-}
-
-interface ModelInspection {
-  activities: string[];
-  resourceMap: Map<string, string>; // activityName -> assigned resource
-  precedenceGraph: Map<string, Set<string>>; // activity -> set of activities that MUST precede it
-  xorAlternatives: Map<string, Set<string>>; // activity -> set of activities in sibling XOR branches
-}
-
-interface BlockAnalysis {
-  all: Set<string>;
-  first: Set<string>;
-  last: Set<string>;
-  precedence: Map<string, Set<string>>;
-  resources: Map<string, string>;
-  xorAlternatives: Map<string, Set<string>>;
-}
-
-function emptyAnalysis(): BlockAnalysis {
-  return {
-    all: new Set(),
-    first: new Set(),
-    last: new Set(),
-    precedence: new Map(),
-    resources: new Map(),
-    xorAlternatives: new Map(),
-  };
-}
-
-function mergePrecedence(target: Map<string, Set<string>>, source: Map<string, Set<string>>): void {
-  for (const [key, values] of source.entries()) {
-    const set = target.get(key) || new Set();
-    for (const v of values) set.add(v);
-    target.set(key, set);
-  }
-}
-
-function mergeResources(target: Map<string, string>, source: Map<string, string>): void {
-  for (const [key, value] of source.entries()) {
-    target.set(key, value);
-  }
-}
-
-function mergeXorAlternatives(
-  target: Map<string, Set<string>>,
-  source: Map<string, Set<string>>,
-): void {
-  for (const [key, values] of source.entries()) {
-    const set = target.get(key) || new Set();
-    for (const v of values) set.add(v);
-    target.set(key, set);
-  }
-}
-
-function addPrecedence(
-  precedence: Map<string, Set<string>>,
-  activity: string,
-  predecessor: string,
-): void {
-  const set = precedence.get(activity) || new Set();
-  set.add(predecessor);
-  precedence.set(activity, set);
-}
-
-/**
- * Traverses blocks and tasks to extract activities, ordering constraints, and XOR alternatives
- * without enumerating valid execution paths (avoids exponential blow-up on XOR branches).
- */
-function inspectModel(blocks: Block[], tasks?: Task[]): ModelInspection {
-  const taskMap = new Map<string, Task>();
-  if (tasks) {
-    for (const t of tasks) taskMap.set(t.id, t);
-  }
-
-  const getActivityName = (b: Block): string => {
-    if (b.taskId && taskMap.has(b.taskId)) {
-      return taskMap.get(b.taskId)!.name;
-    }
-    return b.label || b.id;
-  };
-
-  const getAssignedResource = (b: Block): string | undefined => {
-    if (b.resource?.trim()) return b.resource.trim();
-    if (b.taskId && taskMap.has(b.taskId)) {
-      const r = taskMap.get(b.taskId)!.resource;
-      if (r?.trim()) return r.trim();
-    }
-    return undefined;
-  };
-
-  function getBranchName(br: Branch): string {
-    if (br.taskId && taskMap.has(br.taskId)) {
-      return taskMap.get(br.taskId)!.name;
-    }
-    return br.label || br.id;
-  }
-
-  function getBranchResource(br: Branch): string | undefined {
-    if (br.resource?.trim()) return br.resource.trim();
-    if (br.taskId && taskMap.has(br.taskId)) {
-      const r = taskMap.get(br.taskId)!.resource;
-      if (r?.trim()) return r.trim();
-    }
-    return undefined;
-  }
-
-  function leafAnalysis(name: string, resource: string | undefined): BlockAnalysis {
-    const set = new Set([name]);
-    return {
-      all: set,
-      first: set,
-      last: set,
-      precedence: new Map(),
-      resources: resource ? new Map([[name, resource]]) : new Map(),
-      xorAlternatives: new Map(),
-    };
-  }
-
-  function analyzeBranch(br: Branch): BlockAnalysis {
-    if (br.mode === BlockMode.COMPOSITE && br.subBlocks && br.subBlocks.length > 0) {
-      return analyzeBlocks(br.subBlocks);
-    }
-    return leafAnalysis(getBranchName(br), getBranchResource(br));
-  }
-
-  function analyzeBlocks(blockList: Block[]): BlockAnalysis {
-    const result = emptyAnalysis();
-
-    for (let i = 0; i < blockList.length; i++) {
-      const b = blockList[i];
-      let child: BlockAnalysis;
-
-      if (b.mode === BlockMode.COMPOSITE && b.subBlocks && b.subBlocks.length > 0) {
-        child = analyzeBlocks(b.subBlocks);
-      } else if (b.type === BlockType.XOR && b.branches && b.branches.length > 0) {
-        child = analyzeXorBranches(b.branches);
-      } else if (b.type === BlockType.AND && b.branches && b.branches.length > 0) {
-        child = analyzeAndBranches(b.branches);
-      } else if (b.type === BlockType.LOOP) {
-        child = analyzeLoop(b);
-      } else {
-        child = leafAnalysis(getActivityName(b), getAssignedResource(b));
-      }
-
-      // Merge child data
-      for (const act of child.all) result.all.add(act);
-      mergePrecedence(result.precedence, child.precedence);
-      mergeResources(result.resources, child.resources);
-      mergeXorAlternatives(result.xorAlternatives, child.xorAlternatives);
-
-      // Cross-block precedence: every activity seen so far must precede every activity in child
-      for (const prev of result.all) {
-        if (child.all.has(prev)) continue;
-        for (const curr of child.all) {
-          addPrecedence(result.precedence, curr, prev);
-        }
-      }
-
-      if (i === 0) {
-        result.first = child.first;
-        result.last = child.last;
-      } else {
-        result.last = child.last;
-      }
-    }
-
-    return result;
-  }
-
-  function analyzeXorBranches(branches: Branch[]): BlockAnalysis {
-    const result = emptyAnalysis();
-    const branchAnalyses: BlockAnalysis[] = [];
-
-    for (const br of branches) {
-      const child = analyzeBranch(br);
-      branchAnalyses.push(child);
-
-      for (const act of child.all) result.all.add(act);
-      mergePrecedence(result.precedence, child.precedence);
-      mergeResources(result.resources, child.resources);
-      mergeXorAlternatives(result.xorAlternatives, child.xorAlternatives);
-
-      for (const act of child.first) result.first.add(act);
-      for (const act of child.last) result.last.add(act);
-    }
-
-    // Record XOR alternatives: activities in different branches are alternatives
-    for (let i = 0; i < branchAnalyses.length; i++) {
-      for (let j = 0; j < branchAnalyses.length; j++) {
-        if (i === j) continue;
-        const setA = branchAnalyses[i]!.all;
-        const setB = branchAnalyses[j]!.all;
-        for (const act of setA) {
-          const altSet = result.xorAlternatives.get(act) || new Set();
-          for (const alt of setB) altSet.add(alt);
-          result.xorAlternatives.set(act, altSet);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  function analyzeAndBranches(branches: Branch[]): BlockAnalysis {
-    const result = emptyAnalysis();
-
-    for (const br of branches) {
-      const child = analyzeBranch(br);
-
-      for (const act of child.all) result.all.add(act);
-      mergePrecedence(result.precedence, child.precedence);
-      mergeResources(result.resources, child.resources);
-      mergeXorAlternatives(result.xorAlternatives, child.xorAlternatives);
-
-      for (const act of child.first) result.first.add(act);
-      for (const act of child.last) result.last.add(act);
-    }
-
-    return result;
-  }
-
-  function analyzeLoop(block: Block): BlockAnalysis {
-    // Loop body may repeat, but for conformance checking we treat the body like a sequential block
-    // that can be traversed multiple times. Internal precedence is preserved; cross-iteration
-    // ordering is intentionally relaxed to keep validation linear.
-    if (block.mode === BlockMode.COMPOSITE && block.subBlocks && block.subBlocks.length > 0) {
-      return analyzeBlocks(block.subBlocks);
-    }
-    if (block.branches && block.branches[0]) {
-      return analyzeBranch(block.branches[0]);
-    }
-    return leafAnalysis(getActivityName(block), getAssignedResource(block));
-  }
-
-  const analysis = analyzeBlocks(blocks);
-
-  return {
-    activities: Array.from(analysis.all),
-    resourceMap: analysis.resources,
-    precedenceGraph: analysis.precedence,
-    xorAlternatives: analysis.xorAlternatives,
-  };
 }
 
 /**
@@ -370,22 +126,25 @@ export function analyzeConformance(
         violationCounts.unexpected_activity++;
       } else {
         // 2. Check for Resource compliance
+        // Compare the assigned role/lane with the event's role when the log has one,
+        // never a lane name with a person's name.
         const expectedResource = model.resourceMap.get(ev.activity);
+        const actualPerformer = ev.role?.trim() || ev.resource;
         if (
           expectedResource &&
-          ev.resource &&
-          ev.resource !== "Unassigned" &&
-          expectedResource.toLowerCase() !== ev.resource.toLowerCase()
+          actualPerformer &&
+          actualPerformer !== "Unassigned" &&
+          expectedResource.toLowerCase() !== actualPerformer.toLowerCase()
         ) {
           stepStatus = "wrong_resource";
-          violationMsg = `Executed by "${ev.resource}" instead of assigned role "${expectedResource}".`;
+          violationMsg = `Executed by "${actualPerformer}" instead of assigned role "${expectedResource}".`;
           violations.push({
             id: uniqueViolationId(),
             caseId,
             type: "wrong_resource",
             activity: ev.activity,
             expected: expectedResource,
-            actual: ev.resource,
+            actual: actualPerformer,
             resource: ev.resource,
             stepIndex: idx + 1,
             message: violationMsg,
@@ -406,9 +165,9 @@ export function analyzeConformance(
     });
 
     // 3. Check for Skipped Activities (Bỏ bước bắt buộc)
-    // An activity is skipped only if it was not executed and no XOR alternative was executed.
+    // An activity is skipped only if it is mandatory, was not executed and no XOR alternative was executed.
     for (const expectedAct of modelActivitySet) {
-      if (!executedSet.has(expectedAct)) {
+      if (!executedSet.has(expectedAct) && !model.optionalActivities.has(expectedAct)) {
         const alternatives = model.xorAlternatives.get(expectedAct);
         const hasAlternativeExecuted = alternatives
           ? Array.from(alternatives).some((alt) => executedSet.has(alt))

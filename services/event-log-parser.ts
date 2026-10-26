@@ -1,15 +1,15 @@
 import * as XLSX from "xlsx";
 import type { EventLogItem } from "@/types";
 import { cleanTaskName } from "@/utils/formats";
-import { normalizeColName, parseFlexibleDate, ALIAS_GROUPS } from "./event-log-helpers";
+import {
+  normalizeColName,
+  parseFlexibleDate,
+  ALIAS_GROUPS,
+  createEventId,
+} from "./event-log-helpers";
+import { parseEventLogXes } from "./event-log-xes";
 
-export { normalizeColName, parseFlexibleDate, ALIAS_GROUPS };
-
-let idCounter = 0;
-function uniqueId(): string {
-  idCounter += 1;
-  return `evt_${idCounter}_${Math.random().toString(36).slice(2, 7)}`;
-}
+export { normalizeColName, parseFlexibleDate, ALIAS_GROUPS, parseEventLogXes };
 
 export interface ParseEventLogResult {
   items: EventLogItem[];
@@ -57,7 +57,10 @@ export function parseEventLogRows(
 
   const caseIdx = findColIndex(...ALIAS_GROUPS.case);
   const actIdx = findColIndex(...ALIAS_GROUPS.act);
-  const resIdx = findColIndex(...ALIAS_GROUPS.res);
+  const roleIdx = findColIndex(...ALIAS_GROUPS.role);
+  // Logs with only a role column keep using it as the performer.
+  const explicitResIdx = findColIndex(...ALIAS_GROUPS.res);
+  const resIdx = explicitResIdx !== -1 ? explicitResIdx : roleIdx;
   const startIdx = findColIndex(...ALIAS_GROUPS.start);
   const endIdx = findColIndex(...ALIAS_GROUPS.end);
   const durIdx = findColIndex(...ALIAS_GROUPS.dur);
@@ -65,6 +68,28 @@ export function parseEventLogRows(
   const taskIdx = findColIndex(...ALIAS_GROUPS.task);
   const benchmarkIdx = findColIndex(...ALIAS_GROUPS.benchmark);
   const slaStatusIdx = findColIndex(...ALIAS_GROUPS.status);
+
+  const mappedIdx = new Set([
+    caseIdx,
+    actIdx,
+    resIdx,
+    roleIdx,
+    startIdx,
+    endIdx,
+    durIdx,
+    costIdx,
+    taskIdx,
+    benchmarkIdx,
+    slaStatusIdx,
+  ]);
+  const rawHeaders = (rawRows[headerRowIdx] || []).map((c) =>
+    String(c ?? "")
+      .replace(/^\uFEFF/, "")
+      .trim(),
+  );
+  const extraIdx = rawHeaders
+    .map((_, idx) => idx)
+    .filter((idx) => !mappedIdx.has(idx) && rawHeaders[idx]);
 
   const items: EventLogItem[] = [];
   const now = Date.now();
@@ -77,6 +102,9 @@ export function parseEventLogRows(
     const caseId = caseIdx !== -1 && row[caseIdx] ? row[caseIdx]! : `Case_${rowNum}`;
     const rawAct = actIdx !== -1 && row[actIdx] ? row[actIdx]! : `Activity_${rowNum}`;
     const resource = resIdx !== -1 && row[resIdx] ? row[resIdx]! : "Unassigned";
+    const role = roleIdx !== -1 && row[roleIdx] ? row[roleIdx]! : undefined;
+    const attributes: Record<string, string> = {};
+    for (const idx of extraIdx) if (row[idx]) attributes[rawHeaders[idx]!] = row[idx]!;
 
     let taskId = taskIdx !== -1 && row[taskIdx] ? row[taskIdx]! : undefined;
     const activity = cleanTaskName(rawAct);
@@ -147,10 +175,11 @@ export function parseEventLogRows(
     }
 
     items.push({
-      id: uniqueId(),
+      id: createEventId(),
       caseId,
       activity,
       resource,
+      role,
       startTimestamp: startIso,
       completeTimestamp: endIso,
       duration,
@@ -158,6 +187,7 @@ export function parseEventLogRows(
       taskId,
       benchmarkDuration,
       slaStatus,
+      ...(extraIdx.length ? { attributes } : {}),
     });
   }
 
@@ -212,80 +242,6 @@ export function parseEventLogCsv(csvContent: string): EventLogItem[] {
 
   const rawRows = lines.map(parseRow);
   return parseEventLogRows(rawRows);
-}
-
-/**
- * Parses IEEE XES XML text into standard EventLogItem array.
- */
-export function parseEventLogXes(xesXml: string): EventLogItem[] {
-  const items: EventLogItem[] = [];
-  if (!xesXml.includes("<trace")) return items;
-
-  const traceRegex = /<trace[\s\S]*?<\/trace>/gi;
-  const eventRegex = /<event[\s\S]*?<\/event>/gi;
-  const attrRegex = /<(string|date|float|int)\s+key="([^"]+)"\s+value="([^"]*)"\s*\/?>/gi;
-
-  let traceMatch: RegExpExecArray | null;
-  let caseCounter = 1;
-
-  while ((traceMatch = traceRegex.exec(xesXml)) !== null) {
-    const traceBlock = traceMatch[0];
-
-    let caseId = `Case_${caseCounter}`;
-    const traceHeader = traceBlock.slice(
-      0,
-      traceBlock.indexOf("<event") !== -1 ? traceBlock.indexOf("<event") : undefined,
-    );
-    let attrMatch: RegExpExecArray | null;
-    while ((attrMatch = attrRegex.exec(traceHeader)) !== null) {
-      if (attrMatch[2] === "concept:name") {
-        caseId = attrMatch[3] || caseId;
-        break;
-      }
-    }
-
-    let eventMatch: RegExpExecArray | null;
-    while ((eventMatch = eventRegex.exec(traceBlock)) !== null) {
-      const eventBlock = eventMatch[0];
-      let activity = "Unknown Activity";
-      let resource = "Unassigned";
-      let timestamp = new Date().toISOString();
-      let duration = 1;
-      let cost = 0;
-
-      let eventAttrMatch: RegExpExecArray | null;
-      while ((eventAttrMatch = attrRegex.exec(eventBlock)) !== null) {
-        const key = eventAttrMatch[2];
-        const val = eventAttrMatch[3] || "";
-
-        if (key === "concept:name") activity = cleanTaskName(val);
-        else if (key === "org:resource") resource = val;
-        else if (key === "time:timestamp") timestamp = val;
-        else if (key === "duration") {
-          const num = parseFloat(val);
-          if (!isNaN(num)) duration = num;
-        } else if (key === "cost") {
-          const num = parseFloat(val);
-          if (!isNaN(num)) cost = num;
-        }
-      }
-
-      items.push({
-        id: uniqueId(),
-        caseId,
-        activity,
-        resource,
-        startTimestamp: timestamp,
-        completeTimestamp: timestamp,
-        duration,
-        cost,
-      });
-    }
-
-    caseCounter++;
-  }
-
-  return items;
 }
 
 /**
@@ -369,10 +325,11 @@ export async function parseEventLogFile(
       const data = JSON.parse(text);
       if (Array.isArray(data)) {
         const items = data.map((d) => ({
-          id: d.id || uniqueId(),
+          id: d.id || createEventId(),
           caseId: String(d.caseId || d.case_id || "Case_1"),
           activity: cleanTaskName(String(d.activity || d.task || "Activity")),
           resource: String(d.resource || d.role || "Unassigned"),
+          role: d.role ? String(d.role) : undefined,
           startTimestamp: String(d.startTimestamp || d.start || new Date().toISOString()),
           completeTimestamp: String(d.completeTimestamp || d.end || new Date().toISOString()),
           duration: typeof d.duration === "number" ? d.duration : 1,

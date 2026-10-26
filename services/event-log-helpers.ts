@@ -2,8 +2,16 @@
  * Helper utilities and column alias dictionaries for parsing Event Logs (CSV, Excel, XES).
  */
 
+let eventIdCounter = 0;
+/** Generates a unique id for a parsed event-log item. */
+export function createEventId(): string {
+  eventIdCounter += 1;
+  return `evt_${eventIdCounter}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
 export function normalizeColName(str: string): string {
   return String(str || "")
+    .replace(/^\uFEFF/, "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -103,12 +111,12 @@ export const ALIAS_GROUPS = {
     "orgresource",
     "user",
     "username",
-    "role",
     "vaitro",
     "bophan",
     "thuchien",
     "assignee",
   ],
+  role: ["role", "orgrole", "lane", "vaitro"],
   start: [
     "starttimestamp",
     "start",
@@ -122,7 +130,11 @@ export const ALIAS_GROUPS = {
     "startdate",
   ],
   end: [
+    "endtimestamp",
     "completetimestamp",
+    "finishtimestamp",
+    "completetime",
+    "timecomplete",
     "complete",
     "endtime",
     "end",

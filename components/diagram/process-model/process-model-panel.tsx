@@ -17,6 +17,7 @@ import { exportSvgToPng, slugify } from "@/utils";
 import { DiagramInspector } from "../diagram-inspector";
 import { ImportGraphDialog } from "../import-graph-dialog";
 import { ExportGraphDialog } from "../export-graph-dialog";
+import { CalibrateFromLogDialog } from "../calibration";
 import { DiagramViewport } from "../diagram-viewport";
 import { DiagramGuidelines, type ActiveGuideline } from "../diagram-guidelines";
 import { ProcessModelFlowRenderer } from "./process-model-svg-renderer";
@@ -391,6 +392,7 @@ export function ProcessModelPanel({ blocks, tasks, unit }: ProcessModelPanelProp
               <Download className="size-3.5 mr-1.5" />
               {t("exportPng")}
             </Button>
+            <CalibrateFromLogDialog />
             <ExportGraphDialog graph={graph} />
             <ImportGraphDialog />
           </div>

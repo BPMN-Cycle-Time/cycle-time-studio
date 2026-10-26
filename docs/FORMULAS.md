@@ -222,7 +222,46 @@ $$S_1 \le S_2 \le \dots \le S_N$$
 
 ---
 
-## 5. Bảng tổng hợp tra cứu nhanh (Cheat Sheet)
+## 5. Phân tích hiệu năng từ Event Log (`analyzePerformance`)
+
+Nguồn: `services/performance-analysis.ts`. Đơn vị **giờ**, tính từ `startTimestamp` / `completeTimestamp`
+(không dùng field `duration` đã làm tròn).
+
+- **Thứ tự event trong case:** theo `start` tăng dần, rồi `complete`, rồi thứ tự trong log.
+- **Thời gian xử lý** event $e$: $P_e = \text{complete}_e - \text{start}_e$.
+- **Thời gian chờ** event $e$ (trừ event đầu case): $W_e = \max\big(0,\; \text{start}_e - \max_{f \prec e} \text{complete}_f\big)$.
+- **Case:** $CT = \max(\text{complete}) - \min(\text{start})$, $P = \sum P_e$, $W = \sum W_e$, $CTE = P / CT$.
+- **CTE tổng:** $CTE_{overall} = \sum P / \sum CT$ (tỷ số của tổng, không phải trung bình các tỷ số).
+- **Thống kê:** `count, mean, median, p90, p95, max, total`; phân vị nội suy tuyến tính $pos = (n-1)\cdot p$
+  (như `numpy.quantile` / Excel `PERCENTILE.INC`).
+- **Xếp hạng điểm nghẽn:** $share_a = W^{total}_a / \sum_b W^{total}_b$, sắp giảm dần.
+- **Lịch làm việc** (tùy chọn, `WorkCalendar`): mọi khoảng thời gian chỉ đếm phần nằm trong các block giờ làm việc
+  của ngày làm việc, theo giờ địa phương (`services/work-calendar.ts`).
+- **Heatmap chờ** (`waitingHeatmap`): với một activity, mỗi lần chờ $W_e$ được xếp vào ô (thứ, giờ) của thời điểm
+  **bắt đầu chờ** $\max_{f \prec e} \text{complete}_f$; giá trị ô = trung bình $W_e$.
+
+---
+
+## 6. Hiệu chỉnh mô hình từ Event Log (`calibrateModelFromLog`)
+
+Nguồn: `services/model-calibration.ts` (hàm thuần, trả bản sao mới).
+
+- **Thời gian task:** $T_{task} = \text{median}$ (hoặc mean) thời gian xử lý của activity cùng tên, đổi sang đơn vị
+  project (hours ×1, minutes ×60, days ÷24). Activity không có trong log ⇒ giữ nguyên + cảnh báo.
+- **Phát lại trace trên mô hình:** cây block được dựng thành automaton kiểu Glushkov
+  (`services/calibration/trace-automaton.ts`): activity là node; mỗi XOR, mỗi lần vào LOOP và mỗi lần lặp lại LOOP là
+  một node _marker_. Với mỗi cặp activity liên tiếp $a \to b$ trong trace (kể cả START → đầu, cuối → END), đường ngắn
+  nhất từ $a$ tới $b$ chỉ đi qua marker cho biết nhánh XOR được chọn và vòng lặp được vào / lặp lại.
+- **Xác suất nhánh XOR:** $p_k = 100 \cdot n_k / \sum_j n_j$ ($n_k$ = số lần chọn nhánh $k$ tại điểm quyết định),
+  làm tròn 1 chữ số, tổng = 100. Nếu activity kế tiếp thuộc phần sau XOR ⇒ nhánh rỗng. XOR không được đi tới ⇒ giữ
+  nguyên + cảnh báo.
+- **Xác suất lặp:** $r = 100 \cdot \dfrac{\text{repeats}}{\text{entries} + \text{repeats}}
+  = 100 \cdot \Big(1 - \dfrac{\text{entries}}{\text{số lần bắt đầu thân vòng lặp}}\Big)$.
+- **Kiểm chứng:** hiệu chỉnh với `mean` ⇒ $CT$ của mô hình (`computeFlow`) = thời gian xử lý trung bình mỗi case.
+
+---
+
+## 7. Bảng tổng hợp tra cứu nhanh (Cheat Sheet)
 
 | Loại phần tử               | Thời gian chu kỳ ($CT$)                       | Chi phí quy trình ($\text{Cost}$)                     |
 | :------------------------- | :-------------------------------------------- | :---------------------------------------------------- |

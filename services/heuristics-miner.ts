@@ -399,10 +399,14 @@ async function buildBpmnXml(
   const builder = new BpmnBuilder(processName);
   const nodeIds = new Map<string, string>();
 
+  // Start/end events are required for the diagram to be importable ("Apply" walks from the start).
+  const startId = builder.addNode("Start", "startEvent", "Start");
   for (const n of nodes) {
-    const nodeId = builder.addNode(cleanTaskName(n.label), "task", cleanTaskName(n.label));
+    // Prefix must be a valid XML id fragment — never the raw activity label.
+    const nodeId = builder.addNode("Task", "task", cleanTaskName(n.label));
     nodeIds.set(n.label, nodeId);
   }
+  const endId = builder.addNode("End", "endEvent", "End");
 
   for (const e of edges) {
     const sourceId = nodeIds.get(e.source);
@@ -410,6 +414,14 @@ async function buildBpmnXml(
     if (sourceId && targetId) {
       builder.addFlow(sourceId, targetId);
     }
+  }
+
+  const starts = nodes.filter((n) => n.isStart);
+  for (const n of starts.length ? starts : nodes.slice(0, 1)) {
+    builder.addFlow(startId, nodeIds.get(n.label)!);
+  }
+  for (const n of nodes.filter((x) => x.isEnd)) {
+    builder.addFlow(nodeIds.get(n.label)!, endId);
   }
 
   return layoutProcess(builder.toXml());

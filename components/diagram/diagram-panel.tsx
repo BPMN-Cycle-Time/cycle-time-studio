@@ -11,6 +11,7 @@ import { BprPanel } from "./bpr";
 import { DiscoveryPanel } from "./discovery";
 import { AutomationPanel } from "./automation";
 import { TemplatesPanel } from "./templates";
+import { PerformancePanel } from "./performance";
 import type { DiagramTab } from "@/components/layout";
 
 interface DiagramPanelProps {
@@ -49,6 +50,9 @@ export function DiagramPanel({ blocks, unit, activeTab, onTabChange }: DiagramPa
           onDataSourceChange={setEventLogDataSource}
           onSwitchDiagramTab={onTabChange}
         />
+      )}
+      {activeTab === "performance" && (
+        <PerformancePanel uploadedEvents={uploadedEvents} onSwitchDiagramTab={onTabChange} />
       )}
       {activeTab === "socialNetwork" && (
         <SocialNetworkPanel

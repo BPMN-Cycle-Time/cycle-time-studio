@@ -12,3 +12,5 @@ export * from "./diagram-routing-switcher";
 export * from "./event-log";
 export * from "./social-network";
 export * from "./bpr";
+export * from "./calibration";
+export * from "./performance";

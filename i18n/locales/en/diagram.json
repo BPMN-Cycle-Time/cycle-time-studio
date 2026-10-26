@@ -314,5 +314,135 @@
   "runDiscoveryHint": "Click Run Discovery to build the DFG",
   "noEventsForDiscovery": "Add blocks or upload an event log to run discovery.",
   "automationTab": "Automation",
-  "templatesTab": "Templates"
+  "templatesTab": "Templates",
+  "bpmnImport": {
+    "loopMultipleExits": "A loop has several exits to different steps — they were merged into one exit after the loop.",
+    "tooDeep": "The diagram is nested too deeply — part of it was not converted.",
+    "tooComplex": "The diagram is too complex to convert completely — part of it was skipped.",
+    "unstructuredCycle": "An unstructured cycle was found — it was cut at the repeated step."
+  },
+  "calibration": {
+    "activityNotInLog": "\"{name}\" does not appear in the event log — its time was kept.",
+    "decisionNotReached": "Decision \"{name}\" is never reached in the log — its probabilities were kept.",
+    "loopNotReached": "Loop \"{name}\" is never entered in the log — its repeat probability was kept.",
+    "parallelApproximated": "Parallel blocks were replayed in branch order — their probabilities are approximate.",
+    "button": "Calibrate from event log",
+    "title": "Calibrate model from event log",
+    "description": "Task times, decision probabilities and loop rates measured on the uploaded log ({count} events). Applying can be undone.",
+    "noLog": "Upload an event log first (Event Log tab).",
+    "timeStat": "Task time statistic",
+    "median": "Median processing time",
+    "mean": "Mean processing time",
+    "colKind": "Parameter",
+    "colTarget": "Target",
+    "colChange": "Before → after",
+    "noChanges": "Nothing to calibrate.",
+    "apply": "Apply calibration",
+    "kinds": {
+      "taskTime": "Task time",
+      "branchProbability": "Branch probability",
+      "loopProbability": "Loop probability"
+    }
+  },
+  "performance": {
+    "bpr": {
+      "title": "Long waiting time before: {name}",
+      "description": "Cases wait a long time before this activity starts; it accounts for {share}% of all waiting time in the log.",
+      "evidence": "Wait median {median} h · p95 {p95} h · max {max} h · {share}% of total waiting"
+    },
+    "title": "Performance & waiting time",
+    "subtitle": "Processing, waiting and cycle time measured on the uploaded event log. Waiting = gap between the previous step finishing and this step starting.",
+    "empty": "Performance analysis needs a real event log with start and end timestamps. Upload one in the Event Log tab.",
+    "goToEventLog": "Go to Event Log",
+    "noCasesInRange": "No case starts in the selected date range.",
+    "units": {
+      "minutes": "{value} min",
+      "hours": "{value} h",
+      "days": "{value} d ({hours} h)"
+    },
+    "kpi": {
+      "cases": "Cases",
+      "cycleTimeMedian": "Median cycle time",
+      "cycleTimeP90": "p90: {value}",
+      "cte": "Cycle time efficiency",
+      "cteHint": "Σ processing / Σ cycle time",
+      "totalWaiting": "Total waiting time",
+      "waitingPerCase": "Mean per case: {value}"
+    },
+    "activities": {
+      "title": "Activities",
+      "description": "Top 3 bottlenecks by share of total waiting time are highlighted.",
+      "activity": "Activity",
+      "count": "Count",
+      "processingMedian": "Processing (median)",
+      "processingMean": "Processing (mean)",
+      "waitingMedian": "Wait (median)",
+      "waitingP95": "Wait (p95)",
+      "waitingMax": "Wait (max)",
+      "waitingShare": "Share of waiting"
+    },
+    "chart": {
+      "title": "Where does the waiting time go?",
+      "description": "Share of total waiting time per activity (waiting before it starts).",
+      "share": "Share of waiting"
+    },
+    "resources": {
+      "title": "Resources",
+      "resource": "Resource",
+      "count": "Events",
+      "processingTotal": "Processing (total)",
+      "processingMedian": "Processing (median)",
+      "waitingMedian": "Wait before (median)",
+      "waitingP95": "Wait before (p95)"
+    },
+    "cases": {
+      "title": "Cases by waiting time",
+      "description": "Longest waiting first.",
+      "caseId": "Case",
+      "start": "Started",
+      "waitingTime": "Waiting",
+      "processingTime": "Processing",
+      "cycleTime": "Cycle time",
+      "cte": "CTE",
+      "search": "Search case…"
+    },
+    "filters": {
+      "from": "Cases started from",
+      "to": "to",
+      "clearDates": "Clear dates",
+      "workingHours": "Working hours",
+      "calendarHours": "Calendar hours"
+    },
+    "calendar": {
+      "configure": "Work calendar",
+      "title": "Work calendar",
+      "description": "Only time inside these blocks on working days is counted when \"Working hours\" is on (local time).",
+      "workDays": "Working days",
+      "blocks": "Working hours",
+      "from": "From",
+      "to": "To",
+      "invalidBlock": "End must be after start",
+      "removeBlock": "Remove block",
+      "addBlock": "Add block",
+      "save": "Save",
+      "days": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      }
+    },
+    "heatmap": {
+      "title": "Waiting heatmap",
+      "description": "Mean waiting time before the selected activity, by the weekday and hour the wait began (local time).",
+      "activity": "Activity",
+      "cell": "{day} {hour}:00 — {count} waits, mean {mean}",
+      "emptyCell": "{day} {hour}:00 — no waits",
+      "legend": "Darker = longer mean wait (darkest ≈ {max})."
+    }
+  },
+  "performanceTab": "Performance"
 }

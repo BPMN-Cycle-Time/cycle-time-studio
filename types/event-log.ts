@@ -5,6 +5,8 @@ export interface EventLogItem {
   caseId: string;
   activity: string;
   resource: string;
+  /** Organisational role / lane of the performer (e.g. CSV `role`, XES `org:role`), when the log has one. */
+  role?: string;
   startTimestamp: string;
   completeTimestamp: string;
   duration: number;
@@ -13,6 +15,8 @@ export interface EventLogItem {
   blockId?: string;
   benchmarkDuration?: number | null;
   slaStatus?: "met" | "delayed" | null;
+  /** Extra columns / attributes of the source log not mapped to a field above. */
+  attributes?: Record<string, string>;
 }
 
 export interface TaskBenchmarkSummary {

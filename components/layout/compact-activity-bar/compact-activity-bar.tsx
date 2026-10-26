@@ -18,6 +18,7 @@ import {
   GitFork,
   Bot,
   Layers,
+  Hourglass,
 } from "lucide-react";
 
 import { AppTooltip, Input } from "@/components/ui";
@@ -33,6 +34,7 @@ export type DiagramTab =
   | "graph"
   | "bpmn"
   | "eventLog"
+  | "performance"
   | "socialNetwork"
   | "bpr"
   | "discovery"
@@ -51,6 +53,7 @@ interface NavItem {
     | "graphTab"
     | "bpmnTab"
     | "eventLogTab"
+    | "performanceTab"
     | "socialNetworkTab"
     | "bprTab"
     | "discoveryTab"
@@ -64,6 +67,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "graph", labelKey: "graphTab", icon: GitBranch },
   { value: "bpmn", labelKey: "bpmnTab", icon: FileCode2 },
   { value: "eventLog", labelKey: "eventLogTab", icon: ScrollText },
+  { value: "performance", labelKey: "performanceTab", icon: Hourglass },
   { value: "socialNetwork", labelKey: "socialNetworkTab", icon: Network },
   { value: "discovery", labelKey: "discoveryTab", icon: GitFork },
   { value: "automation", labelKey: "automationTab", icon: Bot },

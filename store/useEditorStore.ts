@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import { temporal } from "zundo";
-import type { Block, Branch, Project, Task, EventLogItem, EventLogDataSource } from "@/types";
+import type {
+  Block,
+  Branch,
+  Project,
+  Task,
+  EventLogItem,
+  EventLogDataSource,
+  WorkCalendar,
+} from "@/types";
 import { BlockMode, BlockType } from "@/types";
 import { t } from "@/utils/i18n";
 import { loadProject } from "./useProjectsIndex";
@@ -50,6 +58,7 @@ export interface EditorState {
 
   setUploadedEvents: (events: EventLogItem[] | null) => void;
   setEventLogDataSource: (source: EventLogDataSource) => void;
+  setWorkCalendar: (calendar: WorkCalendar) => void;
 
   select: (kind: SelectionKind | null, id: string | null) => void;
 }
@@ -361,6 +370,14 @@ export const useEditorStore = create<EditorState>()(
           ...s.project,
           eventLogDataSource: source,
         };
+        set({ project });
+        persistNow(project);
+      },
+
+      setWorkCalendar: (calendar) => {
+        const s = get();
+        if (!s.project) return;
+        const project: Project = { ...s.project, workCalendar: calendar };
         set({ project });
         persistNow(project);
       },
