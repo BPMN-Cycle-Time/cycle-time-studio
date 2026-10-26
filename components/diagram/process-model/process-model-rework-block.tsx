@@ -6,6 +6,9 @@ import {
   formatTimeValue,
   TASK_W,
   TASK_H,
+  GW,
+  GAP,
+  LOOP_H,
   type BlockMeasurement,
   type FlowMeasurement,
 } from "@/services/graph";
@@ -15,6 +18,7 @@ import { renderTaskBox } from "./process-model-nodes";
 import {
   getItemKey,
   getItemExitKey,
+  getItemEdgeKind,
   buildRoundedOrthogonalPath,
   type ProcessModelRendererContext,
 } from "./process-model-helpers";
@@ -39,10 +43,16 @@ export function renderReworkBlock(
   const fillColor = "var(--c-rework-soft, #ecdfe6)";
   const gid = ctx.graphIdOf(`block:${b.id}`);
   const loopGid = ctx.graphIdOf(`loop:${b.id}`);
+  // Anchor boxes of the loop arc: a task box, or the bounding square of a gateway diamond.
   let targetX: number;
   let targetY: number;
   let sourceX: number;
   let sourceY: number;
+  let targetW = TASK_W;
+  let targetH = TASK_H;
+  let sourceW = TASK_W;
+  let sourceH = TASK_H;
+  let bodyBottom = centerY + TASK_H / 2;
 
   if ("single" in item.body && item.body.single) {
     const key = `rw-task-${b.id}`;
@@ -79,18 +89,38 @@ export function renderReworkBlock(
     const firstOff = firstKey ? ctx.customOffsets[firstKey] || { dx: 0, dy: 0 } : { dx: 0, dy: 0 };
     const lastOff = lastKey ? ctx.customOffsets[lastKey] || { dx: 0, dy: 0 } : { dx: 0, dy: 0 };
 
+    // The body may start with a split diamond and end with a join diamond (gateway block),
+    // which sit at the body's edges on the centre line, not where a task box would be.
+    if (flow.items.length > 0 && getItemEdgeKind(flow.items[0]!, "entry") === "gateway") {
+      targetW = GW;
+      targetH = GW;
+    }
+    if (
+      flow.items.length > 0 &&
+      getItemEdgeKind(flow.items[flow.items.length - 1]!, "exit") === "gateway"
+    ) {
+      sourceW = GW;
+      sourceH = GW;
+    }
+    // Lowest point of the body (e.g. a lower XOR branch), so the arc runs below it, not through it.
+    bodyBottom = centerY + (flow.h - flow.center);
     targetX = x + firstOff.dx;
-    targetY = centerY - TASK_H / 2 + firstOff.dy;
-    sourceX = x + item.w - TASK_W + lastOff.dx;
-    sourceY = centerY - TASK_H / 2 + lastOff.dy;
+    targetY = centerY - targetH / 2 + firstOff.dy;
+    sourceX = x + item.w - sourceW + lastOff.dx;
+    sourceY = centerY - sourceH / 2 + lastOff.dy;
   }
 
-  const targetCx = targetX + TASK_W / 2;
-  const sourceCx = sourceX + TASK_W / 2;
+  const targetCx = targetX + targetW / 2;
+  const sourceCx = sourceX + sourceW / 2;
   const targetTop = targetY;
-  const targetBottom = targetY + TASK_H;
+  const targetBottom = targetY + targetH;
   const sourceTop = sourceY;
-  const sourceBottom = sourceY + TASK_H;
+  const sourceBottom = sourceY + sourceH;
+  const sourceIsGateway = sourceW === GW && sourceH === GW;
+  const targetIsGateway = targetW === GW && targetH === GW;
+  // A diamond's top/bottom vertices already carry the branch edges, so the arc leaves a join
+  // diamond after its right vertex and enters a split diamond at its left vertex.
+  const targetInset = targetIsGateway ? GW / 2 : 8;
 
   const r = b.loopP ?? 0;
   const isBad = r >= 100;
@@ -105,7 +135,10 @@ export function renderReworkBlock(
   const bendTgt = ctx.customEdgeBends?.[tgtKey] ?? ctx.customEdgeBends?.[arcKey];
   const userArcOffset = ctx.customOffsets[arcKey] || { dx: 0, dy: 0 };
 
-  const defaultUnderneathY = Math.max(targetBottom, sourceBottom) + 36;
+  const defaultUnderneathY = Math.max(
+    Math.max(targetBottom, sourceBottom) + 36,
+    bodyBottom + LOOP_H / 2,
+  );
   let midY: number;
   if (bendMid?.y != null) {
     midY = bendMid.y;
@@ -118,30 +151,48 @@ export function renderReworkBlock(
   const isUnderneath = midY >= Math.max(targetBottom, sourceBottom);
 
   // Right vertical segment (Source: e.g. Kiem tra chat luong)
-  const rawSourceX = bendSrc?.x ?? sourceCx;
-  const effectiveSourceX = Math.max(sourceX + 8, Math.min(sourceX + TASK_W - 8, rawSourceX));
-  const startPt = { x: effectiveSourceX, y: isUnderneath ? sourceBottom : sourceTop };
+  let effectiveSourceX: number;
+  let sourceLead: Array<{ x: number; y: number }>;
+  if (sourceIsGateway) {
+    const rightVertexX = sourceX + GW;
+    effectiveSourceX = Math.max(rightVertexX + 6, bendSrc?.x ?? rightVertexX + GAP / 2);
+    const rightVertex = { x: rightVertexX, y: sourceY + GW / 2 };
+    sourceLead = [rightVertex, { x: effectiveSourceX, y: rightVertex.y }];
+  } else {
+    const rawSourceX = bendSrc?.x ?? sourceCx;
+    effectiveSourceX = Math.max(sourceX + 8, Math.min(sourceX + sourceW - 8, rawSourceX));
+    sourceLead = [{ x: effectiveSourceX, y: isUnderneath ? sourceBottom : sourceTop }];
+  }
+  const startPt = sourceLead[sourceLead.length - 1]!;
 
   // Left vertical segment (Target: e.g. Dong goi)
-  const rawVertX = bendTgt?.x ?? targetCx;
+  const rawVertX = bendTgt?.x ?? (targetIsGateway ? targetX - GAP / 2 : targetCx);
   let endPt: { x: number; y: number };
   let effectiveVertX: number;
   let loopPoints: Array<{ x: number; y: number }>;
 
   if (rawVertX < targetX) {
     effectiveVertX = rawVertX;
-    endPt = { x: targetX, y: targetY + TASK_H / 2 };
+    endPt = { x: targetX, y: targetY + targetH / 2 };
     loopPoints = [
-      startPt,
+      ...sourceLead,
       { x: effectiveSourceX, y: midY },
       { x: effectiveVertX, y: midY },
       { x: effectiveVertX, y: endPt.y },
       endPt,
     ];
   } else {
-    effectiveVertX = Math.max(targetX + 8, Math.min(targetX + TASK_W - 8, rawVertX));
+    effectiveVertX = Math.max(
+      targetX + targetInset,
+      Math.min(targetX + targetW - targetInset, rawVertX),
+    );
     endPt = { x: effectiveVertX, y: isUnderneath ? targetBottom : targetTop };
-    loopPoints = [startPt, { x: effectiveSourceX, y: midY }, { x: effectiveVertX, y: midY }, endPt];
+    loopPoints = [
+      ...sourceLead,
+      { x: effectiveSourceX, y: midY },
+      { x: effectiveVertX, y: midY },
+      endPt,
+    ];
   }
 
   const loopPathD = buildRoundedOrthogonalPath(loopPoints, 8);

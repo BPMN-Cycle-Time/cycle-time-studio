@@ -61,6 +61,22 @@ export function getItemExitKey(item: BlockMeasurement): string {
   return `rw-task-${item.block.id}`;
 }
 
+/** Shape at the entry or exit of an item: a task box or a gateway diamond. */
+export function getItemEdgeKind(
+  item: BlockMeasurement,
+  side: "entry" | "exit",
+): "task" | "gateway" {
+  if (item.kind === "task") return "task";
+  if (item.kind === "gateway") return "gateway";
+  if ("single" in item.body && item.body.single) return "task";
+  const flow = item.body as FlowMeasurement;
+  if (!flow.empty && flow.items.length > 0) {
+    const edgeItem = side === "entry" ? flow.items[0]! : flow.items[flow.items.length - 1]!;
+    return getItemEdgeKind(edgeItem, side);
+  }
+  return "task";
+}
+
 export function getBranchFirstKey(bx: {
   branch: { id: string };
   content: FlowMeasurement | { single: true };
