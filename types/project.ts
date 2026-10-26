@@ -1,6 +1,7 @@
 import type { Block } from "./block";
 import type { Task } from "./task";
 import type { EventLogItem } from "./event-log";
+import type { WorkCalendar } from "./performance";
 
 export type EventLogDataSource = "simulated" | "imported";
 
@@ -14,6 +15,8 @@ export interface Project {
   bpmnXml?: string;
   uploadedEvents?: EventLogItem[] | null;
   eventLogDataSource?: EventLogDataSource;
+  /** Working-hours calendar used by the performance analysis (optional). */
+  workCalendar?: WorkCalendar;
   createdAt: number;
   updatedAt: number;
 }

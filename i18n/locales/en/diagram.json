@@ -349,6 +349,92 @@
       "title": "Long waiting time before: {name}",
       "description": "Cases wait a long time before this activity starts; it accounts for {share}% of all waiting time in the log.",
       "evidence": "Wait median {median} h · p95 {p95} h · max {max} h · {share}% of total waiting"
+    },
+    "title": "Performance & waiting time",
+    "subtitle": "Processing, waiting and cycle time measured on the uploaded event log. Waiting = gap between the previous step finishing and this step starting.",
+    "empty": "Performance analysis needs a real event log with start and end timestamps. Upload one in the Event Log tab.",
+    "goToEventLog": "Go to Event Log",
+    "noCasesInRange": "No case starts in the selected date range.",
+    "units": {
+      "minutes": "{value} min",
+      "hours": "{value} h",
+      "days": "{value} d ({hours} h)"
+    },
+    "kpi": {
+      "cases": "Cases",
+      "cycleTimeMedian": "Median cycle time",
+      "cycleTimeP90": "p90: {value}",
+      "cte": "Cycle time efficiency",
+      "cteHint": "Σ processing / Σ cycle time",
+      "totalWaiting": "Total waiting time",
+      "waitingPerCase": "Mean per case: {value}"
+    },
+    "activities": {
+      "title": "Activities",
+      "description": "Top 3 bottlenecks by share of total waiting time are highlighted.",
+      "activity": "Activity",
+      "count": "Count",
+      "processingMedian": "Processing (median)",
+      "processingMean": "Processing (mean)",
+      "waitingMedian": "Wait (median)",
+      "waitingP95": "Wait (p95)",
+      "waitingMax": "Wait (max)",
+      "waitingShare": "Share of waiting"
+    },
+    "chart": {
+      "title": "Where does the waiting time go?",
+      "description": "Share of total waiting time per activity (waiting before it starts).",
+      "share": "Share of waiting"
+    },
+    "resources": {
+      "title": "Resources",
+      "resource": "Resource",
+      "count": "Events",
+      "processingTotal": "Processing (total)",
+      "processingMedian": "Processing (median)",
+      "waitingMedian": "Wait before (median)",
+      "waitingP95": "Wait before (p95)"
+    },
+    "cases": {
+      "title": "Cases by waiting time",
+      "description": "Longest waiting first.",
+      "caseId": "Case",
+      "start": "Started",
+      "waitingTime": "Waiting",
+      "processingTime": "Processing",
+      "cycleTime": "Cycle time",
+      "cte": "CTE",
+      "search": "Search case…"
+    },
+    "filters": {
+      "from": "Cases started from",
+      "to": "to",
+      "clearDates": "Clear dates",
+      "workingHours": "Working hours",
+      "calendarHours": "Calendar hours"
+    },
+    "calendar": {
+      "configure": "Work calendar",
+      "title": "Work calendar",
+      "description": "Only time inside these blocks on working days is counted when \"Working hours\" is on (local time).",
+      "workDays": "Working days",
+      "blocks": "Working hours",
+      "from": "From",
+      "to": "To",
+      "invalidBlock": "End must be after start",
+      "removeBlock": "Remove block",
+      "addBlock": "Add block",
+      "save": "Save",
+      "days": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      }
     }
-  }
+  },
+  "performanceTab": "Performance"
 }

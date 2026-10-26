@@ -67,6 +67,31 @@ function groupCases(events: EventLogItem[]): Map<string, TimedEvent[]> {
   return cases;
 }
 
+/** Local calendar date "YYYY-MM-DD" of an epoch-ms instant. */
+function localDateKey(ms: number): string {
+  const d = new Date(ms);
+  const pad = (n: number): string => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/**
+ * Keeps whole cases whose first event starts within [from, to] (inclusive local dates
+ * "YYYY-MM-DD"; an empty bound is open).
+ */
+export function filterEventsByCaseStart(
+  events: EventLogItem[],
+  from?: string,
+  to?: string,
+): EventLogItem[] {
+  if (!from && !to) return events;
+  const keep = new Set<string>();
+  for (const [caseId, list] of groupCases(events)) {
+    const day = localDateKey(Math.min(...list.map((e) => e.start)));
+    if ((!from || day >= from) && (!to || day <= to)) keep.add(caseId);
+  }
+  return events.filter((e) => keep.has(e.caseId));
+}
+
 /** Ordered activity traces, one per case (same event ordering as the performance analysis). */
 export function orderedCaseTraces(events: EventLogItem[]): EventLogItem[][] {
   return [...groupCases(events).values()].map((list) => list.map((item) => item.event));

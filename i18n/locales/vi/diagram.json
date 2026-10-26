@@ -349,6 +349,92 @@
       "title": "Chờ lâu trước: {name}",
       "description": "Case phải chờ lâu trước khi bắt đầu activity này; chiếm {share}% tổng thời gian chờ trong log.",
       "evidence": "Chờ trung vị {median} h · p95 {p95} h · max {max} h · {share}% tổng thời gian chờ"
+    },
+    "title": "Hiệu năng & thời gian chờ",
+    "subtitle": "Thời gian xử lý, chờ và chu kỳ đo trên event log đã tải lên. Thời gian chờ = khoảng từ lúc bước trước xong tới lúc bước này bắt đầu.",
+    "empty": "Phân tích hiệu năng cần event log thực có thời điểm bắt đầu và kết thúc. Hãy tải log lên ở tab Event Log.",
+    "goToEventLog": "Mở tab Event Log",
+    "noCasesInRange": "Không có case nào bắt đầu trong khoảng ngày đã chọn.",
+    "units": {
+      "minutes": "{value} phút",
+      "hours": "{value} giờ",
+      "days": "{value} ngày ({hours} giờ)"
+    },
+    "kpi": {
+      "cases": "Số case",
+      "cycleTimeMedian": "Cycle time trung vị",
+      "cycleTimeP90": "p90: {value}",
+      "cte": "Hiệu suất chu kỳ (CTE)",
+      "cteHint": "Σ xử lý / Σ cycle time",
+      "totalWaiting": "Tổng thời gian chờ",
+      "waitingPerCase": "Trung bình mỗi case: {value}"
+    },
+    "activities": {
+      "title": "Activity",
+      "description": "Tô nổi 3 điểm nghẽn có tỷ trọng thời gian chờ lớn nhất.",
+      "activity": "Activity",
+      "count": "Số lần",
+      "processingMedian": "Xử lý (trung vị)",
+      "processingMean": "Xử lý (trung bình)",
+      "waitingMedian": "Chờ (trung vị)",
+      "waitingP95": "Chờ (p95)",
+      "waitingMax": "Chờ (max)",
+      "waitingShare": "Tỷ trọng chờ"
+    },
+    "chart": {
+      "title": "Thời gian chờ nằm ở đâu?",
+      "description": "Tỷ trọng tổng thời gian chờ theo activity (chờ trước khi bắt đầu).",
+      "share": "Tỷ trọng chờ"
+    },
+    "resources": {
+      "title": "Nguồn lực",
+      "resource": "Nguồn lực",
+      "count": "Số event",
+      "processingTotal": "Xử lý (tổng)",
+      "processingMedian": "Xử lý (trung vị)",
+      "waitingMedian": "Chờ trước (trung vị)",
+      "waitingP95": "Chờ trước (p95)"
+    },
+    "cases": {
+      "title": "Case theo thời gian chờ",
+      "description": "Chờ lâu nhất xếp trước.",
+      "caseId": "Case",
+      "start": "Bắt đầu",
+      "waitingTime": "Chờ",
+      "processingTime": "Xử lý",
+      "cycleTime": "Cycle time",
+      "cte": "CTE",
+      "search": "Tìm case…"
+    },
+    "filters": {
+      "from": "Case bắt đầu từ",
+      "to": "đến",
+      "clearDates": "Xóa ngày",
+      "workingHours": "Giờ làm việc",
+      "calendarHours": "Giờ lịch"
+    },
+    "calendar": {
+      "configure": "Lịch làm việc",
+      "title": "Lịch làm việc",
+      "description": "Khi bật \"Giờ làm việc\", chỉ tính thời gian nằm trong các khung giờ này của ngày làm việc (giờ địa phương).",
+      "workDays": "Ngày làm việc",
+      "blocks": "Khung giờ làm việc",
+      "from": "Từ",
+      "to": "Đến",
+      "invalidBlock": "Giờ kết thúc phải sau giờ bắt đầu",
+      "removeBlock": "Xóa khung giờ",
+      "addBlock": "Thêm khung giờ",
+      "save": "Lưu",
+      "days": {
+        "0": "CN",
+        "1": "T2",
+        "2": "T3",
+        "3": "T4",
+        "4": "T5",
+        "5": "T6",
+        "6": "T7"
+      }
     }
-  }
+  },
+  "performanceTab": "Hiệu năng"
 }
