@@ -237,6 +237,8 @@ Nguồn: `services/performance-analysis.ts`. Đơn vị **giờ**, tính từ `s
 - **Xếp hạng điểm nghẽn:** $share_a = W^{total}_a / \sum_b W^{total}_b$, sắp giảm dần.
 - **Lịch làm việc** (tùy chọn, `WorkCalendar`): mọi khoảng thời gian chỉ đếm phần nằm trong các block giờ làm việc
   của ngày làm việc, theo giờ địa phương (`services/work-calendar.ts`).
+- **Heatmap chờ** (`waitingHeatmap`): với một activity, mỗi lần chờ $W_e$ được xếp vào ô (thứ, giờ) của thời điểm
+  **bắt đầu chờ** $\max_{f \prec e} \text{complete}_f$; giá trị ô = trung bình $W_e$.
 
 ---
 

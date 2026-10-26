@@ -434,6 +434,14 @@
         "5": "T6",
         "6": "T7"
       }
+    },
+    "heatmap": {
+      "title": "Heatmap thời gian chờ",
+      "description": "Thời gian chờ trung bình trước activity đã chọn, theo thứ và giờ bắt đầu chờ (giờ địa phương).",
+      "activity": "Activity",
+      "cell": "{day} {hour}:00 — {count} lần chờ, trung bình {mean}",
+      "emptyCell": "{day} {hour}:00 — không có lần chờ",
+      "legend": "Màu càng đậm = chờ trung bình càng lâu (đậm nhất ≈ {max})."
     }
   },
   "performanceTab": "Hiệu năng"

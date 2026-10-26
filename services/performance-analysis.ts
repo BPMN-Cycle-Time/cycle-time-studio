@@ -12,6 +12,8 @@ import type {
   PerformanceAnalysis,
   PerformanceOptions,
   ResourcePerformance,
+  WaitingHeatmap,
+  WaitingHeatmapCell,
 } from "@/types";
 import { workingHoursBetween } from "./work-calendar";
 
@@ -48,6 +50,29 @@ interface TimedEvent {
   processing: number;
   /** Null for the first event of a case. */
   waiting: number | null;
+  /** When the wait began (latest completion of earlier events), null for the first event. */
+  queuedAt: number | null;
+}
+
+type Span = (from: number, to: number) => number;
+
+const spanFor =
+  (calendar: PerformanceOptions["calendar"]): Span =>
+  (from, to) =>
+    calendar ? workingHoursBetween(from, to, calendar) : Math.max(0, to - from) / MS_PER_HOUR;
+
+/** Fills processing / waiting of each (ordered) event of one case; returns the case end. */
+function measureCase(list: TimedEvent[], span: Span): number {
+  let maxEnd = -Infinity;
+  for (const item of list) {
+    item.processing = span(item.start, item.end);
+    if (maxEnd !== -Infinity) {
+      item.waiting = span(maxEnd, item.start);
+      item.queuedAt = maxEnd;
+    }
+    maxEnd = Math.max(maxEnd, item.end);
+  }
+  return maxEnd;
 }
 
 /** Groups events by case (first-appearance order) and sorts each case by start, complete, input order. */
@@ -58,7 +83,7 @@ function groupCases(events: EventLogItem[]): Map<string, TimedEvent[]> {
     const completeRaw = Date.parse(event.completeTimestamp);
     const end = Number.isFinite(completeRaw) ? completeRaw : start;
     const list = cases.get(event.caseId) ?? [];
-    list.push({ event, index, start, end, processing: 0, waiting: null });
+    list.push({ event, index, start, end, processing: 0, waiting: null, queuedAt: null });
     cases.set(event.caseId, list);
   });
   for (const list of cases.values()) {
@@ -125,27 +150,15 @@ export function analyzePerformance(
   events: EventLogItem[],
   options: PerformanceOptions = {},
 ): PerformanceAnalysis {
-  const { calendar } = options;
-  const span = (from: number, to: number): number =>
-    calendar ? workingHoursBetween(from, to, calendar) : Math.max(0, to - from) / MS_PER_HOUR;
-
+  const span = spanFor(options.calendar);
   const all: TimedEvent[] = [];
   const cases: CasePerformance[] = [];
 
   for (const [caseId, list] of groupCases(events)) {
-    let maxEnd = -Infinity;
-    let processingTime = 0;
-    let waitingTime = 0;
-    for (const item of list) {
-      item.processing = span(item.start, item.end);
-      if (maxEnd !== -Infinity) {
-        item.waiting = span(maxEnd, item.start);
-        waitingTime += item.waiting;
-      }
-      maxEnd = Math.max(maxEnd, item.end);
-      processingTime += item.processing;
-      all.push(item);
-    }
+    const maxEnd = measureCase(list, span);
+    all.push(...list);
+    const processingTime = list.reduce((s, e) => s + e.processing, 0);
+    const waitingTime = list.reduce((s, e) => s + (e.waiting ?? 0), 0);
     const caseStart = Math.min(...list.map((e) => e.start));
     const cycleTime = span(caseStart, maxEnd);
     cases.push({
@@ -190,4 +203,35 @@ export function analyzePerformance(
     },
     waitingShareRanking,
   };
+}
+
+/**
+ * Waiting time of one activity bucketed by when the wait began (local weekday × hour of day).
+ * `cells[weekday][hour]` with weekday 0 = Sunday.
+ */
+export function waitingHeatmap(
+  events: EventLogItem[],
+  activity: string,
+  options: PerformanceOptions = {},
+): WaitingHeatmap {
+  const span = spanFor(options.calendar);
+  const cells: WaitingHeatmapCell[][] = Array.from({ length: 7 }, () =>
+    Array.from({ length: 24 }, () => ({ count: 0, totalWaiting: 0, meanWaiting: 0 })),
+  );
+  let maxMean = 0;
+  for (const list of groupCases(events).values()) {
+    measureCase(list, span);
+    for (const item of list) {
+      if (item.event.activity !== activity || item.waiting === null || item.queuedAt === null) {
+        continue;
+      }
+      const at = new Date(item.queuedAt);
+      const cell = cells[at.getDay()]![at.getHours()]!;
+      cell.count += 1;
+      cell.totalWaiting += item.waiting;
+      cell.meanWaiting = cell.totalWaiting / cell.count;
+      maxMean = Math.max(maxMean, cell.meanWaiting);
+    }
+  }
+  return { activity, cells, maxMeanWaiting: maxMean };
 }

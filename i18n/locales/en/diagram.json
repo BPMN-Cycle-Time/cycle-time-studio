@@ -434,6 +434,14 @@
         "5": "Fri",
         "6": "Sat"
       }
+    },
+    "heatmap": {
+      "title": "Waiting heatmap",
+      "description": "Mean waiting time before the selected activity, by the weekday and hour the wait began (local time).",
+      "activity": "Activity",
+      "cell": "{day} {hour}:00 — {count} waits, mean {mean}",
+      "emptyCell": "{day} {hour}:00 — no waits",
+      "legend": "Darker = longer mean wait (darkest ≈ {max})."
     }
   },
   "performanceTab": "Performance"

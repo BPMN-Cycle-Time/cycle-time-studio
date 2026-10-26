@@ -7,3 +7,4 @@ export * from "./performance-resource-table";
 export * from "./performance-case-table";
 export * from "./work-calendar-dialog";
 export * from "./performance-format";
+export * from "./performance-wait-heatmap";

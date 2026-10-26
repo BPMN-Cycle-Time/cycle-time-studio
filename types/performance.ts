@@ -67,3 +67,16 @@ export interface PerformanceAnalysis {
 export interface PerformanceOptions {
   calendar?: WorkCalendar;
 }
+
+export interface WaitingHeatmapCell {
+  count: number;
+  totalWaiting: number;
+  meanWaiting: number;
+}
+
+export interface WaitingHeatmap {
+  activity: string;
+  /** cells[weekday][hour], weekday 0 = Sunday, local time of when the wait began. */
+  cells: WaitingHeatmapCell[][];
+  maxMeanWaiting: number;
+}

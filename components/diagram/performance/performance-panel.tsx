@@ -16,6 +16,7 @@ import { PerformanceActivityTable } from "./performance-activity-table";
 import { PerformanceWaitChart } from "./performance-wait-chart";
 import { PerformanceResourceTable } from "./performance-resource-table";
 import { PerformanceCaseTable } from "./performance-case-table";
+import { PerformanceWaitHeatmap } from "./performance-wait-heatmap";
 
 interface PerformancePanelProps {
   uploadedEvents?: EventLogItem[] | null;
@@ -87,6 +88,11 @@ export function PerformancePanel({ uploadedEvents, onSwitchDiagramTab }: Perform
           <PerformanceKpis analysis={analysis} />
           <PerformanceWaitChart analysis={analysis} />
           <PerformanceActivityTable analysis={analysis} />
+          <PerformanceWaitHeatmap
+            events={events}
+            analysis={analysis}
+            calendar={workingHours ? calendar : undefined}
+          />
           <PerformanceResourceTable analysis={analysis} />
           <PerformanceCaseTable analysis={analysis} />
         </>
