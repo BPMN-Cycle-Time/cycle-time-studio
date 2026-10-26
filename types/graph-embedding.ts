@@ -1,3 +1,5 @@
+import type { EventLogItem } from "./event-log";
+
 // Graph embedding models: Node2Vec, Weisfeiler–Lehman features / kernel, Graph2Vec anomaly scoring.
 
 /** Generic directed, labelled graph used by every embedding algorithm. */
@@ -60,3 +62,70 @@ export interface AnomalyEvaluation {
   any: { count: number; auc: number };
   precisionAtN: number;
 }
+
+// ---------------------------------------------------------------------------
+// Background jobs (run in a Web Worker by the Graph Embedding tab)
+// ---------------------------------------------------------------------------
+
+export type TraceEmbeddingMethod = "graph2vec" | "wlKernel";
+
+/** Node labelling of trace graphs: activity only / + waiting level / + waiting level + attributes. */
+export type TraceLabelMode = "structure" | "timeAware" | "timeAndAttributes";
+
+export interface TraceEmbeddingSettings {
+  method: TraceEmbeddingMethod;
+  /** kNN neighbours for the anomaly score. */
+  k: number;
+  slowQuantile: number;
+  attributeKeys: string[];
+  graph2vec: Graph2VecOptions;
+}
+
+export type EmbeddingJobRequest =
+  | { kind: "node2vec"; graph: LabeledGraph; options: Node2VecOptions; clusters: number }
+  | {
+      kind: "traceEmbedding";
+      events: EventLogItem[];
+      mode: TraceLabelMode;
+      settings: TraceEmbeddingSettings;
+    }
+  | {
+      kind: "compareLabelModes";
+      events: EventLogItem[];
+      settings: TraceEmbeddingSettings;
+    };
+
+export interface Node2VecJobResult {
+  kind: "node2vec";
+  ids: string[];
+  vectors: number[][];
+  clusters: number[];
+  points: [number, number][];
+}
+
+export interface TraceCaseSummary {
+  caseId: string;
+  score: number;
+  eventCount: number;
+  slowCount: number;
+  /** Activities in order. */
+  activities: string[];
+}
+
+export interface TraceEmbeddingJobResult {
+  kind: "traceEmbedding";
+  cases: TraceCaseSummary[];
+  points: [number, number][];
+}
+
+export interface LabelModeComparisonResult {
+  kind: "compareLabelModes";
+  caseIds: string[];
+  scores: Record<TraceLabelMode, number[]>;
+}
+
+export type EmbeddingJobResult =
+  Node2VecJobResult | TraceEmbeddingJobResult | LabelModeComparisonResult;
+
+export type EmbeddingJobResponse =
+  { id: number; ok: true; result: EmbeddingJobResult } | { id: number; ok: false; error: string };
