@@ -326,5 +326,12 @@
     "decisionNotReached": "Decision \"{name}\" is never reached in the log — its probabilities were kept.",
     "loopNotReached": "Loop \"{name}\" is never entered in the log — its repeat probability was kept.",
     "parallelApproximated": "Parallel blocks were replayed in branch order — their probabilities are approximate."
+  },
+  "performance": {
+    "bpr": {
+      "title": "Long waiting time before: {name}",
+      "description": "Cases wait a long time before this activity starts; it accounts for {share}% of all waiting time in the log.",
+      "evidence": "Wait median {median} h · p95 {p95} h · max {max} h · {share}% of total waiting"
+    }
   }
 }
